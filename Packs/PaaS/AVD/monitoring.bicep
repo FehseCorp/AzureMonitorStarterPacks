@@ -36,7 +36,9 @@ param assignmentLevel string
 // param grafanaName string
 param customerTags object 
 param instanceName string
+
 var rulename = 'AMP-${instanceName}-${packtag}'
+var ruleshortname = 'AVD'
 var tempTags ={
   '${solutionTag}': packtag
   MonitoringPackType: 'PaaS'
@@ -141,6 +143,22 @@ module dcravdMonitoring '../../../modules/DCRs/dcr-AVD.bicep' = {
     packtag: packtag
     solutionTag: solutionTag
     dceId: dceId
+  }
+}
+
+module policysetup '../../../modules/policies/mg/policies.bicep' = {
+  name: 'policysetup-${packtag}'
+  params: {
+    dcrId: dcravdMonitoring.outputs.dcrId
+    packtag: packtag
+    solutionTag: solutionTag
+    rulename: rulename
+    location: location
+    userManagedIdentityResourceId: userManagedIdentityResourceId
+    mgname: mgname
+    ruleshortname: '${ruleshortname}-1'
+    assignmentLevel: assignmentLevel
+    subscriptionId: subscriptionId
   }
 }
 
