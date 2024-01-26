@@ -107,7 +107,7 @@ var resourceTypes = [
 
 // Alerts - the module below creates the alerts and associates them with the action group
 
-module Alerts 'alerts.bicep' = {
+/* module Alerts 'alerts.bicep' = {
   name: 'Alerts-${packtag}'
   params: {
     location: location
@@ -123,7 +123,7 @@ module Alerts 'alerts.bicep' = {
     parResourceGroupName: parResourceGroupName
     subscriptionId: subscriptionId
   }
-}
+} */
 
 
 // DCRs
