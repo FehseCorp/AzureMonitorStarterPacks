@@ -2,7 +2,7 @@ param location string
 param rulename string
 param workspaceId string
 param kind string = 'Windows'
-param wsfriendlyname string = 'TBD'
+param wsfriendlyname string
 param xPathQueries array = []
 param counterSpecifiers30 array = []
 param counterSpecifiers60 array = []

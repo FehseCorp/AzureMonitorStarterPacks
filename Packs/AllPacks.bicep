@@ -15,6 +15,7 @@ param location string
 param useExistingAG bool
 @description('Full resource ID of the log analytics workspace to be used for the deployment.')
 param workspaceId string
+param workspaceIdAVD string
 param solutionTag string
 param solutionVersion string
 @description('Full resource ID of the data collection endpoint to be used for the deployment.')
@@ -94,10 +95,10 @@ module AllPaaSPacks 'PaaS/AllPaaSPacks.bicep' = if (deployPaaSPacks) {
     // _artifactsLocationSasToken: _artifactsLocationSasToken
     location: location
     workspaceId: workspaceId
-    //workspaceIdAVD: workspaceIdAVD
+    workspaceIdAVD: workspaceIdAVD
     solutionTag: solutionTag
     solutionVersion: solutionVersion
-    //dceId: dceId
+    dceId: dceId
     userManagedIdentityResourceId: userManagedIdentityResourceId
     assignmentLevel: assignmentLevel
     //grafanaName: 'grafana'

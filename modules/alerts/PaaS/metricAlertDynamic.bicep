@@ -23,7 +23,7 @@ param AGId string
 param metricName string
 param operator string
 param timeAggregation string
-param minFailingPeriodsToAlert int
+param minFailingPeriodsToAlert string
 param numberOfEvaluationPeriods int
 param alertSensitivity string
 param initiativeMember bool
@@ -268,7 +268,7 @@ module metricAlert '../../alz/deploy.bicep' = {
                 defaultValue: AGId
             }
             minFailingPeriodsToAlert: {
-                type: 'Integer'
+                type: 'String'
                 metadata: {
                     displayName: 'Min Failing Periods To Alert'
                     description: 'Min Failing Periods To Alert for the alert'
@@ -276,7 +276,7 @@ module metricAlert '../../alz/deploy.bicep' = {
                 defaultValue: minFailingPeriodsToAlert
             }
             numberOfEvaluationPeriods: {
-                type: 'Integer'
+                type: 'Int'
                 metadata: {
                     displayName: 'Number Of Evaluation Periods'
                     description: 'Number Of Evaluation Periods for the alert'
@@ -426,7 +426,7 @@ module metricAlert '../../alz/deploy.bicep' = {
                                         type: 'Int'
                                     }
                                     minFailingPeriodsToAlert: {
-                                        type: 'Int'
+                                        type: 'String'
                                     }
                                     alertSensitivity: {
                                         type: 'String'
@@ -522,7 +522,7 @@ module metricAlert '../../alz/deploy.bicep' = {
                                                     type: 'string'
                                                 }
                                                 minFailingPeriodsToAlert: {
-                                                    type: 'Int'
+                                                    type: 'String'
                                                 }
                                                 numberOfEvaluationPeriods: {
                                                     type: 'Int'

@@ -1,6 +1,9 @@
 param functionname string
 param location string
 param Tags object
+param _artifactsLocation string
+@secure()
+param _artifactsLocationSasToken string
 param userManagedIdentity string
 param userManagedIdentityClientId string
 param packsUserManagedId string
@@ -9,6 +12,7 @@ param filename string = 'discovery.zip'
 param sasExpiry string = dateTimeAdd(utcNow(), 'PT2H')
 param lawresourceid string
 param appInsightsLocation string
+
 
 var discoveryContainerName = 'discovery'
 var tempfilename = '${filename}.tmp'
@@ -171,6 +175,8 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
     FUNCTIONS_EXTENSION_VERSION:'~4'
     ResourceGroup: resourceGroup().name
     SolutionTag: solutionTag
+    ARTIFACTS_LOCATION: _artifactsLocation
+    ARTIFACSTS_LOCATION_SAS_TOKEN: _artifactsLocationSasToken
     APPINSIGHTS_INSTRUMENTATIONKEY: reference(appinsights.id, '2020-02-02-preview').InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: 'InstrumentationKey=${reference(appinsights.id, '2020-02-02-preview').InstrumentationKey}'
     ApplicationInsightsAgent_EXTENSION_VERSION: '~2'

@@ -4,6 +4,9 @@ targetScope = 'managementGroup'
 param functionname string
 param logicappname string
 param instanceName string
+param _artifactsLocation string
+@secure()
+param _artifactsLocationSasToken string
 //param currentUserIdObject string
 param location string
 param storageAccountName string
@@ -75,6 +78,8 @@ module backendFunction 'modules/function.bicep' = {
     functionUserManagedIdentity
   ]
   params: {
+    _artifactsLocation: _artifactsLocation
+    _artifactsLocationSasToken: _artifactsLocationSasToken
     appInsightsLocation: appInsightsLocation
     functionname: functionname
     lawresourceid: lawresourceid

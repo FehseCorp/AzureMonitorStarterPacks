@@ -1,0 +1,21 @@
+using './monitoring.bicep'
+
+param _artifactsLocation = 'https://raw.githubusercontent.com/JCoreMS/HostPoolDeployment/master/'
+param _ArtifactsLocationSasToken = ''
+param ruleshortname = 'AVD'
+param actionGroupResourceId = '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDAlerts/providers/microsoft.insights/actiongroups/ag-avdmetrics-p-eastus2'
+param packtag = 'AVD'
+param solutionTag = 'MonitorStarterPacks'
+param solutionVersion = '0.0.1'
+param location = 'eastus2'
+param workspaceId = '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourcegroups/rg-eastus2-avdlab-manage/providers/microsoft.operationalinsights/workspaces/law-eastus2-avdlab'
+param dceId = '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-MonStarPacks/providers/Microsoft.Insights/dataCollectionEndpoints/AMP-prod-DCE-eastus2'
+param parResourceGroupName = 'rg-eastus2-MonStarPacks'
+param resourceGroupId = '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-MonStarPacks'
+param subscriptionId = '8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9'
+param userManagedIdentityResourceId = '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-MonStarPacks/providers/Microsoft.ManagedIdentity/userAssignedIdentities/AMP-prod-UMI-Packs'
+param mgname = 'CoreFamilyLab'
+param assignmentLevel = 'Subscription'
+param customerTags = {}
+param instanceName = 'prod'
+
