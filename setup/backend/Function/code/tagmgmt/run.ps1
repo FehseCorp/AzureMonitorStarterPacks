@@ -325,7 +325,6 @@ function Config-AVD {
         [object]$TagValue
     )
     $hostPoolName = $hostPoolName.ToLower()  # ensures case sensitivity with search
-    $LogAnalyticsWS = $Request.Body.AltLAW
 
     # Graph Query to map host pool resources (App Group, Workspace, VMs, etc)
     "AVD - Perform an Azure Graph Query to map Host Pool's App Group, Workspace and VM resources and status. ($hostPoolName)"
@@ -376,6 +375,7 @@ resources
 
     $AVDResources = Search-AzGraph -Query $MapResourcesQuery
     $Tag = @{$TagName = $TagValue }
+    $LogAnalyticsWS = $Request.Body.AltLAW
     # Set Tagging on related resources (Host Pool already tagged inside main)
     #    Get current tags and append the new tag(s)
     If ($action -eq 'AddTag') {
