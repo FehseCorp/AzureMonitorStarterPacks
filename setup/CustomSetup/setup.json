@@ -265,7 +265,7 @@
                             "type": "Microsoft.Common.TextBox",
                             "label": "Log Analytics Workspace Name for MonStar Packs",
                             "subLabel": "",
-                            "defaultValue": "Monster-LA",
+                            "defaultValue": "AMPacks-LA",
                             "toolTip": "Log Analytics Workspace Name for MonStar Packs.",
                             "constraints": {
                                 "required": "[equals(steps('Configuration').LAWStatus, 'New')]",

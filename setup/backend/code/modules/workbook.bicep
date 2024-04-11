@@ -1016,7 +1016,7 @@ var wbConfig = '''
       "content": {
         "version": "NotebookGroup/1.0",
         "groupType": "editable",
-        "title": "Alert Management - MonStar Alerts",
+        "title": "Alert Management - AMPacks Alerts",
         "items": [
           {
             "type": 9,
@@ -2095,7 +2095,7 @@ var wbConfig = '''
               "query": "policyresources\n| where type == \"microsoft.authorization/policydefinitions\"\n| where  isnotempty(properties.metadata.MonitorStarterPacks)\n| project Name=name, Type='Policy',['id'],Pack=tostring(properties.metadata.MonitorStarterPacks)\n| join kind = leftouter (policyresources\n| where type == \"microsoft.authorization/policyassignments\"\n| project AssignmentName=name,scope=properties.scope,PolicyId=tostring(properties.policyDefinitionId), PolicyName=split(properties.PolicyId,\"/\")[8]\n| join kind=leftouter  (policyresources\n| where type == \"microsoft.authorization/policydefinitions\"\n| where  isnotempty(properties.metadata.MonitorStarterPacks)) on $left.PolicyId == $right.id\n| project tostring(AssignmentName),Name=tostring(split(PolicyId,\"/\")[8]), PolicyId,ScopeLevel=iff(scope contains 'subscriptions',\"Sub\", \"MG\"), Scope=scope) on Name\n| project-away Name1, id\n| union ( policyresources\n| where type == \"microsoft.authorization/policysetdefinitions\"\n| where  isnotempty(properties.metadata.MonitorStarterPacks)\n| project Name=name, Type='Initiative',['id'],Pack=\"_N/A\"\n| join kind = leftouter (policyresources\n| where type == \"microsoft.authorization/policyassignments\"\n| project AssignmentName=name,scope=properties.scope,PolicyId=tostring(properties.policyDefinitionId), PolicyName=split(properties.PolicyId,\"/\")[8]\n| join kind=leftouter  (policyresources\n| where type == \"microsoft.authorization/policysetdefinitions\"\n| where  isnotempty(properties.metadata.MonitorStarterPacks)) on $left.PolicyId == $right.id\n| project tostring(AssignmentName),Name=tostring(split(PolicyId,\"/\")[8]), PolicyId, ScopeLevel=iff(scope contains 'subscriptions',\"Sub\", \"MG\"),Scope=scope) on Name\n| project-away Name1, id)\n| sort by Pack asc, AssignmentName asc ",
               "size": 0,
               "title": "Installed Policies and Initiatives with Assignments",
-              "noDataMessage": "No MonStar policies (packs) installed.",
+              "noDataMessage": "No AMPacks policies (packs) installed.",
               "exportMultipleValues": true,
               "exportedParameters": [
                 {
