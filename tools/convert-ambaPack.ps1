@@ -209,6 +209,7 @@ module $packTag '$packfolder' = {
     policyLocation: location
     parResourceGroupName: resourceGroupId
     resourceType: '$metricNamespace'
+    solutionVersion: solutionVersion
   }
 }
 "@
