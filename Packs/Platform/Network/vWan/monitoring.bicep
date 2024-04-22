@@ -29,21 +29,16 @@ var Tags = (customerTags=={}) ? tempTags : union(tempTags,customerTags.All)
 
 var resourceGroupName = split(resourceGroupId, '/')[4]
 
-// Action Group - the action group is either created or can reference an existing action group, depending on the useExistingAG parameter
-// module ag '../../../../modules/actiongroups/ag.bicep' = {
-//   name: actionGroupName
-//   params: {
-//     actionGroupName: actionGroupName
-//     existingAGRG: existingAGRG
-//     emailreceivers: emailreceivers
-//     emailreiceversemails: emailreiceversemails
-//     useExistingAG: useExistingAG
-//     newRGresourceGroup: resourceGroupName
-//     solutionTag: solutionTag
-//     subscriptionId: subscriptionId
-//     location: location
-//   }
-// }
+module workbook 'workbook.bicep' = {
+  name: '${packtag}-workbook'
+  scope: resourceGroup(subscriptionId, resourceGroupName)
+  params: {
+    location: location
+    Tags: Tags
+    workspaceId: workspaceId
+    name: 'AMP - ExpressRoute Monitoring'
+  }
+}
 
 module diagnosticsPolicy '../../../../modules/policies/mg/diagnostics/associacionpolicyDiag.bicep' = [for (rt,i) in resourceTypes: {
   name: 'associacionpolicy-${packtag}-${split(rt, '/')[1]}'

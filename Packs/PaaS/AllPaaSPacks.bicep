@@ -1,17 +1,4 @@
 targetScope = 'managementGroup'
-// @description('Name of the Action Group to be used or created.')
-// param actionGroupName string = ''
-// @description('Email receiver names to be used for the Action Group if being created.')
-// param emailreceivers array = []
-// @description('Email addresses to be used for the Action Group if being created.')
-// param emailreiceversemails array = []
-// @description('If set to true, a new Action group will be created')
-// param useExistingAG bool
-// @description('Name of the existing resource group to be used for the Action Group if existing.')
-// param existingAGRG string = ''
-// param _artifactsLocation string
-// @secure()
-// param _artifactsLocationSasToken string
 
 param actionGroupResourceId string
 @description('location for the deployment.')
@@ -33,8 +20,6 @@ param assignmentLevel string
 //param grafanaName string
 param customerTags object 
 param instanceName string
-
-
 
 module Storage './Storage/monitoring.bicep' = {
   name: 'StorageAlerts'
@@ -78,11 +63,11 @@ module AVD './AVD/monitoring.bicep' = {
 }
 
 // No logs for this pack, so going straight to alerts
-module LogicApps './LogicApps/alerts.bicep' = {
+module LogicApps './LogicApps/monitoring.bicep' = {
   name: 'LogicAppsAlerts'
   params: {
     assignmentLevel: assignmentLevel
-    //location: location
+    location: location
     mgname: mgname
     //resourceGroupId: resourceGroupId
     solutionTag: solutionTag
@@ -90,16 +75,15 @@ module LogicApps './LogicApps/alerts.bicep' = {
     //actionGroupResourceId: actionGroupResourceId
     userManagedIdentityResourceId: userManagedIdentityResourceId
     //workspaceId: workspaceId
-    packTag: 'LogicApps'
+    packtag: 'LogicApps'
     //grafanaName: grafanaName
     //dceId: dceId
-    //customerTags: customerTags
+    customerTags: customerTags
     instanceName: instanceName
-    AGId: actionGroupResourceId
-    policyLocation: location
-    parResourceGroupName: resourceGroupId
+    actionGroupResourceId: actionGroupResourceId
+    resourceGroupId: resourceGroupId
+    workspaceId: workspaceId  
     solutionVersion: solutionVersion
-    resourceType: 'Microsoft.Logic/workflows'
   }
 }
 
@@ -128,6 +112,7 @@ module SQLMI './SQL/SQLMI/alerts.bicep' = {
     resourceType: 'Microsoft.Sql/managedInstances'
   }
 }
+
 module SQLSrv './SQL/server/alerts.bicep' = {                              
   name: 'SQLSrvAlerts'
   params: {
@@ -152,6 +137,7 @@ module SQLSrv './SQL/server/alerts.bicep' = {
     resourceType: 'Microsoft.Sql/servers/databases'
   }
 }
+
 module WebApps './WebApp/monitoring.bicep' = {
   name: 'WebApps'
   params: {
@@ -177,6 +163,7 @@ module WebApps './WebApp/monitoring.bicep' = {
     workspaceId: workspaceId
   }
 }
+
 module ADF './ADF/alerts.bicep' = {
   name: 'ADFAlerts'
   params: {

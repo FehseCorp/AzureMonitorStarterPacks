@@ -19,7 +19,8 @@ param deploymentRoleDefinitionIds array = [
 //     environment: 'test'
 // }
 param parAlertState string = 'true'
-  
+
+
 module Alert1  '../../../../modules/alerts/PaaS/metricAlertDynamic.bicep' = {
     name: '${uniqueString(deployment().name)}-ApplicationGatewayTotalTime'
     params: {

@@ -111,28 +111,22 @@ module AA './AA/alerts.bicep' = {
     resourceType: 'Microsoft.Automation/automationAccounts'
   }
 }
-module AppGW './Network/AppGW/alerts.bicep' = {
-  name: 'AppGWAlerts'
+module AppGW './Network/AppGW/monitoring.bicep' = {
+  name: 'AppGWMonitoring'
   params: {
     assignmentLevel: assignmentLevel
-    //location: location
     mgname: mgname
-    //resourceGroupId: resourceGroupId
     solutionTag: solutionTag
     subscriptionId: subscriptionId
-    //actionGroupResourceId: actionGroupResourceId
     userManagedIdentityResourceId: userManagedIdentityResourceId
-    //workspaceId: workspaceId
-    packTag: 'AppGW'
-    //grafanaName: grafanaName
-    //dceId: dceId
-    //customerTags: customerTags
     instanceName: instanceName
     solutionVersion: solutionVersion
-    AGId: actionGroupResourceId
-    policyLocation: location
-    parResourceGroupName: resourceGroupId
-    resourceType: 'Microsoft.Network/applicationGateways'
+    actionGroupResourceId: actionGroupResourceId
+    customerTags: customerTags
+    location: location
+    packtag: 'AppGW'
+    resourceGroupId: resourceGroupId
+    workspaceId: workspaceId
   }
 }
 module AzFW './Network/AzFW/alerts.bicep' = {
