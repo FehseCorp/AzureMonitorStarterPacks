@@ -16,7 +16,10 @@ else {
     mkdir $monitoringfolder 
 }
 $ADMetricLogfile="AdMetricLog.csv"
+$ADStatusLogFile="AdStatusLog.csv"
+#
 # Gets the current free space on the disk drive that holds the AD log file
+#
 $LogFileRegKey = "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\"
 $sPathLog=(Get-ItemProperty -Path $LogFileRegKey -Name "Database log files path")."Database log files path"
 $volinfo=get-volume -DriveLetter $sPathLog[0]
@@ -25,8 +28,9 @@ $tags=@"
 {"vm.azm.ms/mountId":"$($volinfo.driveletter):","vm.azm.ms/volSize":"$($volinfo.Size)","vm.azm.ms/logFilePath":"$sPathLog"}
 "@
 "$runTime,ADLogFileDriveDiskSpacePctUsed,$([math]::round($volinfo.SizeRemaining/$volinfo.Size*100,2)),$tags" | Out-File "$monitoringfolder\$ADMetricLogfile" -Append -Encoding utf8
-
+#
 # Gets the current free space on the disk drive that holds the AD database file
+#
 # "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\DSA Database File"
 $LogFileRegKey = "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\"
 $sPathLog=(Get-ItemProperty -Path $LogFileRegKey -Name "DSA Database File")."DSA Database File"
@@ -35,8 +39,9 @@ $tags=@"
 {"vm.azm.ms/mountId":"$($volinfo.driveletter):","vm.azm.ms/volSize":"$($volinfo.Size)","vm.azm.ms/logFilePath":"$sPathLog"}
 "@
 "$runTime,ADDSADDBDrivePctFree,$([math]::round($volinfo.SizeRemaining/$volinfo.Size*100,2)),$tags" | Out-File "$monitoringfolder\$ADMetricLogfile" -Append -Encoding utf8
-
+#
 # Gets the current size of the ntds.dit file
+#
 $LogFileRegKey = "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\"
 $sPathLog=(Get-ItemProperty -Path $LogFileRegKey -Name "DSA Database File")."DSA Database File"
 $fileSize=(get-Item $sPathLog).Length
@@ -45,8 +50,9 @@ $tags=@"
 {"vm.azm.ms/mountId":"$($volinfo.driveletter):","vm.azm.ms/logFilePath":"$sPathLog"}
 "@
 "$runTime,ADDitFileSize,$fileSize,$tags" | Out-File "$monitoringfolder\$ADMetricLogfile" -Append -Encoding utf8
-
+#
 # Gets L&F items
+#
 $oRoot = [adsi]"LDAP://rootdse"
 $strDNSDomain=$oRoot.defaultNamingContext
 $Provider = "ADsDSOObject"
@@ -77,3 +83,8 @@ $tags=@"
 {"vm.azm.ms/ADlsasscpu":"$strDNSDomain"}
 "@
 "$runTime,ADDSlsassCPU,$totalcpu,$tags" | Out-File "$monitoringfolder\$ADMetricLogfile" -Append -Encoding utf8
+
+#
+#
+#
+
