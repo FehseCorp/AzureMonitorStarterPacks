@@ -270,11 +270,11 @@
                                 "allowedValues": [
                                     {
                                         "label": "Management Group",
-                                        "value": "ManagementGroup"
+                                        "value": "managementGroup"
                                     },
                                     {
                                         "label": "Subscription",
-                                        "value": "Subscription"
+                                        "value": "subscription"
                                     }
                                 ],
                                 "required": true
