@@ -153,7 +153,7 @@ module logicapp './modules/logicapp.bicep' = {
 // }
 
 module extendedWorkbook './modules/extendedworkbook.bicep' = {
-  name: 'workbook2deployment'
+  name: 'workbook2deployment-${instanceName}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   params: {
     lawresourceid: lawresourceid
@@ -227,7 +227,7 @@ module keyvault 'modules/keyvault.bicep' = {
 
 //Add permissions for loginapp as a user to keyvault
 module userIdentityRoleAssignments '../../../modules/rbac/mg/roleassignment.bicep' =  [for (roledefinitionId, i) in logicappRequiredRoleassignments:  {
-  name: 'logiapprbac-${i}'
+  name: 'logiapprbac-${i}-${instanceName}'
   scope: managementGroup(mgname)
   params: {
     resourcename: keyvault.outputs.kvResourceId
@@ -241,7 +241,7 @@ module userIdentityRoleAssignments '../../../modules/rbac/mg/roleassignment.bice
 // Secrets
 //
 module kvSecretstorage './modules/keyvaultsecretstorage.bicep' = {
-  name: 'kvSecretsstorage'
+  name: 'kvSecretsstorage-${instanceName}'
   dependsOn: [
     keyvault
   ]
@@ -255,7 +255,7 @@ module kvSecretstorage './modules/keyvaultsecretstorage.bicep' = {
 }
 
 module kvSecretsfunction './modules/keyvaultsecretsfunction.bicep' = {
-  name: 'kvSecretsfunction'
+  name: 'kvSecretsfunction-${instanceName}'
   dependsOn: [
     keyvault
     backendFunction

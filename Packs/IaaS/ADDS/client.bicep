@@ -59,7 +59,7 @@ module upload 'uploadDSADDS.bicep' = {
 }
 
 module addscollectionappversion '../../../setup/discovery/modules/aigappversion.bicep' = {
-  name: 'addscollectionappversion'
+  name: 'addscollectionappversion-${instanceName}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   dependsOn: [
     addscollectionapp
@@ -78,7 +78,7 @@ module addscollectionappversion '../../../setup/discovery/modules/aigappversion.
   }
 }
 module applicationPolicy '../../../setup/discovery/modules/vmapplicationpolicy.bicep' = {
-  name: 'applicationPolicy-${appName}'
+  name: 'applicationPolicy-${appName}-${instanceName}'
   params: {
     packtag: 'ADDS'
     policyDescription: 'Install ${appName} to ${OS} VMs'
@@ -96,7 +96,7 @@ module vmapplicationAssignment '../../../setup/discovery/modules/assignment.bice
   dependsOn: [
     applicationPolicy
   ]
-  name: 'Assignment-${ruleshortname}'
+  name: 'Assignment-${ruleshortname}-${instanceName}'
   scope: managementGroup(mgname)
   params: {
     policyDefinitionId: applicationPolicy.outputs.policyId
@@ -111,7 +111,7 @@ module vmassignmentsub '../../../setup/discovery/modules/sub/assignment.bicep' =
   dependsOn: [
     applicationPolicy
   ]
-  name: 'AssignSub-${ruleshortname}'
+  name: 'AssignSub-${ruleshortname}-${instanceName}'
   scope: subscription(subscriptionId)
   params: {
     policyDefinitionId: applicationPolicy.outputs.policyId
@@ -124,7 +124,7 @@ module vmassignmentsub '../../../setup/discovery/modules/sub/assignment.bicep' =
 }
 // Table to receive the data
 module table '../../../modules/LAW/table.bicep' = {
-  name: tableNameToUse
+  name: '${tableNameToUse}-${instanceName}'
   scope: resourceGroup(lawSubscriptionId, lawResourceGroupName)
   params: {
     parentname: lawFriendlyName
@@ -137,8 +137,7 @@ module addscollectionDCR '../../../setup/discovery/modules/discoveryrule.bicep' 
   dependsOn: [
     table
   ]
-  name: 'addscollectionDCR'
-
+  name: 'addscollectionDCR-${instanceName}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   params: {
     endpointResourceId: dceId
@@ -159,7 +158,7 @@ module addscollectionDCR '../../../setup/discovery/modules/discoveryrule.bicep' 
 
 // Policy to assign DCR to all Windows VMs (in which context? MG if we want to use the same DCR for all subscriptions?)
 module policysetup '../../../setup/discovery/modules/policies.bicep' = {
-  name: 'policysetup-application-${packtag}'
+  name: 'policysetup-application-${packtag}-${instanceName}'
   params: {
     dcrId: addscollectionDCR.outputs.ruleId
     packtag: 'ADDS'

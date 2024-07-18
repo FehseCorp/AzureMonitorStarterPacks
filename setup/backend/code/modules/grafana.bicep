@@ -40,7 +40,7 @@ resource AzureManagedGrafana 'Microsoft.Dashboard/grafana@2022-08-01' = {
 // }
 
 module grafanaReadPermissions '../../../../modules/rbac/subscription/roleassignment.bicep' = {
-  name: 'grafanaReadPermissions'
+  name: 'grafanaReadPermissions-${location}'
   scope: subscription()
   params: {
     principalId: AzureManagedGrafana.identity.principalId

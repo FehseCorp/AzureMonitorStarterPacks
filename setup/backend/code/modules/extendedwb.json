@@ -241,13 +241,15 @@
                   "isGlobal": true,
                   "query": "resources\n| where type =~ 'microsoft.web/sites' and ['kind'] =~ 'functionapp'\n| where isnotempty(tags.MonitorStarterPacksComponents)\n| project id,name",
                   "crossComponentResources": [
-                    "/subscriptions/bd4d88c1-fc0f-482f-b57b-2f3ed541945e"
+                    "value::tenant"
                   ],
                   "typeSettings": {
-                    "additionalResourceOptions": []
+                    "additionalResourceOptions": [],
+                    "showDefault": false
                   },
                   "queryType": 1,
-                  "value": "/subscriptions/bd4d88c1-fc0f-482f-b57b-2f3ed541945e/resourceGroups/rg-MonstarPacks/providers/Microsoft.Web/sites/AMP-fta-bd4d88c1-Function"
+                  "resourceType": "microsoft.resources/tenants",
+                  "value": ""
                 },
                 {
                   "id": "c9fbafc9-2806-4c24-8d34-18f7cae66299",
