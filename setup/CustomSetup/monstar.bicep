@@ -166,6 +166,7 @@ module backend '../backend/code/backend.bicep' = {
   name: 'MonitoringPacks-backend-${instanceName}-${location}'
   dependsOn: [
     resourgeGroup
+    storageAccount
   ]
   params: {
     _artifactsLocation: _artifactsLocation

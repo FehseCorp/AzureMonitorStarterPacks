@@ -35,16 +35,16 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
         name: 'AZURE_STORAGE_ACCOUNT'
         value: packStorage.name
       }
-      {
-        name: 'AZURE_STORAGE_KEY'
-        secureValue: packStorage.listKeys().keys[0].value
-      }
+      // {
+      //   name: 'AZURE_STORAGE_KEY'
+      //   secureValue: packStorage.listKeys().keys[0].value
+      // }
       {
         name: 'CONTENT'
         value: loadFileAsBase64('./certswin.zip')
       }
     ]
-    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az storage blob upload -f ${filename} -c ${discoveryContainerName} -n ${filename} --overwrite true'
+    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az storage blob upload -f ${filename} -c ${discoveryContainerName} -n ${filename} --auth-mode login --overwrite true'
   }
 }
 

@@ -51,6 +51,7 @@ var packsRGroleDefinitionIds=[
   'b24988ac-6180-42a0-ab88-20f7382dd24c' // Contributor Role Definition Id for Contributor
   //grafana admin
   '22926164-76b3-42b3-bc55-97df8dab3e41' // Grafana Admin
+  'ba92f5b4-2d11-453d-a403-e96b0029c9fe'  // Storage Blob Data Contributor
   //Above role should be able to add diagnostics to everything according to docs.
   // '/providers/Microsoft.Authorization/roleDefinitions/4a9ae827-6dc8-4573-8ac7-8239d42aa03f' // Tag Contributor
 ]

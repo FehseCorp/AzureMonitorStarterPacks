@@ -55,6 +55,7 @@ module upload 'uploadDSADDS.bicep' = {
     storageAccountName: storageAccountname
     location: location
     tags: tags
+    userManagedIdentityId: userManagedIdentityResourceId
   }
 }
 
