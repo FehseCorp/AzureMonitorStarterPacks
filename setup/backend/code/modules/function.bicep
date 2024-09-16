@@ -60,10 +60,6 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
         value: discoveryStorage.name
       }
       {
-        name: 'AZURE_STORAGE_KEY'
-        secureValue: discoveryStorage.listKeys().keys[0].value
-      }
-      {
         name: 'CONTENT'
         value: loadFileAsBase64('../../backend.zip')
       }
@@ -234,7 +230,7 @@ resource deployfunctions 'Microsoft.Web/sites/extensions@2021-02-01' = {
   ]
   name: 'MSDeploy'
   properties: {
-    packageUri: '${discoveryStorage.properties.primaryEndpoints.blob}${discoveryContainerName}/${filename}?${(discoveryStorage.listAccountSAS(discoveryStorage.apiVersion, sasConfig).accountSasToken)}'
+    packageUri: '${discoveryStorage.properties.primaryEndpoints.blob}${discoveryContainerName}/${filename}'
   }
 }
 resource appinsights 'Microsoft.Insights/components@2020-02-02' = {

@@ -56,7 +56,9 @@ var packsRGroleDefinitionIds=[
 ]
 
 var functionRGroleDefinitionIds=[
-  'ba92f5b4-2d11-453d-a403-e96b0029c9fe'] // Storage Blob Data Contributor
+  'ba92f5b4-2d11-453d-a403-e96b0029c9fe'  // Storage Blob Data Contributor
+  //'2a2b9908-6ea1-4ae2-8e65-a410df84e7d1' // Storage Queue Data Reader
+]
 
 var logicappRequiredRoleassignments = [
   '4633458b-17de-408a-b874-0445c86b69e6'   //keyvault reader role

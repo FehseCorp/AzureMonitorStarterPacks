@@ -15,6 +15,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     allowBlobPublicAccess: false
     allowSharedKeyAccess: true
     supportsHttpsTrafficOnly: true
+
   }
   resource blobServices 'blobServices'={
     name: 'default'
@@ -35,6 +36,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
         denyEncryptionScopeOverride: false
         defaultEncryptionScope: '$account-encryption-key'
         publicAccess: 'None'
+
       }
     }
     resource container2 'containers'={
