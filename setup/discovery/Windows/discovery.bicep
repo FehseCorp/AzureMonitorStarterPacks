@@ -43,6 +43,7 @@ module upload 'uploadDSWindows.bicep' = {
     storageAccountName: storageAccountname
     location: location
     tags: tags
+    userManagedIdentity: userManagedIdentityResourceId
   }
 }
 
