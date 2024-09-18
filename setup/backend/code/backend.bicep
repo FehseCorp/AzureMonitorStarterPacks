@@ -57,7 +57,8 @@ var packsRGroleDefinitionIds=[
 ]
 
 var functionRGroleDefinitionIds=[
-  'ba92f5b4-2d11-453d-a403-e96b0029c9fe'  // Storage Blob Data Contributor
+  //'ba92f5b4-2d11-453d-a403-e96b0029c9fe'  // Storage Blob Data Contributor
+  'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' // Storage Queue Data Owner
   //'2a2b9908-6ea1-4ae2-8e65-a410df84e7d1' // Storage Queue Data Reader
 ]
 
@@ -121,8 +122,7 @@ module backendFunction 'modules/function.bicep' = {
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     keyVaultName: keyvault.outputs.kvName
-    SAkvSecretName: SASecretName
-    monitoringKeyName: monitoringSecretName
+    //monitoringKeyName: monitoringSecretName
     appInsightsSecretName: appInsightsSecretName
     resourceGroupName: resourceGroupName
     subscriptionId: subscriptionId

@@ -227,5 +227,4 @@ resource logicappConnection 'Microsoft.Web/connections@2018-07-01-preview' = {
   location: location
 }
 
-
 output logicAppPrincipalId string = logicapp.identity.principalId
