@@ -522,11 +522,11 @@ function Remove-Tag {
         }
     }
 }
-function get-alertApiVersion (
-    [Parameter(Mandatory = $true)]
-    [string]$alertId
-)
-{
+function get-alertApiVersion {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$alertId
+    ) 
     # Get the specific resource
     $resource = Get-AzResource -ResourceId $alertId
     # Get the resource provider and resource type
