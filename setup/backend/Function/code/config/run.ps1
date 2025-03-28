@@ -269,7 +269,7 @@ switch ($Action) {
 #       | where isnotempty(tags.MonitorStarterPacks)
 #       | project id,MP=tags.MonitorStarterPacks, Enabled=properties.enabled, Description=properties.description, Resource=tostring(properties.scopes[0])
 # "@
-      $resources=Search-AzGraph -Query $resourceQuery
+      $resources=Search-AzGraph -Query $resourceQuery 
       $resourceQuery
       # $alerts=Search-AzGraph -Query $alertsQuery
 

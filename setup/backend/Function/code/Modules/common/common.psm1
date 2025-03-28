@@ -369,6 +369,8 @@ function Add-Tag {
         # doesn´t have the monitoring tag
         $tag.Add($TagName, $TagValue)
         Update-AzTag -ResourceId $resourceId -Tag $tag -Operation Replace
+        #Check and add DCRa
+        Add-DCRa -resourceId $resourceId -TagValue $TagValue
         #Check if agent exists. If not, install it.
     }
     else {
@@ -377,10 +379,32 @@ function Add-Tag {
             $tag[$TagName] += ",$TagValue"
             #Set-AzResource -ResourceId $resource.Resource -Tag $tag -Force
             Update-AzTag -ResourceId $resourceId -Tag $tag -Operation Replace
+            Add-DCRa -resourceId $resourceId -TagValue $TagValue
         }
         else {
             "$TagName already has the $TagValue value"
         }
+    }
+}
+function Add-DCRa {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$resourceId,
+        [Parameter(Mandatory = $true)]
+        [string]$TagValue
+    )
+    $DCRs=Get-AzDataCollectionRule | Where-Object {$_.Tag["MonitorStarterPacks"] -eq $TagValue}
+    foreach ($DCR in $DCRs) {
+    #Check if the DCR is associated with the VM
+        $associated=Get-AzDataCollectionRuleAssociation -ResourceUri $resourceId | Where-Object { $_.DataCollectionRuleId -eq $DCR.Id }
+        if ($associated -eq $null) {
+            Write-Output "VM: $resourceName Pack: $TagValue) DCR: $($DCR.Name) not associated"
+            # Create the association
+            New-AzDataCollectionRuleAssociation -ResourceUri $resourceId -DataCollectionRuleId $DCR.Id -AssociationName "Association for $resourceName and $($DCR.Name)"
+        } else {
+            Write-Output "VM: $resourceName Pack: $Pack DCR: $($DCR.Name) associated"
+        }
+        Write-Output "VM: $resourceName Pack: $TagValue DCR: $($DCR.Name)"
     }
 }
 function Remove-DCRa {

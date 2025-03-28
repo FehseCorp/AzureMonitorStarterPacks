@@ -151,22 +151,22 @@ module dcrbasicvmMonitoring '../../../modules/DCRs/dcr-basicWinVM.bicep' = {
     dceId: dceId
   }
 }
-module policysetup '../../../modules/policies/mg/policies.bicep' = {
-  name: 'policysetup-${packtag}'
-  params: {
-    dcrId: dcrbasicvmMonitoring.outputs.dcrId
-    packtag: packtag
-    solutionTag: solutionTag
-    rulename: rulename
-    location: location
-    userManagedIdentityResourceId: userManagedIdentityResourceId
-    mgname: mgname
-    ruleshortname: '${ruleshortname}-1'
-    assignmentLevel: assignmentLevel
-    subscriptionId: subscriptionId
-    instanceName: instanceName
-  }
-}
+// module policysetup '../../../modules/policies/mg/policies.bicep' = {
+//   name: 'policysetup-${packtag}'
+//   params: {
+//     dcrId: dcrbasicvmMonitoring.outputs.dcrId
+//     packtag: packtag
+//     solutionTag: solutionTag
+//     rulename: rulename
+//     location: location
+//     userManagedIdentityResourceId: userManagedIdentityResourceId
+//     mgname: mgname
+//     ruleshortname: '${ruleshortname}-1'
+//     assignmentLevel: assignmentLevel
+//     subscriptionId: subscriptionId
+//     instanceName: instanceName
+//   }
+// }
 
 module dcrIISLogsMonitoring '../../../modules/DCRs/filecollectionWinIIS.bicep' = {
   name: 'dcrIISLogs-${packtag}'
@@ -180,24 +180,24 @@ module dcrIISLogsMonitoring '../../../modules/DCRs/filecollectionWinIIS.bicep' =
     //tableName: 'IISLogs'
   }
 }
-module policysetupIISLogs '../../../modules/policies/mg/policies.bicep' = {
-  name: 'policysetup-${packtag}-IISLogs-2'
-  scope: managementGroup(mgname)
-  params: {
-    dcrId: dcrIISLogsMonitoring.outputs.dcrId
-    packtag: packtag
-    solutionTag: solutionTag
-    rulename: '${rulename}-IISLogs'
-    location: location
-    userManagedIdentityResourceId: userManagedIdentityResourceId
-    mgname: mgname
-    ruleshortname: '${ruleshortname}-2'
-    assignmentLevel: assignmentLevel
-    subscriptionId: subscriptionId
-    instanceName: instanceName
-    index: 2
-  }
-}
+// module policysetupIISLogs '../../../modules/policies/mg/policies.bicep' = {
+//   name: 'policysetup-${packtag}-IISLogs-2'
+//   scope: managementGroup(mgname)
+//   params: {
+//     dcrId: dcrIISLogsMonitoring.outputs.dcrId
+//     packtag: packtag
+//     solutionTag: solutionTag
+//     rulename: '${rulename}-IISLogs'
+//     location: location
+//     userManagedIdentityResourceId: userManagedIdentityResourceId
+//     mgname: mgname
+//     ruleshortname: '${ruleshortname}-2'
+//     assignmentLevel: assignmentLevel
+//     subscriptionId: subscriptionId
+//     instanceName: instanceName
+//     index: 2
+//   }
+// }
 
 // // Grafana upload and install
 // module grafana 'ds.bicep' = {
