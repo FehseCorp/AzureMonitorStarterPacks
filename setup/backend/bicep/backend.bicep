@@ -17,6 +17,7 @@ param subscriptionId string
 param resourceGroupName string
 param imageGalleryName string
 param collectTelemetry bool
+param pepKeyvaultId string = ''
 
 var packPolicyRoleDefinitionIds=[
   // '749f88d5-cbae-40b8-bcfc-e573ddc772fa' // Monitoring Contributor Role Definition Id for Monitoring Contributor
@@ -192,6 +193,7 @@ module keyvault 'modules/keyvault.bicep' = {
     location: location
     Tags: Tags
     functionName: functionname
+    pepid: pepKeyvaultId
   }
 }
 

@@ -40,6 +40,12 @@ param deployDiscovery bool = false
 
 param collectTelemetry bool = true
 param appInsightsLocation string
+param usepeps bool = false
+param pepVnetId string = ''
+param pepSubnetId string = ''
+param pepKeyvaultId string = ''
+param pepStorageId string = ''
+param pepFunctionId string = ''
 
 var deployPacks = deployAllPacks || deployIaaSPacks //|| deployPaaSPacks || deployPlatformPacks
 var solutionTag='MonitorStarterPacks'

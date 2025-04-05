@@ -1,6 +1,7 @@
 param storageAccountName string
 param location string
 param Tags object
+param usepeps bool = false
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
