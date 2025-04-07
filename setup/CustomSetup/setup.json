@@ -637,7 +637,8 @@
 		        "collectTelemetry": "[steps('Configuration').collectTelemetry]",
                 "appInsightsLocation": "[steps('Configuration').AppInsightsLocation]",
                 "usepeps": "[steps('Networking').usepeps]",
-                "pepStorageZoneId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPacksSubnetSelectorName, '')]"
+                "pepStorageZoneId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPacksSubnetSelectorName, '')]",
+                "pepSubnetId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPacksSubnetSelectorName, '')]"
             },
             "kind": "Subscription",
             "location": "[steps('basics').resourceScope.location.name]",
