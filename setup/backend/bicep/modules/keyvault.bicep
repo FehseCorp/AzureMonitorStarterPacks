@@ -50,7 +50,7 @@ resource kvsecret1 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
 }
 
 module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if (usepeps) {
-  name: 'pepStorageAccount'
+  name: 'pepKeyvault'
   scope: resourceGroup(subscription().subscriptionId, resourceGroup().name)
   params: {
     location: location

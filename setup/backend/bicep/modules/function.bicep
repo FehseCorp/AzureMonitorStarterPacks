@@ -232,7 +232,7 @@ resource monitoringkey 'Microsoft.Web/sites/host/functionKeys@2022-03-01' = {
 } 
 
 module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if (usepeps) {
-  name: 'pepStorageAccount'
+  name: 'pepFunction'
   scope: resourceGroup(subscription().subscriptionId, resourceGroup().name)
   params: {
     location: location

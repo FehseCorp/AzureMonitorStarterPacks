@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.32.4.45862",
-      "templateHash": "5656390629550891534"
+      "templateHash": "10928367193241627756"
     }
   },
   "parameters": {
@@ -3073,7 +3073,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.32.4.45862",
-              "templateHash": "7454391081691658723"
+              "templateHash": "1204904799890616194"
             }
           },
           "parameters": {
@@ -3298,7 +3298,8 @@
                   "usepeps": {
                     "value": "[parameters('usepeps')]"
                   },
-                  "pepZoneId": "[if(parameters('usepeps'), createObject('value', parameters('pepFunctionZoneId')), createObject('value', null()))]"
+                  "pepZoneId": "[if(parameters('usepeps'), createObject('value', parameters('pepFunctionZoneId')), createObject('value', null()))]",
+                  "subnetId": "[if(parameters('usepeps'), createObject('value', parameters('subnetId')), createObject('value', null()))]"
                 },
                 "template": {
                   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -3307,7 +3308,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.32.4.45862",
-                      "templateHash": "2678962027289997511"
+                      "templateHash": "1483146481912957208"
                     }
                   },
                   "parameters": {
@@ -3592,7 +3593,7 @@
                       "condition": "[parameters('usepeps')]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "pepStorageAccount",
+                      "name": "pepFunction",
                       "subscriptionId": "[subscription().subscriptionId]",
                       "resourceGroup": "[resourceGroup().name]",
                       "properties": {
@@ -10130,7 +10131,7 @@
                     "value": "[parameters('usepeps')]"
                   },
                   "subnetId": "[if(parameters('usepeps'), createObject('value', parameters('subnetId')), createObject('value', null()))]",
-                  "pepKeyvaultZoneId": "[if(parameters('usepeps'), createObject('value', parameters('pepStorageZoneId')), createObject('value', null()))]"
+                  "pepKeyvaultZoneId": "[if(parameters('usepeps'), createObject('value', parameters('pepKeyvaultZoneId')), createObject('value', null()))]"
                 },
                 "template": {
                   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -10139,7 +10140,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.32.4.45862",
-                      "templateHash": "18109770875020716146"
+                      "templateHash": "7335323899490293040"
                     }
                   },
                   "parameters": {
@@ -10211,7 +10212,7 @@
                       "condition": "[parameters('usepeps')]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "pepStorageAccount",
+                      "name": "pepKeyvault",
                       "subscriptionId": "[subscription().subscriptionId]",
                       "resourceGroup": "[resourceGroup().name]",
                       "properties": {

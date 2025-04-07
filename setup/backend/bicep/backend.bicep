@@ -101,6 +101,7 @@ module backendFunction 'modules/function.bicep' = {
     instanceName: instanceName
     usepeps: usepeps
     pepZoneId: usepeps ? pepFunctionZoneId : null
+    subnetId: usepeps ? subnetId : null
   }
 }
 
@@ -201,7 +202,7 @@ module keyvault 'modules/keyvault.bicep' = {
     functionName: functionname
     usepeps: usepeps
     subnetId: usepeps ? subnetId : null
-    pepKeyvaultZoneId: usepeps ? pepStorageZoneId : null
+    pepKeyvaultZoneId: usepeps ? pepKeyvaultZoneId : null
   }
 }
 
