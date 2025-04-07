@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.32.4.45862",
-      "templateHash": "8019151771943345532"
+      "templateHash": "13880228780264615289"
     }
   },
   "parameters": {
@@ -3074,7 +3074,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.32.4.45862",
-              "templateHash": "15773870228355116758"
+              "templateHash": "15749282958084788759"
             }
           },
           "parameters": {
@@ -3305,7 +3305,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.32.4.45862",
-                      "templateHash": "13558828400678780491"
+                      "templateHash": "18137130694880191429"
                     }
                   },
                   "parameters": {
@@ -3416,16 +3416,16 @@
                     },
                     {
                       "type": "Microsoft.Web/serverfarms",
-                      "apiVersion": "2021-03-01",
+                      "apiVersion": "2024-04-01",
                       "name": "[format('{0}-farm', parameters('functionname'))]",
                       "location": "[parameters('location')]",
                       "tags": "[parameters('Tags')]",
                       "sku": {
-                        "name": "Y1",
-                        "tier": "Dynamic",
-                        "size": "Y1",
-                        "family": "Y",
-                        "capacity": 0
+                        "name": "EP1",
+                        "tier": "ElasticPremium",
+                        "size": "EP1",
+                        "family": "EP",
+                        "capacity": 1
                       },
                       "kind": "functioapp",
                       "properties": {

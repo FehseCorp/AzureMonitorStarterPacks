@@ -64,17 +64,17 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   }
 }
 
-resource serverfarm 'Microsoft.Web/serverfarms@2021-03-01' = {
+resource serverfarm 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: '${functionname}-farm'
   location: location
   tags: Tags
   sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
-    size: 'Y1'
-    family: 'Y'
-    capacity: 0
-  }
+    name: 'EP1'
+    tier: 'ElasticPremium'
+    size: 'EP1'
+    family: 'EP'
+    capacity: 1
+}
   kind: 'functioapp'
   properties: {
     perSiteScaling: false
