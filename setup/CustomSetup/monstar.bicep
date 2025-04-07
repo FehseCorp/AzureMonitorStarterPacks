@@ -196,6 +196,9 @@ module backend '../backend/bicep/backend.bicep' = {
     logicappname: logicAppName
     instanceName: instanceName
     collectTelemetry: collectTelemetry
+    pepKeyvaultZoneId: usepeps ? pepKeyvaultZoneId : null
+    subnetId: usepeps ? pepSubnetId : null
+    usepeps: usepeps
   }
 }
 

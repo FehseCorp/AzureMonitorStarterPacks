@@ -2,7 +2,9 @@ param kvName string
 param location string
 param Tags object 
 param functionName string
-param pepid string //private endpoint connection id
+param usepeps bool = false
+param subnetId string
+param pepKeyvaultZoneId string = ''
 
 //var vaultUri = 'https://${kvName}.vault.azure.net'
 
@@ -44,6 +46,35 @@ resource kvsecret1 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
     }
     contentType: 'string'
     value: listKeys(resourceId('Microsoft.Web/sites/host', azfunctionsite.name, 'default'), azfunctionsite.apiVersion).functionKeys.monitoringKey
+  }
+}
+
+module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if (usepeps) {
+  name: 'pepStorageAccount'
+  scope: resourceGroup(subscription().subscriptionId, resourceGroup().name)
+  params: {
+    location: location
+    name: '${vault.name}-pep'
+    subnetResourceId: subnetId
+    privateLinkServiceConnections: [
+      {
+        name: 'storageAccount'
+        properties: {
+          privateLinkServiceId: vault.id
+          groupIds: [
+            'blob'
+          ]
+          requestMessage: 'Please approve my connection.'
+
+        }
+      }
+    ]
+    privateDnsZoneGroup: {
+      name: 'pepStorageAccountPrivateDnsZoneGroup'
+      privateDnsZoneGroupConfigs: [
+        {privateDnsZoneResourceId: pepKeyvaultZoneId}
+      ]
+    }
   }
 }
 // module pep 'privateendpoint.bicep' = if (pepid != '') {

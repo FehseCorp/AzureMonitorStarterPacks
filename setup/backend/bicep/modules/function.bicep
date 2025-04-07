@@ -9,6 +9,9 @@ param filename string = 'discovery.zip'
 param sasExpiry string = dateTimeAdd(utcNow(), 'PT2H')
 param lawresourceid string
 param appInsightsLocation string
+param usepeps bool = false
+param pepZoneId string = ''
+param subnetId string = ''
 
 var discoveryContainerName = 'discovery'
 var tempfilename = '${filename}.tmp'
@@ -227,4 +230,33 @@ resource monitoringkey 'Microsoft.Web/sites/host/functionKeys@2022-03-01' = {
     value: apiManagementKey
   }  
 } 
+
+module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if (usepeps) {
+  name: 'pepStorageAccount'
+  scope: resourceGroup(subscription().subscriptionId, resourceGroup().name)
+  params: {
+    location: location
+    name: '${azfunctionsite.name}-pep'
+    subnetResourceId: subnetId
+    privateLinkServiceConnections: [
+      {
+        name: 'storageAccount'
+        properties: {
+          privateLinkServiceId: azfunctionsite.id
+          groupIds: [
+            'blob'
+          ]
+          requestMessage: 'Please approve my connection.'
+
+        }
+      }
+    ]
+    privateDnsZoneGroup: {
+      name: 'pepStorageAccountPrivateDnsZoneGroup'
+      privateDnsZoneGroupConfigs: [
+        {privateDnsZoneResourceId: pepZoneId}
+      ]
+    }
+  }
+}
 

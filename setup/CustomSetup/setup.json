@@ -638,7 +638,9 @@
                 "appInsightsLocation": "[steps('Configuration').AppInsightsLocation]",
                 "usepeps": "[steps('Networking').usepeps]",
                 "pepStorageZoneId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPrivateDnsZoneSelection.azureBlobPrivateDnsZone, '')]",
-                "pepSubnetId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPacksSubnetSelectorName, '')]"
+                "pepSubnetId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPacksSubnetSelectorName, '')]",
+                "pepKeyvaultZoneId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPrivateDnsZoneSelection.azureKeyvaultPrivateDnsZone, '')]",
+                "pepFunctionZoneId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPrivateDnsZoneSelection.azureFunctionPrivateDnsZone, '')]"
             },
             "kind": "Subscription",
             "location": "[steps('basics').resourceScope.location.name]",

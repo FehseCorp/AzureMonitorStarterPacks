@@ -17,7 +17,11 @@ param subscriptionId string
 param resourceGroupName string
 param imageGalleryName string
 param collectTelemetry bool
-param pepKeyvaultId string = ''
+param usepeps bool = false
+param subnetId string = ''
+param pepStorageZoneId string = ''
+param pepKeyvaultZoneId string = ''
+param pepFunctionZoneId string = ''
 
 var packPolicyRoleDefinitionIds=[
   // '749f88d5-cbae-40b8-bcfc-e573ddc772fa' // Monitoring Contributor Role Definition Id for Monitoring Contributor
@@ -95,6 +99,8 @@ module backendFunction 'modules/function.bicep' = {
     packsUserManagedId: packsUserManagedIdentity.outputs.userManagedIdentityResourceId
     solutionTag: solutionTag
     instanceName: instanceName
+    usepeps: usepeps
+    pepZoneId: usepeps ? pepFunctionZoneId : null
   }
 }
 
@@ -193,7 +199,9 @@ module keyvault 'modules/keyvault.bicep' = {
     location: location
     Tags: Tags
     functionName: functionname
-    pepid: pepKeyvaultId
+    usepeps: usepeps
+    subnetId: usepeps ? subnetId : null
+    pepKeyvaultZoneId: usepeps ? pepStorageZoneId : null
   }
 }
 
