@@ -46,30 +46,30 @@ resource kvsecret1 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
     value: listKeys(resourceId('Microsoft.Web/sites/host', azfunctionsite.name, 'default'), azfunctionsite.apiVersion).functionKeys.monitoringKey
   }
 }
-module pep 'privateendpoint.bicep' = if (pepid != '') {
-  name: 'pep-${kvName}'
-  params: {
-    location: location
-    Tags: Tags
-    pepname: '${kvName}-pep'
-    serviceId: vault.id
-    subnetId: pepid
-    serviceName: 'keyvault'
-  }
-}
+// module pep 'privateendpoint.bicep' = if (pepid != '') {
+//   name: 'pep-${kvName}'
+//   params: {
+//     location: location
+//     Tags: Tags
+//     pepname: '${kvName}-pep'
+//     serviceId: vault.id
+//     subnetId: pepid
+//     serviceName: 'keyvault'
+//   }
+// }
 
-resource kvPrivateLinkServiceConnection 'Microsoft.KeyVault/vaults/privateEndpointConnections@2023-05-01' = if (pepid != '') {
-  name: 'keyvault'
-  parent: vault
-  properties: {
-    privateLinkServiceConnectionState: {
-      status: 'Approved'
-      description: 'Private endpoint connection to key vault.'
-      actionsRequired: 'None'
-    }
-    privateEndpoint: {
-      id: pep.outputs.pepid
-    }
-  }
-}
+// resource kvPrivateLinkServiceConnection 'Microsoft.KeyVault/vaults/privateEndpointConnections@2023-05-01' = if (pepid != '') {
+//   name: 'keyvault'
+//   parent: vault
+//   properties: {
+//     privateLinkServiceConnectionState: {
+//       status: 'Approved'
+//       description: 'Private endpoint connection to key vault.'
+//       actionsRequired: 'None'
+//     }
+//     privateEndpoint: {
+//       id: pep.outputs.pepid
+//     }
+//   }
+// }
 output kvResourceId string = vault.id

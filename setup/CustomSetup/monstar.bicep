@@ -43,9 +43,9 @@ param appInsightsLocation string
 param usepeps bool = false
 param pepVnetId string = ''
 param pepSubnetId string = ''
-param pepKeyvaultId string = ''
-param pepStorageId string = ''
-param pepFunctionId string = ''
+param pepKeyvaultZoneId string = ''
+param pepStorageZoneId string = ''
+param pepFunctionZoneId string = ''
 
 var deployPacks = deployAllPacks || deployIaaSPacks //|| deployPaaSPacks || deployPlatformPacks
 var solutionTag='MonitorStarterPacks'
@@ -69,7 +69,7 @@ module resourgeGroup '../backend/bicep/modules/mg/resourceGroup.bicep' = if (cre
   }
 }
 
-module storageAccount '../backend/bicep/modules/mg/storageAccount.bicep' = if (createNewStorageAccount) {
+module storageAccount '../backend/bicep/modules/storageAccount.bicep' = if (createNewStorageAccount) {
   name:'STOmonitoringPacks-${location}-${instanceName}'
 
   scope: resourceGroup(subscriptionId, resourceGroupName)
@@ -80,6 +80,10 @@ module storageAccount '../backend/bicep/modules/mg/storageAccount.bicep' = if (c
     location: location
     Tags: Tags
     storageAccountName: storageAccountName
+    usepeps: usepeps
+    // This is the subnet ID of the private endpoint for the storage account if usepeps is true.
+    subnetId: usepeps ? pepSubnetId : null
+    pepStorageZoneId: usepeps ? pepStorageZoneId : null
   }
 }
 module existingStorageAccount '../backend/bicep/modules/mg/storageAccountBlobs.bicep' = if (!createNewStorageAccount) {

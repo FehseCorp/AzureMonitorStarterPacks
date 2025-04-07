@@ -411,27 +411,6 @@
 							}
 						},
                         {
-							"name": "createVirtualNetworkPrivateDnsZones",
-							"type": "Microsoft.Common.OptionsGroup",
-							"visible": "[steps('Networking').usepeps]",
-							"label": "Azure private DNS zones",
-							"defaultValue": "Use existing",
-							"toolTip": "It is recommended to use Azure private DNS zones for private endpoint name spaces, private endpoints will be automatically created for PaaS services if enabled, but the private DNS zones are required for name resolution of private endpoint DNS records.",
-							"constraints": {
-								"required": true,
-								"allowedValues": [
-									{
-										"label": "Create new",
-										"value": true
-									},
-									{
-										"label": "Use existing",
-										"value": false
-									}
-								]
-							}
-						},
-                        {
 							"name": "virtualNetworkPrivateDnsZoneSelection",
 							"type": "Microsoft.Common.Section",
 							"visible": "[steps('Networking').usepeps]",
@@ -451,7 +430,7 @@
 								},
 								{
 									"name": "privateDNSZonesApi",
-									"condition": "[not(steps('Networking').createVirtualNetworkPrivateDnsZones)]",
+									"condition": "[not(steps('Networking').usepeps)]",
 									"type": "Microsoft.Solutions.ArmApiControl",
 									"request": {
 										"method": "GET",
@@ -461,37 +440,37 @@
 								{
 									"name": "azureKeyvaultPrivateDnsZone",
 									"type": "Microsoft.Common.DropDown",
-									"visible": "[not(steps('Networking').createVirtualNetworkPrivateDnsZones)]",
+									"visible": "[not(steps('Networking').usepeps)]",
 									"label": "Keyvault Private DNS Zone",
 									"multiLine": true,
 									"toolTip": "Select the existing Private DNS Zone for Keyvault.",
 									"constraints": {
 										"allowedValues": "[map(filter(steps('Networking').virtualNetworkPrivateDnsZoneSelection.privateDNSZonesApi.value, (zone) => contains(zone.name, 'privatelink.vaultcore')), (zone) => parse(concat('{\"label\":\"', zone.name, '\",\"description\":\"Resource group: ', first(skip(split(zone.id, '/'), 4)), '\",\"value\":\"', zone.id, '\"}')))]",
-										"required": "[not(steps('Networking').createVirtualNetworkPrivateDnsZones)]"
+										"required": "[not(steps('Networking').usepeps)]"
 									}
 								},
                                 {
 									"name": "azureBlobPrivateDnsZone",
 									"type": "Microsoft.Common.DropDown",
-									"visible": "[not(steps('Networking').createVirtualNetworkPrivateDnsZones)]",
+									"visible": true,
 									"label": "Blob Storage Private DNS Zone",
 									"multiLine": true,
 									"toolTip": "Select the existing Private DNS Zone for Blob Storage.",
 									"constraints": {
 										"allowedValues": "[map(filter(steps('Networking').virtualNetworkPrivateDnsZoneSelection.privateDNSZonesApi.value, (zone) => contains(zone.name, 'privatelink.blob')), (zone) => parse(concat('{\"label\":\"', zone.name, '\",\"description\":\"Resource group: ', first(skip(split(zone.id, '/'), 4)), '\",\"value\":\"', zone.id, '\"}')))]",
-										"required": "[not(steps('Networking').createVirtualNetworkPrivateDnsZones)]"
+										"required": "[not(steps('Networking').usepeps)]"
 									}
 								},
                                 {
 									"name": "azureFunctionPrivateDnsZone",
 									"type": "Microsoft.Common.DropDown",
-									"visible": "[not(steps('Networking').createVirtualNetworkPrivateDnsZones)]",
+									"visible": true,
 									"label": "Azure Function Private DNS Zone",
 									"multiLine": true,
 									"toolTip": "Select the existing Private DNS Zone for Azure Functions.",
 									"constraints": {
 										"allowedValues": "[map(filter(steps('Networking').virtualNetworkPrivateDnsZoneSelection.privateDNSZonesApi.value, (zone) => contains(zone.name, 'privatelink.azurewebsites')), (zone) => parse(concat('{\"label\":\"', zone.name, '\",\"description\":\"Resource group: ', first(skip(split(zone.id, '/'), 4)), '\",\"value\":\"', zone.id, '\"}')))]",
-										"required": "[not(steps('Networking').createVirtualNetworkPrivateDnsZones)]"
+										"required": "[not(steps('Networking').usepeps)]"
 									}
 								}
                             ]
@@ -657,7 +636,8 @@
                 "deployDiscovery": "[steps('Configuration').deployDiscovery]",
 		        "collectTelemetry": "[steps('Configuration').collectTelemetry]",
                 "appInsightsLocation": "[steps('Configuration').AppInsightsLocation]",
-                "usepeps": "[steps('Networking').usepeps]"
+                "usepeps": "[steps('Networking').usepeps]",
+                "pepStorageZoneId": "[if(equals(steps('Networking').usepeps, true), steps('Networking').virtualNetworkPacksSubnetSelectorName, '')]"
             },
             "kind": "Subscription",
             "location": "[steps('basics').resourceScope.location.name]",

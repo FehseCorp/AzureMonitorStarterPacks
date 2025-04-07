@@ -2,6 +2,8 @@ param storageAccountName string
 param location string
 param Tags object
 param usepeps bool = false
+param subnetId string
+param pepStorageZoneId string = ''
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
@@ -62,5 +64,28 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     }
   }
 }
+// Add private endpoint module connection if usepeps is true
+module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if (usepeps) {
+  name: 'pepStorageAccount'
+  scope: resourceGroup(subscription().subscriptionId, resourceGroup().name)
+  params: {
+    location: location
+    name: '${storageAccountName}-pep'
+    subnetResourceId: subnetId
+    privateLinkServiceConnections: [
+      {
+        name: 'storageAccount'
+        properties: {
+          privateLinkServiceId: storageAccount.id
+          groupIds: [
+            'blob'
+          ]
+          requestMessage: 'Please approve my connection.'
+        }
+      }
+    ]
+  }
+}
+
 output storageAccountName string = storageAccount.name
 output storageAccountResourceId string = storageAccount.id
