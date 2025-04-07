@@ -240,11 +240,11 @@ module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if 
     subnetResourceId: subnetId
     privateLinkServiceConnections: [
       {
-        name: 'storageAccount'
+        name: 'function'
         properties: {
           privateLinkServiceId: azfunctionsite.id
           groupIds: [
-            'blob'
+            'sites'
           ]
           requestMessage: 'Please approve my connection.'
 

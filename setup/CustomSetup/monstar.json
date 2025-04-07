@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.32.4.45862",
-      "templateHash": "5070138050562896332"
+      "templateHash": "14836102591388246830"
     }
   },
   "parameters": {
@@ -3074,7 +3074,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.32.4.45862",
-              "templateHash": "1751181823881751628"
+              "templateHash": "13366820670423589993"
             }
           },
           "parameters": {
@@ -3305,7 +3305,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.32.4.45862",
-                      "templateHash": "1483146481912957208"
+                      "templateHash": "9375630202605215554"
                     }
                   },
                   "parameters": {
@@ -3611,11 +3611,11 @@
                           "privateLinkServiceConnections": {
                             "value": [
                               {
-                                "name": "storageAccount",
+                                "name": "function",
                                 "properties": {
                                   "privateLinkServiceId": "[resourceId('Microsoft.Web/sites', parameters('functionname'))]",
                                   "groupIds": [
-                                    "blob"
+                                    "sites"
                                   ],
                                   "requestMessage": "Please approve my connection."
                                 }
@@ -10137,7 +10137,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.32.4.45862",
-                      "templateHash": "7335323899490293040"
+                      "templateHash": "9590091291163479481"
                     }
                   },
                   "parameters": {
@@ -10230,11 +10230,11 @@
                           "privateLinkServiceConnections": {
                             "value": [
                               {
-                                "name": "storageAccount",
+                                "name": "keyvault",
                                 "properties": {
                                   "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('kvName'))]",
                                   "groupIds": [
-                                    "blob"
+                                    "vault"
                                   ],
                                   "requestMessage": "Please approve my connection."
                                 }

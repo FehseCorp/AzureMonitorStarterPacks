@@ -58,11 +58,11 @@ module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if 
     subnetResourceId: subnetId
     privateLinkServiceConnections: [
       {
-        name: 'storageAccount'
+        name: 'keyvault'
         properties: {
           privateLinkServiceId: vault.id
           groupIds: [
-            'blob'
+            'vault'
           ]
           requestMessage: 'Please approve my connection.'
 
