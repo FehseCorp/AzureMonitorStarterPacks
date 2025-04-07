@@ -81,9 +81,16 @@ module privateEndpoint 'br/public:avm/res/network/private-endpoint:0.10.1' = if 
             'blob'
           ]
           requestMessage: 'Please approve my connection.'
+
         }
       }
     ]
+    privateDnsZoneGroup: {
+      name: 'pepStorageAccountPrivateDnsZoneGroup'
+      privateDnsZoneGroupConfigs: [
+        {privateDnsZoneResourceId: pepStorageZoneId}
+      ]
+  }
   }
 }
 

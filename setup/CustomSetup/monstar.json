@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.32.4.45862",
-      "templateHash": "4125937657011244672"
+      "templateHash": "7807367546638996909"
     }
   },
   "parameters": {
@@ -255,7 +255,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.32.4.45862",
-              "templateHash": "11674034956579103008"
+              "templateHash": "8733842133091281350"
             }
           },
           "parameters": {
@@ -397,6 +397,16 @@
                         }
                       }
                     ]
+                  },
+                  "privateDnsZoneGroup": {
+                    "value": {
+                      "name": "pepStorageAccountPrivateDnsZoneGroup",
+                      "privateDnsZoneGroupConfigs": [
+                        {
+                          "privateDnsZoneResourceId": "[parameters('pepStorageZoneId')]"
+                        }
+                      ]
+                    }
                   }
                 },
                 "template": {
@@ -9530,7 +9540,8 @@
       },
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('subscriptionId'), parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'logAnalytics-Deployment')]",
-        "[subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('RGMonitoringPacks-{0}-{1}', parameters('location'), parameters('instanceName')))]"
+        "[subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('RGMonitoringPacks-{0}-{1}', parameters('location'), parameters('instanceName')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('subscriptionId'), parameters('resourceGroupName')), 'Microsoft.Resources/deployments', format('STOmonitoringPacks-{0}-{1}', parameters('location'), parameters('instanceName')))]"
       ]
     },
     {
