@@ -199,6 +199,7 @@ module backend '../backend/bicep/backend.bicep' = {
     pepKeyvaultZoneId: usepeps ? pepKeyvaultZoneId : null
     subnetId: usepeps ? pepSubnetId : null
     usepeps: usepeps
+    pepFunctionZoneId: usepeps ? pepFunctionZoneId : null
   }
 }
 

@@ -19,7 +19,6 @@ param imageGalleryName string
 param collectTelemetry bool
 param usepeps bool = false
 param subnetId string = ''
-param pepStorageZoneId string = ''
 param pepKeyvaultZoneId string = ''
 param pepFunctionZoneId string = ''
 

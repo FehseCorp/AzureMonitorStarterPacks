@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.32.4.45862",
-      "templateHash": "10928367193241627756"
+      "templateHash": "5070138050562896332"
     }
   },
   "parameters": {
@@ -3064,7 +3064,8 @@
           "subnetId": "[if(parameters('usepeps'), createObject('value', parameters('pepSubnetId')), createObject('value', null()))]",
           "usepeps": {
             "value": "[parameters('usepeps')]"
-          }
+          },
+          "pepFunctionZoneId": "[if(parameters('usepeps'), createObject('value', parameters('pepFunctionZoneId')), createObject('value', null()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
@@ -3073,7 +3074,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.32.4.45862",
-              "templateHash": "1204904799890616194"
+              "templateHash": "1751181823881751628"
             }
           },
           "parameters": {
@@ -3127,10 +3128,6 @@
               "defaultValue": false
             },
             "subnetId": {
-              "type": "string",
-              "defaultValue": ""
-            },
-            "pepStorageZoneId": {
               "type": "string",
               "defaultValue": ""
             },
