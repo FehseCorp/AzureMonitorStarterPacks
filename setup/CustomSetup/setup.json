@@ -430,7 +430,7 @@
 								},
 								{
 									"name": "privateDNSZonesApi",
-									"condition": "[not(steps('Networking').usepeps)]",
+									"condition": "[steps('Networking').usepeps]",
 									"type": "Microsoft.Solutions.ArmApiControl",
 									"request": {
 										"method": "GET",
@@ -440,13 +440,13 @@
 								{
 									"name": "azureKeyvaultPrivateDnsZone",
 									"type": "Microsoft.Common.DropDown",
-									"visible": "[not(steps('Networking').usepeps)]",
+									"visible": true,
 									"label": "Keyvault Private DNS Zone",
 									"multiLine": true,
 									"toolTip": "Select the existing Private DNS Zone for Keyvault.",
 									"constraints": {
 										"allowedValues": "[map(filter(steps('Networking').virtualNetworkPrivateDnsZoneSelection.privateDNSZonesApi.value, (zone) => contains(zone.name, 'privatelink.vaultcore')), (zone) => parse(concat('{\"label\":\"', zone.name, '\",\"description\":\"Resource group: ', first(skip(split(zone.id, '/'), 4)), '\",\"value\":\"', zone.id, '\"}')))]",
-										"required": "[not(steps('Networking').usepeps)]"
+										"required": "[steps('Networking').usepeps]"
 									}
 								},
                                 {
@@ -458,7 +458,7 @@
 									"toolTip": "Select the existing Private DNS Zone for Blob Storage.",
 									"constraints": {
 										"allowedValues": "[map(filter(steps('Networking').virtualNetworkPrivateDnsZoneSelection.privateDNSZonesApi.value, (zone) => contains(zone.name, 'privatelink.blob')), (zone) => parse(concat('{\"label\":\"', zone.name, '\",\"description\":\"Resource group: ', first(skip(split(zone.id, '/'), 4)), '\",\"value\":\"', zone.id, '\"}')))]",
-										"required": "[not(steps('Networking').usepeps)]"
+										"required": "[steps('Networking').usepeps]"
 									}
 								},
                                 {
@@ -470,7 +470,7 @@
 									"toolTip": "Select the existing Private DNS Zone for Azure Functions.",
 									"constraints": {
 										"allowedValues": "[map(filter(steps('Networking').virtualNetworkPrivateDnsZoneSelection.privateDNSZonesApi.value, (zone) => contains(zone.name, 'privatelink.azurewebsites')), (zone) => parse(concat('{\"label\":\"', zone.name, '\",\"description\":\"Resource group: ', first(skip(split(zone.id, '/'), 4)), '\",\"value\":\"', zone.id, '\"}')))]",
-										"required": "[not(steps('Networking').usepeps)]"
+										"required": "[steps('Networking').usepeps]"
 									}
 								}
                             ]
