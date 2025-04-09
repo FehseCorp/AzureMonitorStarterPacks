@@ -233,7 +233,7 @@
                   "description": "Select the function to provide the access key.",
                   "isRequired": true,
                   "isGlobal": true,
-                  "query": "resources\n| where type =~ 'microsoft.web/sites' and ['kind'] =~ 'functionapp'\n| where isnotempty(tags.MonitorStarterPacksComponents)\n| project id,name",
+                  "query": "resources\n| where type =~ 'microsoft.web/sites' and ['kind'] has 'functionapp'\n| where isnotempty(tags.MonitorStarterPacksComponents)\n| project id,name",
                   "crossComponentResources": [
                     "value::tenant"
                   ],
@@ -2642,7 +2642,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "resources\n| where type == \"microsoft.insights/datacollectionrules\"\n| where isnotempty(tags.MonitorStarterPacks)\n| extend ds=properties.dataSources\n| project id,Type=kind, location,syslog=ds.syslog[0].streams[0], windowsEventLogs=ds.windowsEventLogs[0].streams[0], logsettings=ds.logFiles, performanceCounters=ds.performanceCounters[0].streams[0],provisioningState=properties.provisioningState, \ndataCollectionEndpointId=properties.dataCollectionEndpointId,transformKql=properties.dataFlows[0].transformKql,workspaceResourceId=properties.destinations.logAnalytics[0].workspaceResourceId\n",
+              "query": "resources\n| where type == \"microsoft.insights/datacollectionrules\"\n| where isnotempty(tags.MonitorStarterPacks)\n| extend ds=properties.dataSources\n| project id,Type=kind, location,syslog=ds.syslog[0].streams[0], windowsEventLogs=ds.windowsEventLogs[0].streams[0], logsettings=ds.logFiles[0].name,iislogs=ds.iisLogs[0].name,performanceCounters=ds.performanceCounters[0].streams[0],provisioningState=properties.provisioningState, \ndataCollectionEndpointId=properties.dataCollectionEndpointId,transformKql=properties.dataFlows[0].transformKql,workspaceResourceId=properties.destinations.logAnalytics[0].workspaceResourceId\n",
               "size": 0,
               "title": "List of Currently Configured Data Collection Rules",
               "showRefreshButton": true,
@@ -2786,8 +2786,6 @@
                     "columnMatch": "windowsEventLogs",
                     "formatter": 18,
                     "formatOptions": {
-                      "linkTarget": "CellDetails",
-                      "linkIsContextBlade": true,
                       "thresholdsOptions": "icons",
                       "thresholdsGrid": [
                         {
@@ -2814,16 +2812,37 @@
                         {
                           "operator": "is Empty",
                           "representation": "cancelled",
-                          "text": "Not Configured"
+                          "text": ""
                         },
                         {
                           "operator": "Default",
                           "thresholdValue": null,
                           "representation": "success",
-                          "text": "Configured"
+                          "text": ""
                         }
                       ],
-                      "customColumnWidthSetting": "20ch"
+                      "customColumnWidthSetting": "10ch"
+                    }
+                  },
+                  {
+                    "columnMatch": "iislogs",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "is Empty",
+                          "representation": "cancelled",
+                          "text": ""
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": ""
+                        }
+                      ],
+                      "customColumnWidthSetting": "10ch"
                     }
                   },
                   {
