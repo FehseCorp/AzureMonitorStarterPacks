@@ -1113,19 +1113,17 @@
                 }
             ],
             "Alerts": [
-                [
-                    {
-                        "alertRuleDescription": "Nginx stopped.",
-                        "alertRuleDisplayName": "Nginx service stopped.",
-                        "alertRuleName": "AlertRule-Nginx-1",
-                        "alertRuleSeverity": 1,
-                        "autoMitigate": true,
-                        "evaluationFrequency": "PT15M",
-                        "windowSize": "PT15M",
-                        "alertType": "rows",
-                        "query": "Syslog | where SyslogMessage == \"Stopped A high performance web server and a reverse proxy server.\""
-                    }
-                ]
+                {
+                    "alertRuleDescription": "Nginx stopped.",
+                    "alertRuleDisplayName": "Nginx service stopped.",
+                    "alertRuleName": "AlertRule-Nginx-1",
+                    "alertRuleSeverity": 1,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT15M",
+                    "windowSize": "PT15M",
+                    "alertType": "rows",
+                    "query": "Syslog | where SyslogMessage == \"Stopped A high performance web server and a reverse proxy server.\""
+                }
             ]
         },
         {
