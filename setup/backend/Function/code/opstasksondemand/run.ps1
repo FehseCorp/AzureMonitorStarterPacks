@@ -1,42 +1,31 @@
 using namespace System.Net
-# Input bindings are passed in via param block.
+
 param($Request, $TriggerMetadata)
-# Write to the Azure Functions log stream.
-Write-Host "PowerShell HTTP trigger function processed a request."
-# Request will contain a body with the following parameters:
-# TaskNames - Array of strings with the names of the tasks to run. Use "All" to run all tasks.
-# Other tasknames can be:
-# - AvailablePacks
-# - SupportedServices
-# - MonitoredServices
-# - UnmonitoredServices
-Write-host "Request Body: $($Request.Body | ConvertTo-Json -Depth 10)"
+
+Write-Host "opstasksondemand: PowerShell HTTP trigger function processed a request."
+Write-Host "opstasksondemand: Request Body: $($Request.Body | ConvertTo-Json -Depth 10)"
 
 $TaskNames = $Request.Body.TaskNames
 if ([string]::IsNullOrEmpty($TaskNames)) {
-    Write-Host "No TaskNames provided. Running all tasks."
+    Write-Host "opstasksondemand: No TaskNames provided. Running all tasks."
     $TaskNames = @("All")
 }
 else {
-    Write-Host "TaskNames provided: $($TaskNames -join ', ')"
+    Write-Host "opstasksondemand: TaskNames provided: $($TaskNames -join ', ')"
 }
-<#
-param availableIaaSPackstablename string = 'AvailableIaaSPacks_CL'
-param supportedServicesTableName string = 'SupportedServices_CL'
-param monitoredPaaSTableName string = 'MonitoredPaaSTable_CL'
-param nonMonitoredPaaSTableName string = 'NonMonitoredPaaSTable_CL'
-#>
+
+$statusCode = [HttpStatusCode]::OK
 try {
     start-opstasks -TaskNames $TaskNames
-    $body="OK"
-}catch {
-    Write-Host "Error in start-opstasks. $_"
-    $body = "Error in start-opstasks. $_"
+    $body = "OK"
 }
-    # Write an information log with the current time.
+catch {
+    Write-Host "opstasksondemand: Error in start-opstasks: $_"
+    $statusCode = [HttpStatusCode]::InternalServerError
+    $body = "{""error"": ""Error in start-opstasks: $($_.Exception.Message)""}"
+}
+
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-    StatusCode = [HttpStatusCode]::OK
+    StatusCode = $statusCode
     Body       = $body
 })
-
-
