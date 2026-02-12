@@ -1,88 +1,283 @@
-# Get all the subfolders recursively
-# First update main solution files
 <#
-{
-            "Folder":"",
-            "File":""
-        }
-#>
-# before building the bicep files, we need to zip the json files in the ./Packs folder
-$currentFolder= Get-Location
-Set-Location ".\Packs"
-# get all files in the current directory only
-$packsFiles = Get-ChildItem -Path './' -Name '*.json'
-foreach ($file in $packsFiles) {
-    #compress each file individually into a zip file
-    $DestinationPath = $file.Replace('.json', '.zip')
-    Compress-Archive -Path $file -DestinationPath $DestinationPath -Update
-}
-Set-Location $currentFolder
+.SYNOPSIS
+    Builds all deployment artifacts for Azure Monitor Starter Packs.
 
-# Grafana Dashaboards - Managed Grafana
-Set-Location "./Packs/dashboards"
-$DestinationPath='./Grafana.zip'
-Remove-Item $DestinationPath -ErrorAction SilentlyContinue
-$grafanaFiles = Get-ChildItem -Path './' -Recurse -Include 'grafana*.json'
-foreach ($file in $grafanaFiles) {
-    Compress-Archive -Path $file.FullName -DestinationPath $DestinationPath -Update
+.DESCRIPTION
+    Zips pack definitions, Grafana dashboards, Function App code, discovery scripts,
+    client applications, modules, and compiles Bicep templates. Produces a summary
+    of all artifacts created.
+
+.EXAMPLE
+    .\tools\build.ps1
+#>
+$ErrorActionPreference = 'Stop'
+$buildErrors = @()
+$artifacts = @()
+$startTime = Get-Date
+$repoRoot = Split-Path -Parent $PSScriptRoot
+
+Write-Host "========================================"
+Write-Host "Azure Monitor Starter Packs - Build"
+Write-Host "========================================"
+Write-Host "Repo root: $repoRoot"
+Write-Host ""
+
+function Add-Artifact {
+    param([string]$Path)
+    $script:artifacts += $Path
 }
-Set-Location $currentFolder
-# Grafana Dashaboards - Azure Monitor Grafana Dashboards
-Set-Location "./Packs/AMGD"
-$DestinationPath='./amgd.zip'
-Remove-Item $DestinationPath -ErrorAction SilentlyContinue
-$grafanaFiles = Get-ChildItem -Path './' -Recurse -Include 'grafana*.json'
-foreach ($file in $grafanaFiles) {
-    Compress-Archive -Path $file.FullName -DestinationPath $DestinationPath -Update
+
+# --- Pack definition JSON files ---
+Write-Host "[1/8] Zipping pack definition JSON files..."
+try {
+    $packsDir = Join-Path $repoRoot 'Packs'
+    $packsFiles = Get-ChildItem -Path $packsDir -Filter '*.json' -File
+    foreach ($file in $packsFiles) {
+        $destPath = Join-Path $packsDir ($file.BaseName + '.zip')
+        Compress-Archive -Path $file.FullName -DestinationPath $destPath -Force
+        Add-Artifact $destPath
+    }
+    Write-Host "  OK: $($packsFiles.Count) pack file(s) zipped."
 }
-Set-Location $currentFolder
-# Function App code.
-Set-Location 'setup/backend/Function/code'
-$DestinationPath='../../backend.zip'
-Remove-Item $DestinationPath -ErrorAction SilentlyContinue
-compress-archive * $DestinationPath -Force 
-# Discovery code
-Set-Location $currentFolder
-Set-Location ./setup/discovery/Linux/client
-tar -cvf ../discover.tar *
-Set-Location ../../Windows/client
-Compress-Archive -Path ./* -DestinationPath ../discover.zip -Update
-# Cliente applications for existing packs
-# 
-Set-Location $currentFolder
-# Fetch all folders in ./Packs
-$folders = Get-ChildItem -Path './Packs' -Directory
-# Loop through each folder and check for a 'client' subfolder
-foreach ($folder in $folders) {
-    $clientFolder = Join-Path -Path $folder.FullName -ChildPath 'client'
-    if (Test-Path -Path $clientFolder) {
-        Set-Location -Path $clientFolder
-        $DestinationPath = "../../applications/$($folder.Name).zip"
-        Remove-Item $DestinationPath -ErrorAction SilentlyContinue
-        Compress-Archive -Path ./* -DestinationPath $DestinationPath -Update
+catch {
+    $buildErrors += "Pack definitions: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# --- Grafana Dashboards (Managed Grafana) ---
+Write-Host "[2/8] Zipping Grafana dashboards..."
+try {
+    $dashDir = Join-Path $repoRoot 'Packs\dashboards'
+    if (Test-Path $dashDir) {
+        $destPath = Join-Path $dashDir 'Grafana.zip'
+        Remove-Item $destPath -ErrorAction SilentlyContinue
+        $grafanaFiles = Get-ChildItem -Path $dashDir -Recurse -Include 'grafana*.json'
+        if ($grafanaFiles.Count -gt 0) {
+            foreach ($file in $grafanaFiles) {
+                Compress-Archive -Path $file.FullName -DestinationPath $destPath -Update
+            }
+            Add-Artifact $destPath
+            Write-Host "  OK: $($grafanaFiles.Count) dashboard file(s) zipped."
+        }
+        else {
+            Write-Host "  SKIP: No grafana dashboard files found."
+        }
+    }
+    else {
+        Write-Host "  SKIP: Packs/dashboards directory not found."
     }
 }
-# Create a modules zip to be uploaded. For now, only alerts and DCRs are included.
-Set-Location $currentFolder
-Set-Location ./modules
-$DestinationPath = './modules.zip'
-Remove-Item $DestinationPath -ErrorAction SilentlyContinue
-Compress-Archive -Path ./alerts/*.bicep -DestinationPath $DestinationPath -Update
-Compress-Archive -Path ./DCRs/*.bicep -DestinationPath $DestinationPath -Update
-Set-Location $currentFolder
-#All pack applications are zipped and ready to be uploaded to the storage account.
-Set-Location ./Packs/applications
-# get all zip files and zip into a single applications.zip file
-$DestinationPath = './applications.zip'
-Remove-Item $DestinationPath -ErrorAction SilentlyContinue
-Compress-Archive -Path ./*.zip -DestinationPath $DestinationPath -Update
-# Compress-Archive -Path ./* -DestinationPath ../../applications/addscollection.zip -Update
-Set-Location $currentFolder
+catch {
+    $buildErrors += "Grafana dashboards: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
 
-$mainMonstarPacksFiles = Get-Content -Path './tools/build.json' | ConvertFrom-Json
+# --- AMGD Dashboards ---
+Write-Host "[3/8] Zipping AMGD dashboards..."
+try {
+    $amgdDir = Join-Path $repoRoot 'Packs\AMGD'
+    if (Test-Path $amgdDir) {
+        $destPath = Join-Path $amgdDir 'amgd.zip'
+        Remove-Item $destPath -ErrorAction SilentlyContinue
+        $grafanaFiles = Get-ChildItem -Path $amgdDir -Recurse -Include 'grafana*.json'
+        if ($grafanaFiles.Count -gt 0) {
+            foreach ($file in $grafanaFiles) {
+                Compress-Archive -Path $file.FullName -DestinationPath $destPath -Update
+            }
+            Add-Artifact $destPath
+            Write-Host "  OK: $($grafanaFiles.Count) AMGD dashboard file(s) zipped."
+        }
+        else {
+            Write-Host "  SKIP: No AMGD dashboard files found."
+        }
+    }
+    else {
+        Write-Host "  SKIP: Packs/AMGD directory not found."
+    }
+}
+catch {
+    $buildErrors += "AMGD dashboards: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
 
-foreach ($file in $mainMonstarPacksFiles) {
-    Set-Location -Path $file.Folder
-    bicep build $file.File
-    Set-Location $currentFolder  
+# --- Function App code ---
+Write-Host "[4/8] Zipping Function App code..."
+try {
+    $funcDir = Join-Path $repoRoot 'setup\backend\Function\code'
+    if (-not (Test-Path $funcDir)) {
+        throw "Function code directory not found: $funcDir"
+    }
+    $destPath = Join-Path $repoRoot 'setup\backend\backend.zip'
+    Remove-Item $destPath -ErrorAction SilentlyContinue
+    Push-Location $funcDir
+    try {
+        Compress-Archive -Path * -DestinationPath $destPath -Force
+    }
+    finally {
+        Pop-Location
+    }
+    Add-Artifact $destPath
+    Write-Host "  OK: backend.zip created."
+}
+catch {
+    $buildErrors += "Function App code: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# --- Discovery scripts ---
+Write-Host "[5/8] Packaging discovery scripts..."
+try {
+    # Linux discovery
+    $linuxClientDir = Join-Path $repoRoot 'setup\discovery\Linux\client'
+    if (Test-Path $linuxClientDir) {
+        $tarDest = Join-Path $repoRoot 'setup\discovery\Linux\discover.tar'
+        Push-Location $linuxClientDir
+        try {
+            tar -cf $tarDest *
+        }
+        finally {
+            Pop-Location
+        }
+        Add-Artifact $tarDest
+        Write-Host "  OK: Linux discover.tar created."
+    }
+    else {
+        Write-Host "  SKIP: Linux discovery client directory not found."
+    }
+
+    # Windows discovery
+    $winClientDir = Join-Path $repoRoot 'setup\discovery\Windows\client'
+    if (Test-Path $winClientDir) {
+        $zipDest = Join-Path $repoRoot 'setup\discovery\Windows\discover.zip'
+        Remove-Item $zipDest -ErrorAction SilentlyContinue
+        Compress-Archive -Path (Join-Path $winClientDir '*') -DestinationPath $zipDest -Force
+        Add-Artifact $zipDest
+        Write-Host "  OK: Windows discover.zip created."
+    }
+    else {
+        Write-Host "  SKIP: Windows discovery client directory not found."
+    }
+}
+catch {
+    $buildErrors += "Discovery scripts: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# --- Client applications for packs ---
+Write-Host "[6/8] Zipping client applications..."
+try {
+    $packsDir = Join-Path $repoRoot 'Packs'
+    $appsDir = Join-Path $packsDir 'applications'
+    if (-not (Test-Path $appsDir)) {
+        New-Item -ItemType Directory -Path $appsDir -Force | Out-Null
+    }
+    $folders = Get-ChildItem -Path $packsDir -Directory
+    $clientCount = 0
+    foreach ($folder in $folders) {
+        $clientFolder = Join-Path $folder.FullName 'client'
+        if (Test-Path $clientFolder) {
+            $destPath = Join-Path $appsDir "$($folder.Name).zip"
+            Remove-Item $destPath -ErrorAction SilentlyContinue
+            Compress-Archive -Path (Join-Path $clientFolder '*') -DestinationPath $destPath -Force
+            Add-Artifact $destPath
+            $clientCount++
+        }
+    }
+    # Zip all client apps into a single applications.zip
+    $allAppsZip = Join-Path $appsDir 'applications.zip'
+    Remove-Item $allAppsZip -ErrorAction SilentlyContinue
+    $appZips = Get-ChildItem -Path $appsDir -Filter '*.zip' -File | Where-Object { $_.Name -ne 'applications.zip' }
+    if ($appZips.Count -gt 0) {
+        Compress-Archive -Path $appZips.FullName -DestinationPath $allAppsZip -Force
+        Add-Artifact $allAppsZip
+    }
+    Write-Host "  OK: $clientCount client application(s) zipped."
+}
+catch {
+    $buildErrors += "Client applications: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# --- Modules zip ---
+Write-Host "[7/8] Zipping Bicep modules..."
+try {
+    $modulesDir = Join-Path $repoRoot 'modules'
+    if (-not (Test-Path $modulesDir)) {
+        throw "Modules directory not found: $modulesDir"
+    }
+    $destPath = Join-Path $modulesDir 'modules.zip'
+    Remove-Item $destPath -ErrorAction SilentlyContinue
+
+    $alertsBicep = Join-Path $modulesDir 'alerts\*.bicep'
+    $dcrsBicep = Join-Path $modulesDir 'DCRs\*.bicep'
+    Compress-Archive -Path $alertsBicep -DestinationPath $destPath -Force
+    Compress-Archive -Path $dcrsBicep -DestinationPath $destPath -Update
+    Add-Artifact $destPath
+    Write-Host "  OK: modules.zip created."
+}
+catch {
+    $buildErrors += "Bicep modules: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# --- Bicep build ---
+Write-Host "[8/8] Compiling Bicep templates..."
+try {
+    $buildConfigPath = Join-Path $repoRoot 'tools\build.json'
+    if (-not (Test-Path $buildConfigPath)) {
+        throw "Build config not found: $buildConfigPath"
+    }
+    $buildConfig = Get-Content $buildConfigPath -Raw | ConvertFrom-Json
+    foreach ($entry in $buildConfig) {
+        $folder = Join-Path $repoRoot $entry.Folder
+        if (-not (Test-Path $folder)) {
+            throw "Bicep folder not found: $folder"
+        }
+        $bicepFile = Join-Path $folder $entry.File
+        if (-not (Test-Path $bicepFile)) {
+            throw "Bicep file not found: $bicepFile"
+        }
+        Push-Location $folder
+        try {
+            bicep build $entry.File
+            $jsonOutput = Join-Path $folder ($entry.File -replace '\.bicep$', '.json')
+            Add-Artifact $jsonOutput
+            Write-Host "  OK: $($entry.File) compiled."
+        }
+        finally {
+            Pop-Location
+        }
+    }
+}
+catch {
+    $buildErrors += "Bicep compilation: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# --- Summary ---
+$elapsed = (Get-Date) - $startTime
+Write-Host ""
+Write-Host "========================================"
+Write-Host "Build Summary"
+Write-Host "========================================"
+Write-Host "Artifacts produced: $($artifacts.Count)"
+foreach ($a in $artifacts) {
+    $size = if (Test-Path $a) { "{0:N0} KB" -f ((Get-Item $a).Length / 1KB) } else { "MISSING" }
+    $relativePath = $a.Replace($repoRoot + '\', '')
+    Write-Host "  $relativePath ($size)"
+}
+Write-Host ""
+Write-Host "Elapsed: $($elapsed.TotalSeconds.ToString('F1'))s"
+
+if ($buildErrors.Count -gt 0) {
+    Write-Host ""
+    Write-Host "ERRORS ($($buildErrors.Count)):" -ForegroundColor Red
+    foreach ($err in $buildErrors) {
+        Write-Host "  - $err" -ForegroundColor Red
+    }
+    exit 1
+}
+else {
+    Write-Host "Build completed successfully." -ForegroundColor Green
+    exit 0
 }
