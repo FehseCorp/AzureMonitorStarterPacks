@@ -3,38 +3,59 @@ using namespace System.Net
 
 param($Request, $TriggerMetadata)
 
-Write-Host "PowerShell HTTP trigger function processed a request."
+Write-Host "agentMgmt: PowerShell HTTP trigger function processed a request."
 
 $resources = $Request.Body.Resources
 $action = $Request.Body.Action
+$statusCode = [HttpStatusCode]::OK
 
-if ($resources) {
-    Write-Host "Working on $($resources.count) resource(s). Action: $action. Altering AMA configuration."
+if ([string]::IsNullOrEmpty($action)) {
+    Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+        StatusCode = [HttpStatusCode]::BadRequest
+        Body = '{"error": "Missing required field: Action"}'
+    })
+    return
+}
+
+if (-not $resources -or $resources.Count -eq 0) {
+    Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+        StatusCode = [HttpStatusCode]::BadRequest
+        Body = '{"error": "Missing or empty required field: Resources"}'
+    })
+    return
+}
+
+try {
+    Write-Host "agentMgmt: Working on $($resources.count) resource(s). Action: $action."
     switch ($action) {
         'AddAgent' {
             foreach ($resource in $resources) {
-                Write-Host "Running $action for $($resource.id) resource."
+                Write-Host "agentMgmt: Running $action for $($resource.id)."
                 Add-Agent -resourceId $resource.id -ResourceOS $resource.OSType -location $resource.location
             }
         }
         'RemoveAgent' {
             foreach ($resource in $resources) {
-                Write-Host "Running $action for $($resource.id) resource."
+                Write-Host "agentMgmt: Running $action for $($resource.id)."
                 Remove-Agent -resourceId $resource.id -ResourceOS $resource.OSType -location $resource.location
             }
         }
         default {
-            Write-Host "Invalid Action"
+            $statusCode = [HttpStatusCode]::BadRequest
+            $body = "{""error"": ""Invalid action: $action. Valid actions are: AddAgent, RemoveAgent""}"
         }
     }
+    if ($statusCode -eq [HttpStatusCode]::OK) {
+        $body = "Successfully processed $($resources.count) resource(s) with action '$action'."
+    }
 }
-else
-{
-    Write-Host "No resources provided."
+catch {
+    Write-Host "agentMgmt: Error processing action '$action': $_"
+    $statusCode = [HttpStatusCode]::InternalServerError
+    $body = "{""error"": ""Error processing action '$action': $($_.Exception.Message)""}"
 }
-$body = "This HTTP triggered function executed successfully. $($resources.count) were altered ($action)."
 
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-    StatusCode = [HttpStatusCode]::OK
+    StatusCode = $statusCode
     Body = $body
 })

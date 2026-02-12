@@ -3,15 +3,20 @@ param($Timer)
 $currentUTCtime = (Get-Date).ToUniversalTime()
 
 if ($Timer.IsPastDue) {
-    Write-Host "PowerShell timer is running late!"
+    Write-Host "runDiscovery: PowerShell timer is running late!"
 }
 
 $instanceName = $env:InstanceName
 if ($instanceName) {
-    get-discoveryresults -instanceName $instanceName
+    try {
+        get-discoveryresults -instanceName $instanceName
+    }
+    catch {
+        Write-Host "runDiscovery: Error running discovery for instance '$instanceName': $_"
+    }
 }
 else {
-    Write-Host "No instance name provided."
+    Write-Host "runDiscovery: No instance name provided. Skipping discovery."
 }
 
-Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"
+Write-Host "runDiscovery: Timer trigger completed. TIME: $currentUTCtime"

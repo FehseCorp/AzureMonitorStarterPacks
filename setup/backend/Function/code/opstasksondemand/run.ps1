@@ -2,27 +2,30 @@ using namespace System.Net
 
 param($Request, $TriggerMetadata)
 
-Write-Host "PowerShell HTTP trigger function processed a request."
-Write-Host "Request Body: $($Request.Body | ConvertTo-Json -Depth 10)"
+Write-Host "opstasksondemand: PowerShell HTTP trigger function processed a request."
+Write-Host "opstasksondemand: Request Body: $($Request.Body | ConvertTo-Json -Depth 10)"
 
 $TaskNames = $Request.Body.TaskNames
 if ([string]::IsNullOrEmpty($TaskNames)) {
-    Write-Host "No TaskNames provided. Running all tasks."
+    Write-Host "opstasksondemand: No TaskNames provided. Running all tasks."
     $TaskNames = @("All")
 }
 else {
-    Write-Host "TaskNames provided: $($TaskNames -join ', ')"
+    Write-Host "opstasksondemand: TaskNames provided: $($TaskNames -join ', ')"
 }
 
+$statusCode = [HttpStatusCode]::OK
 try {
     start-opstasks -TaskNames $TaskNames
-    $body="OK"
-}catch {
-    Write-Host "Error in start-opstasks. $_"
-    $body = "Error in start-opstasks. $_"
+    $body = "OK"
+}
+catch {
+    Write-Host "opstasksondemand: Error in start-opstasks: $_"
+    $statusCode = [HttpStatusCode]::InternalServerError
+    $body = "{""error"": ""Error in start-opstasks: $($_.Exception.Message)""}"
 }
 
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-    StatusCode = [HttpStatusCode]::OK
+    StatusCode = $statusCode
     Body       = $body
 })

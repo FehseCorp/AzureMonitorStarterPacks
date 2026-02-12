@@ -3,9 +3,14 @@ param($Timer)
 $currentUTCtime = (Get-Date).ToUniversalTime()
 
 if ($Timer.IsPastDue) {
-    Write-Host "PowerShell timer is running late!"
+    Write-Host "opstasks: PowerShell timer is running late!"
 }
 
-start-opstasks
+try {
+    start-opstasks
+}
+catch {
+    Write-Host "opstasks: Error running ops tasks: $_"
+}
 
-Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"
+Write-Host "opstasks: Timer trigger completed. TIME: $currentUTCtime"
