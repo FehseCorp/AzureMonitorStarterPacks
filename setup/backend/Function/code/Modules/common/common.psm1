@@ -1,17 +1,24 @@
 #######################################################################
 # Common functions used in the Monitoring Packs backend functions.
 #######################################################################
-# Function to add AMA to a VM or arc machine
-# The tags added to the extension are copied from the resource.
 
-# this will be eventually used to update the local catalog from the repo.
-# function get-AMBAJsonFromRepo {
-#     param (
-#         [string]$AMBAJsonURL = "https://azure.github.io/azure-monitor-baseline-alerts/amba-alerts.json"
-#     )
-#     $AMBAJson = Invoke-WebRequest -Uri $AMBAJsonURL -UseBasicParsing | Select-Object -ExpandProperty Content # | ConvertFrom-Json
-#     return $AMBAJson
-# }
+function Write-Log {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        [ValidateSet('Info', 'Warning', 'Error')]
+        [string]$Severity = 'Info',
+        [string]$FunctionName = ''
+    )
+    $timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')
+    $prefix = if ($FunctionName) { "[$timestamp][$Severity][$FunctionName]" } else { "[$timestamp][$Severity]" }
+    switch ($Severity) {
+        'Warning' { Write-Warning "$prefix $Message" }
+        'Error'   { Write-Error "$prefix $Message" }
+        default   { Write-Host "$prefix $Message" }
+    }
+}
+
 function get-AMBAJsonContent {
     $ambaJsonURL=$env:AMBAJsonURL
     if ($null -eq $ambaJsonURL) {
@@ -21,54 +28,6 @@ function get-AMBAJsonContent {
     Write-Host "Fetching AMBA Catalog from $ambaJsonURL"
     get-blobContentFromUrl -url $ambaJsonURL 
 }
-# function get-AMBAJsonContent2 {
-#     $StorageAccountName=$env:StorageAccountName
-#     $ResourceGroupName=$env:ResourceGroup
-#     Write-host "Storage Account: $StorageAccountName"
-#     Write-host "RG: $ResourceGroupName"
-#     $StorageAccount=Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
-#     $sacontext=New-AzStorageContext -StorageAccountName $StorageAccount.StorageAccountName -UseConnectedAccount
-#     $ContainerName = "amba"
-#     $BlobName = "amba-alerts.json"
-#     $Destination = "$($env:TEMP)\$BlobName"
-#     $Blob2HT = @{
-#         Container        = $ContainerName
-#         Blob             = $BlobName
-#         Context          = $sacontext
-#     }
-#     # Check if the blob exists and is not older than 30 days
-#     Write-host "Checking if blob exists and is not older than 30 days..."
-#     $currentblob = Get-AzStorageBlob @Blob2HT #-ErrorAction SilentlyContinue
-#     if ($null -ne $currentblob -and $currentblob.LastModified -gt (Get-Date).AddDays(-30)) {
-#         Write-host "Blob found. Downloading to $Destination."
-#         $BlobContent = Get-AzStorageBlobContent @Blob2HT -Force -Context $sacontext -Destination $Destination
-#         # check if the file exists and was downloaded correctly
-#         if (Test-Path $Destination) {
-#             Write-host "Blob content downloaded successfully to $Destination file."
-#             $AMBAJson = get-content $Destination
-#         } else {
-#             Write-host "Blob content not downloaded. Please check the blob name and container name."
-#         }
-#     } 
-#     else {
-#         Write-Host "Blob not found. Please check the blob name and container name."
-#         # $AMBAJsonURL="https://azure.github.io/azure-monitor-baseline-alerts/amba-alerts.json"
-#         # Invoke-WebRequest -Uri $AMBAJsonURL -UseBasicParsing | Select-Object -ExpandProperty Content 
-#         get-AMBAJsonFromRepo | Out-File -FilePath "amba-alerts.json" -Encoding utf8
-#         # Write json contetnt to a blog in the storage account under the amba container using managed identity
-#         $Blob1HT = @{
-#             File             = "amba-alerts.json"
-#             Container        = $ContainerName
-#             Blob             = $BlobName
-#             Context          = $sacontext
-#             StandardBlobTier = 'Hot'
-#         }
-#         Set-AzStorageBlobContent @Blob1HT
-#         $AMBAJson = get-content $BlobName
-#     }
-#     #$AMBAJson = Invoke-WebRequest -Uri $AMBAJsonURL -UseBasicParsing | Select-Object -ExpandProperty Content # | ConvertFrom-Json
-#     return $AMBAJson
-# }
 function set-systemAssignedIdentity {
     param (
         [Parameter(Mandatory = $true)]
@@ -546,74 +505,6 @@ function get-alertApiVersion {
     $apiVersion = $apiVersions[0]
     return $apiVersion
 }
-# Function to add AMA to a VM or arc machine
-# The tags added to the extension are copied from the resource.
-# function Install-azMonitorAgent {
-#     param (
-#         [Parameter(Mandatory = $true)]
-#         $subscriptionId, 
-#         [Parameter(Mandatory = $true)]
-#         $resourceGroupName,
-#         [Parameter(Mandatory = $true)]
-#         $vmName, 
-#         [Parameter(Mandatory = $true)]
-#         $location,
-#         [Parameter(Mandatory = $true)]
-#         [string]$ExtensionName, #  AzureMonitorWindowsAgent or AzureMonitorLinuxAgent
-#         [Parameter(Mandatory = $true)]
-#         [string]$ExtensionTypeHandlerVersion #1.2 for windows, 1.27 for linux,
-#     )
-#     "Subscription Id: $subscriptionId"
-#     # Identity 
-#     $URL = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Compute/virtualMachines/$vmName" + "?api-version=2018-06-01"
-#     $Method = "PATCH"
-#     $Body = @"
-# {
-#     "identity": {
-#         "type": "SystemAssigned"
-#     }
-# }
-# "@
-#     try {
-#         invoke-Azrestmethod -URI $URL -Method $Method -Payload $Body 
-#     }
-#     catch {
-#         Write-Host "Error setting identity. $($_.Exception.Message)"
-#     }
-#     # Extension
-#     Set-AzContext -SubscriptionId $subscriptionId
-#     $tags = get-azvm -Name $vmName -ResourceGroupName $resourceGroupName | Select-Object -ExpandProperty tags | ConvertTo-Json
-#     $Method = "PUT"
-#     $URL = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Compute/virtualMachines/$vmName/extensions/$ExtensionName" + "?api-version=2023-09-01"
-#     $Body = @"
-#     {
-#         "properties": {
-#             "autoUpgradeMinorVersion": true,
-#             "enableAutomaticUpgrade": true,
-#             "publisher": "Microsoft.Azure.Monitor",
-#             "type": "$ExtensionName",
-#             "typeHandlerVersion": "$ExtensionTypeHandlerVersion",
-#             "settings": {
-#                 "authentication": {
-#                     "managedIdentity": {
-#                         "identifier-name": "mi_res_id",
-#                         "identifier-value": "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.ManagedIdentity/userAssignedIdentities/"
-#                     }
-#                 }
-#             }
-#         },
-#         "location": "$location",
-#         "tags": $tags
-#     }
-# }
-# "@
-#     try {
-#         Invoke-AzRestMethod -URI $URL -Method "PUT" -Payload $Body
-#     }
-#     catch {
-#         Write-Host "Error installing agent. $($_.Exception.Message)"
-#     }
-# }
 function Remove-Agent {
     param (
         [Parameter(Mandatory = $true)]
@@ -642,9 +533,6 @@ function Remove-Agent {
             if ($resource.id.split('/')[7] -eq 'virtualMachines') {
                 # Virtual machine - remove extension
                 Remove-AzVMExtension -Name AzureMonitorLinuxAgent -ResourceGroupName $resourceGroupName  -VMName $resourceName -Force
-                # install-azmonitorAgent -subscriptionId $resourceSubcriptionId -resourceGroupName $resourceGroupName -vmName $resourceName -location $resource.location `
-                # -ExtensionName "AzureMonitorLinuxAgent" -ExtensionTypeHandlerVersion "1.27"
-                # #$agent=Set-AzVMExtension -ResourceGroupName $resourceGroupName -VMName $resourceName -Name "AzureMonitorLinuxAgent" -Publisher "Microsoft.Azure.Monitor" -ExtensionType "AzureMonitorLinuxAgent" -TypeHandlerVersion "1.0" -Location $resource.location -EnableAutomaticUpgrade $true
             }
             else {
                 # Arc machine - remove extension
@@ -656,9 +544,6 @@ function Remove-Agent {
             if ($resourceId.split('/')[7] -eq 'virtualMachines') {
                 # Virtual machine - remove extension
                 Remove-AzVMExtension -Name AzureMonitorWindowsAgent -ResourceGroupName $resourceGroupName  -VMName $resourceName -Force
-                # install-azmonitorAgent -subscriptionId $resourceSubcriptionId -resourceGroupName $resourceGroupName -vmName $resourceName -location $resource.location `
-                # -ExtensionName "AzureMonitorWindowsAgent" -ExtensionTypeHandlerVersion "1.2"
-                # #$agent=Set-AzVMExtension -ResourceGroupName $resourceGroupName -VMName $resourceName -Name "AzureMonitorWindowsAgent" -Publisher "Microsoft.Azure.Monitor" -ExtensionType "AzureMonitorWindowsAgent" -TypeHandlerVersion "1.0" -Location $resource.location -ForceRerun -ForceUpdateTag -EnableAutomaticUpgrade $true
             }
             else {
                 # Arc machine - remove extension
@@ -1859,9 +1744,6 @@ function get-blobContainerContentFromUrl {
     }
     return $true
 }
-# function get-blobContentFromUrl2 {
-#     return Get-Content "$($env:temp)/$blobName"
-# }
 function update-blobcontentinURL {
     [CmdletBinding()]
     param (
