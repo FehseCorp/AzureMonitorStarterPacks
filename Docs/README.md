@@ -111,6 +111,10 @@ Project Bicep collects telemetry in some scenarios as part of improving the prod
 
 Click [here](./Docs/authoring.md) for guidance on how to create new packs.
 
+## Function API Reference
+
+Click [here](./Docs/function-api-reference.md) for the HTTP API reference for all Function App endpoints.
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
