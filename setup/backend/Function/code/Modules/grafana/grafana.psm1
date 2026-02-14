@@ -20,7 +20,7 @@ function get-grafanaDashboard {
     )
     $dashboardId = "subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Dashboard/dashboards/$dashboardName"
     $dashboarduid = $dashboardId.replace("/", "~") 
-    $tokenResult = Get-AzAccessToken -ResourceUrl "ce34e7e5-485f-4d76-964f-b3d2b16d1e4f"
+    $tokenResult = Get-AzAccessToken -TenantId $tenantId
     $bearerToken = if ($tokenResult.Token -is [securestring]) {
         [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($tokenResult.Token))
     } else { $tokenResult.Token }
@@ -46,7 +46,7 @@ function import-grafanaDashboard {
     }
     $dashboardId = "subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Dashboard/dashboards/$dashboardName"
     $dashboarduid = $dashboardId.replace("/", "~") 
-    $tokenResult = Get-AzAccessToken -ResourceUrl "ce34e7e5-485f-4d76-964f-b3d2b16d1e4f"
+    $tokenResult = Get-AzAccessToken -TenantId $tenantId
     $bearerToken = if ($tokenResult.Token -is [securestring]) {
         [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($tokenResult.Token))
     } else { $tokenResult.Token }

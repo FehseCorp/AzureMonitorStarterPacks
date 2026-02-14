@@ -1355,7 +1355,7 @@
                     "evaluationFrequency": "PT6H",
                     "windowSize": "PT6H",
                     "alertType": "rows",
-                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value <= 30 | extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, DaysToExpiry=Value, certSubject, certStore"
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value <= 30 | extend Computer=_ResourceId, certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags)"
                 },
                 {
                     "alertRuleDescription": "A certificate will expire within 60 days.",
@@ -1366,7 +1366,7 @@
                     "evaluationFrequency": "PT6H",
                     "windowSize": "PT6H",
                     "alertType": "rows",
-                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value > 30 and Value <= 60 | extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, DaysToExpiry=Value, certSubject, certStore"
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value > 30 and Value <= 60 | extend Computer=_ResourceId, certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags)"
                 },
                 {
                     "alertRuleDescription": "A certificate chain validation failed.",
@@ -1377,7 +1377,7 @@
                     "evaluationFrequency": "PT6H",
                     "windowSize": "PT6H",
                     "alertType": "rows",
-                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertChainValid' and Value == 0 | extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certChainStatus=extract('certChainStatus\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, certSubject, certChainStatus"
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertChainValid' and Value == 0 | extend Computer=_ResourceId, certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certChainStatus=extract('certChainStatus\":\"([^\"]+)', 1, Tags)"
                 },
                 {
                     "alertRuleDescription": "A CA certificate in the Intermediate CA store will expire within 7 days.",
@@ -1388,7 +1388,7 @@
                     "evaluationFrequency": "PT6H",
                     "windowSize": "PT6H",
                     "alertType": "rows",
-                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CACertDaysToExpiry' and Value <= 7 | extend certIssuer=extract('certIssuer\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, DaysToExpiry=Value, certIssuer"
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CACertDaysToExpiry' and Value <= 7 | extend Computer=_ResourceId, certIssuer=extract('certIssuer\":\"([^\"]+)', 1, Tags)"
                 }
             ]
         }
