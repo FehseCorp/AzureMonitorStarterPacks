@@ -20,12 +20,15 @@ function get-grafanaDashboard {
     )
     $dashboardId = "subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Dashboard/dashboards/$dashboardName"
     $dashboarduid = $dashboardId.replace("/", "~") 
-    $bearerToken = (Get-AzAccessToken -TenantId $tenantId ).Token
+    $tokenResult = Get-AzAccessToken -ResourceUrl "ce34e7e5-485f-4d76-964f-b3d2b16d1e4f"
+    $bearerToken = if ($tokenResult.Token -is [securestring]) {
+        [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($tokenResult.Token))
+    } else { $tokenResult.Token }
     $bearerToken
     $location
     $URL="https://local-$($location).gateway.dashboard.azure.com/api/dashboards/uid/$($dashboarduid)"
     "URL: $URL"
-    Invoke-RestMethod -Method Get -Uri $URL -Headers @{Authorization="Bearer $bearerToken"} #-ContentType "application/json"
+    Invoke-RestMethod -Method Get -Uri $URL -Headers @{Authorization="Bearer $bearerToken"}
 }
 function import-grafanaDashboard {
     param (
@@ -43,7 +46,10 @@ function import-grafanaDashboard {
     }
     $dashboardId = "subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Dashboard/dashboards/$dashboardName"
     $dashboarduid = $dashboardId.replace("/", "~") 
-    $bearerToken = (Get-AzAccessToken -TenantId $tenantId ).Token
+    $tokenResult = Get-AzAccessToken -ResourceUrl "ce34e7e5-485f-4d76-964f-b3d2b16d1e4f"
+    $bearerToken = if ($tokenResult.Token -is [securestring]) {
+        [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($tokenResult.Token))
+    } else { $tokenResult.Token }
     $body = get-content $dashboardFilePath # C:\git\AzureMonitorStarterPacks\Packs\dashboards\grafana-lxos.json
     # FIND the string "$$REPLACE_UID$$" in the body and replace it with the actual dashboarduid
     $body = $body -replace '\$\$UID\$\$', $dashboarduid
