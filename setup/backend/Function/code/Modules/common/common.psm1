@@ -1127,8 +1127,10 @@ function write-lawdata {
         [Parameter(Mandatory = $false)]
         [string]$appSecret
     )
-    #$dceId="https://amp-mcp1-dce-canadacentral-6f18.canadacentral-1.ingest.monitor.azure.com"
-    # get DCE URL from the DCE Id, using a tag.
+    if ($null -eq $data -or @($data).Count -eq 0) {
+        Write-Host "No data to send to $tableName, skipping."
+        return
+    }
     $streamname='Custom-' + $tableName
     $DCE=Get-AzDataCollectionEndpoint | Where-Object {$_.Tag['instanceName'] -eq $instanceName}
     $tenantId=(Get-AzContext).Tenant.Id
@@ -1912,7 +1914,7 @@ function start-opstasks {
                 $results += $result
             }
             #write data to LAW
-            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName NonMonitoredPaaSTable_CL #-localtest -appId $appid -appSecret $secretId
+            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName NonMonitoredPaaSTable_CL#-localtest -appId $appid -appSecret $secretId
         }    
     }
     else {
