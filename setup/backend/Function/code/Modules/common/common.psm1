@@ -1567,17 +1567,22 @@ function new-pack {
         if ($pack.Dashboards.Count -ne 0) {
             Write-host "Creating $($pack.Dashboards.Count) dashboards for pack $($packtag)..."
             foreach ($dashboard in $pack.Dashboards) {
-                $dashboardName = $dashboard.Name
-                $dashboardFilePath = $dashboard.DashboardPath
-                $tempfilename= "$($env:temp)\temp-$($dashboardFilePath)"
-                get-blobContentFromUrl -url "$($env:amgdStorageURL)/$($dashboardFilePath)" | out-file $tempfilename
-                new-grafanaDashboard -dashboardName $dashboardName `
-                                     -subscriptionId $env:subscriptionId `
-                                     -resourceGroupName $resourceGroupName `
-                                     -location "centralus" `
-                                     -dashboardTitle $dashboard.Title `
-                                     -dashboardFilePath $tempfilename `
-                                     -packtag $packTag
+                try {
+                    $dashboardName = $dashboard.Name
+                    $dashboardFilePath = $dashboard.DashboardPath
+                    $tempfilename= "$($env:temp)\temp-$($dashboardFilePath)"
+                    get-blobContentFromUrl -url "$($env:amgdStorageURL)/$($dashboardFilePath)" | out-file $tempfilename
+                    new-grafanaDashboard -dashboardName $dashboardName `
+                                         -subscriptionId $env:subscriptionId `
+                                         -resourceGroupName $resourceGroupName `
+                                         -location "centralus" `
+                                         -dashboardTitle $dashboard.Title `
+                                         -dashboardFilePath $tempfilename `
+                                         -packtag $packTag
+                }
+                catch {
+                    Write-Host "WARNING: Failed to create/import dashboard '$($dashboard.Name)': $($_.Exception.Message). Continuing with pack setup."
+                }
             }
         }
     }
