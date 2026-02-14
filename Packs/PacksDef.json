@@ -1280,6 +1280,58 @@
                 }
             ],
             "Alerts": []
+        },
+        {
+            "Name": "Windows Certificate Monitoring",
+            "Tag": "WinCerts",
+            "Description": "Monitors Windows certificate store discovery events (EventIDs 6666, 6667, 6668) from the Operations Manager event log. Based on the Microsoft.Certificates SCOM Management Pack.",
+            "OS": "Windows",
+            "Rules": [
+                {
+                    "Rulename": "WinCerts",
+                    "RuleType": "EventPerformance",
+                    "RuleNamePath": "dcr-basicWinVM.bicep",
+                    "xPathQueries": [
+                        "Operations Manager!*[System[(EventID=6666 or EventID=6667 or EventID=6668) and (Level=1 or Level=2 or Level=3)]]"
+                    ],
+                    "performanceCounters": []
+                }
+            ],
+            "Alerts": [
+                {
+                    "alertRuleDescription": "Certificate store discovery encountered an error. EventID 6666 indicates a critical discovery failure.",
+                    "alertRuleDisplayName": "Certificate Store Discovery Error (6666)",
+                    "alertRuleName": "AlertRule-WinCerts-6666",
+                    "alertRuleSeverity": 1,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT15M",
+                    "windowSize": "PT15M",
+                    "alertType": "rows",
+                    "query": "Event | where EventID == 6666 and EventLog == 'Operations Manager' and EventLevelName != 'Information'"
+                },
+                {
+                    "alertRuleDescription": "Certificate store discovery encountered an error. EventID 6667 indicates a discovery warning or failure.",
+                    "alertRuleDisplayName": "Certificate Store Discovery Error (6667)",
+                    "alertRuleName": "AlertRule-WinCerts-6667",
+                    "alertRuleSeverity": 1,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT15M",
+                    "windowSize": "PT15M",
+                    "alertType": "rows",
+                    "query": "Event | where EventID == 6667 and EventLog == 'Operations Manager' and EventLevelName != 'Information'"
+                },
+                {
+                    "alertRuleDescription": "Certificate store discovery encountered an error. EventID 6668 indicates a discovery warning or failure.",
+                    "alertRuleDisplayName": "Certificate Store Discovery Error (6668)",
+                    "alertRuleName": "AlertRule-WinCerts-6668",
+                    "alertRuleSeverity": 2,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT15M",
+                    "windowSize": "PT15M",
+                    "alertType": "rows",
+                    "query": "Event | where EventID == 6668 and EventLog == 'Operations Manager' and EventLevelName != 'Information'"
+                }
+            ]
         }
     ]
 }
