@@ -14,10 +14,19 @@ function New-vmApp {
     )
     #Find gallery by instanceName tag
     $gallery=Get-AzGallery | Where-Object { $_.Tags.instanceName -eq $instanceName }
-    # Find gallery application by packtag
-    $galleryapplications=(Get-AzGalleryApplication -GalleryName $gallery.Name -ResourceGroupName $gallery.ResourceGroupName) | Where-Object {$_.Tag.AdditionalProperties.MonitorStarterPacks -eq $packtag}
+    # Find gallery application by packtag (retry up to 3 times for newly created apps)
+    $galleryapplications=$null
+    $maxRetries=3
+    for ($attempt=1; $attempt -le $maxRetries; $attempt++) {
+        $galleryapplications=(Get-AzGalleryApplication -GalleryName $gallery.Name -ResourceGroupName $gallery.ResourceGroupName) | Where-Object {$_.Tag.AdditionalProperties.MonitorStarterPacks -eq $packtag}
+        if ($galleryapplications.Count -gt 0) { break }
+        if ($attempt -lt $maxRetries) {
+            Write-Host "No gallery applications found for $($packtag) (attempt $attempt/$maxRetries). Retrying in 30 seconds..."
+            Start-Sleep -Seconds 30
+        }
+    }
     if ($galleryapplications.Count -eq 0) {
-        Write-Warning "No gallery applications found for $($packtag). No need to install."
+        Write-Warning "No gallery applications found for $($packtag) after $maxRetries attempts. No need to install."
         return $true
     }
     foreach ($ga in $galleryapplications) {
