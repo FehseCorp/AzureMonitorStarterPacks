@@ -1295,6 +1295,21 @@
                         "Operations Manager!*[System[(EventID=6666 or EventID=6667 or EventID=6668) and (Level=1 or Level=2 or Level=3)]]"
                     ],
                     "performanceCounters": []
+                },
+                {
+                    "Rulename": "WinCerts2",
+                    "RuleType": "CustomData",
+                    "RuleNamePath": "customDataDCR.bicep",
+                    "filepatterns": [
+                        "C:\\WindowsAzure\\Certs\\*.csv"
+                    ],
+                    "tableName": "certsmonitoring",
+                    "clientAppName": "CertsCollection",
+                    "clientAppDescription": "Custom VM application to collect certificate health metrics (chain, expiry, CRL).",
+                    "clientAppVersion": "1.0.0",
+                    "clientAppInstallCommand": "powershell -command \"ren certscollection certscollection.zip; expand-archive ./certscollection.zip . ; ./install.ps1\"",
+                    "clientAppUninstallCommand": "powershell -command \"Unregister-ScheduledTask -TaskName 'Certificate Collection Task'\"",
+                    "clientAppZIPFile": "Certs.zip"
                 }
             ],
             "Alerts": [
@@ -1330,6 +1345,50 @@
                     "windowSize": "PT15M",
                     "alertType": "rows",
                     "query": "Event | where EventID == 6668 and EventLog == 'Operations Manager' and EventLevelName != 'Information'"
+                },
+                {
+                    "alertRuleDescription": "A certificate has expired or will expire within 30 days.",
+                    "alertRuleDisplayName": "Certificate Expiry Critical",
+                    "alertRuleName": "AlertRule-WinCerts-ExpiryCritical",
+                    "alertRuleSeverity": 1,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT6H",
+                    "windowSize": "PT6H",
+                    "alertType": "rows",
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value <= 30 | extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, DaysToExpiry=Value, certSubject, certStore"
+                },
+                {
+                    "alertRuleDescription": "A certificate will expire within 60 days.",
+                    "alertRuleDisplayName": "Certificate Expiry Warning",
+                    "alertRuleName": "AlertRule-WinCerts-ExpiryWarning",
+                    "alertRuleSeverity": 2,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT6H",
+                    "windowSize": "PT6H",
+                    "alertType": "rows",
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value > 30 and Value <= 60 | extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, DaysToExpiry=Value, certSubject, certStore"
+                },
+                {
+                    "alertRuleDescription": "A certificate chain validation failed.",
+                    "alertRuleDisplayName": "Certificate Chain Invalid",
+                    "alertRuleName": "AlertRule-WinCerts-ChainInvalid",
+                    "alertRuleSeverity": 1,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT6H",
+                    "windowSize": "PT6H",
+                    "alertType": "rows",
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertChainValid' and Value == 0 | extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certChainStatus=extract('certChainStatus\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, certSubject, certChainStatus"
+                },
+                {
+                    "alertRuleDescription": "A CA certificate in the Intermediate CA store will expire within 7 days.",
+                    "alertRuleDisplayName": "CA Certificate Expiry Warning",
+                    "alertRuleName": "AlertRule-WinCerts-CACertExpiry",
+                    "alertRuleSeverity": 2,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT6H",
+                    "windowSize": "PT6H",
+                    "alertType": "rows",
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CACertDaysToExpiry' and Value <= 7 | extend certIssuer=extract('certIssuer\":\"([^\"]+)', 1, Tags) | project TimeGenerated, MetricName, DaysToExpiry=Value, certIssuer"
                 }
             ]
         }
