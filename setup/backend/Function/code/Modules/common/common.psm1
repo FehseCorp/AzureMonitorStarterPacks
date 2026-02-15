@@ -1507,50 +1507,42 @@ function new-pack {
             Write-Host "Found $($alerts.count) alerts but pack defines $($pack.Alerts.Count). Recreating alerts to pick up new definitions."
             $createAlerts=$true
         }
-        else {
-            if ($pack.Alerts.Count -ne 0 -and $createAlerts -eq $true) {
-                Write-host "Creating $($pack.Alerts.Count) alerts for pack $($packtag)..."
-                # Convert to json and remove square brackets from the start and end of the string
-                $alertlistT = $pack.Alerts# | ConvertTo-Json -Depth 15 -Compress #| Out-String | ForEach-Object { $_ -replace '\"', '"' }
-                # $alertlist = $alertlist.TrimStart('["').TrimEnd('"]')
-                $alertlist=ConvertPSObjectToHashtable $alertlistT
-                $modulePrefix="AMP-$instanceName-$packtag"
-                if ($urlDeployment) {
-                    # $alertfilestoDownload =@('alert.bicep','alerts.bicep','scheduledqueryruleAggregate.bicep','scheduledqueryruleRows.bicep')
-                    # foreach ($file in $alertfilestoDownload) {
-                    #     $templateUri = "$modulesURLroot/$file"
-                    #     #(Invoke-WebRequest -Uri $templateUri).Content | out-file "$($env:temp)/$file"
-                    #     get-blobContentFromUrl -url $templateUri | out-file "$($env:temp)/$file"
-                    # }
-                    New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
-                    -TemplateFile "$($env:temp)/alerts.bicep" `
-                    -ResourceGroupName $resourceGroup `
-                    -Location $location `
-                    -TemplateParameterObject @{
-                        alertlist = $alertlist
-                        AGId = $AGId
-                        moduleprefix = $modulePrefix
-                        packtag = $packtag
-                        Tags = $TagsToUse # Add any tags you want to pass here
-                        workspaceId = $workspaceId
-                        location = $location
-                    }
+        if ($pack.Alerts.Count -ne 0 -and $createAlerts -eq $true) {
+            Write-host "Creating $($pack.Alerts.Count) alerts for pack $($packtag)..."
+            # Convert to json and remove square brackets from the start and end of the string
+            $alertlistT = $pack.Alerts# | ConvertTo-Json -Depth 15 -Compress #| Out-String | ForEach-Object { $_ -replace '\"', '"' }
+            # $alertlist = $alertlist.TrimStart('["').TrimEnd('"]')
+            $alertlist=ConvertPSObjectToHashtable $alertlistT
+            $modulePrefix="AMP-$instanceName-$packtag"
+            if ($urlDeployment) {
+                New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
+                -TemplateFile "$($env:temp)/alerts.bicep" `
+                -ResourceGroupName $resourceGroup `
+                -Location $location `
+                -TemplateParameterObject @{
+                    alertlist = $alertlist
+                    AGId = $AGId
+                    moduleprefix = $modulePrefix
+                    packtag = $packtag
+                    Tags = $TagsToUse # Add any tags you want to pass here
+                    workspaceId = $workspaceId
+                    location = $location
                 }
-                else {
-                    $alertTemplateFile = "$modulesRoot/alerts/alerts.bicep"    <# Action when all if and elseif conditions are false #>
-                    New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
-                    -TemplateFile $alertTemplateFile `
-                    -ResourceGroupName $resourceGroup `
-                    -Location $location `
-                    -TemplateParameterObject @{
-                        alertlist = $alertlist
-                        AGId = $AGId
-                        moduleprefix = $modulePrefix
-                        packtag = $packtag
-                        Tags = $TagsToUse # Add any tags you want to pass here
-                        workspaceId = $workspaceId
-                        location = $location
-                    }
+            }
+            else {
+                $alertTemplateFile = "$modulesRoot/alerts/alerts.bicep"
+                New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
+                -TemplateFile $alertTemplateFile `
+                -ResourceGroupName $resourceGroup `
+                -Location $location `
+                -TemplateParameterObject @{
+                    alertlist = $alertlist
+                    AGId = $AGId
+                    moduleprefix = $modulePrefix
+                    packtag = $packtag
+                    Tags = $TagsToUse # Add any tags you want to pass here
+                    workspaceId = $workspaceId
+                    location = $location
                 }
             }
         }
