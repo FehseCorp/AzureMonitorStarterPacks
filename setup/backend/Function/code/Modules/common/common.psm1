@@ -1919,7 +1919,7 @@ function start-opstasks {
                 $results += $result
             }
             #write data to LAW
-            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName NonMonitoredPaaSTable_CL#-localtest -appId $appid -appSecret $secretId
+            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName NonMonitoredPaaSTable_CL #-localtest -appId $appid -appSecret $secretId
         }    
     }
     else {
