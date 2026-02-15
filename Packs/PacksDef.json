@@ -1347,7 +1347,18 @@
                     "query": "Event | where EventID == 6668 and EventLog == 'Operations Manager' and EventLevelName != 'Information'"
                 },
                 {
-                    "alertRuleDescription": "A certificate has expired or will expire within 30 days.",
+                    "alertRuleDescription": "A certificate has already expired (days to expiry is zero or negative).",
+                    "alertRuleDisplayName": "Certificate Expired",
+                    "alertRuleName": "AlertRule-WinCerts-Expired",
+                    "alertRuleSeverity": 0,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT6H",
+                    "windowSize": "PT6H",
+                    "alertType": "rows",
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value <= 0 | extend Computer=_ResourceId, certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags)"
+                },
+                {
+                    "alertRuleDescription": "A certificate will expire within 30 days.",
                     "alertRuleDisplayName": "Certificate Expiry Critical",
                     "alertRuleName": "AlertRule-WinCerts-ExpiryCritical",
                     "alertRuleSeverity": 1,
@@ -1355,7 +1366,7 @@
                     "evaluationFrequency": "PT6H",
                     "windowSize": "PT6H",
                     "alertType": "rows",
-                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value <= 30 | extend Computer=_ResourceId, certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags)"
+                    "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CertDaysToExpiry' and Value > 0 and Value <= 30 | extend Computer=_ResourceId, certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags), certStore=extract('certStore\":\"([^\"]+)', 1, Tags)"
                 },
                 {
                     "alertRuleDescription": "A certificate will expire within 60 days.",
@@ -1389,6 +1400,13 @@
                     "windowSize": "PT6H",
                     "alertType": "rows",
                     "query": "certsmonitoring_CL | extend fields=split(RawData,',') | extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3]) | where MetricName == 'CACertDaysToExpiry' and Value <= 7 | extend Computer=_ResourceId, certIssuer=extract('certIssuer\":\"([^\"]+)', 1, Tags)"
+                }
+            ],
+            "Dashboards": [
+                {
+                    "Name": "WinCerts",
+                    "Description": "Windows Certificate Monitoring Dashboard",
+                    "DashboardPath": "grafana-certs.json"
                 }
             ]
         }
