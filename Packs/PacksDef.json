@@ -1231,7 +1231,7 @@
                     "clientAppDescription": "Custom VM application to collect AD DS related data.",
                     "clientAppVersion": "1.0.0",
                     "clientAppInstallCommand" : "powershell -command \"ren addscollection addscollection.zip; expand-archive ./addscollection.zip . ; ./install.ps1\"",
-                    "clientAppUninstallCommand" : "powershell -command \"Unregister-ScheduledTask -TaskName 'AD DS Collection Task'\"",
+                    "clientAppUninstallCommand" : "powershell -command \"Unregister-ScheduledTask -TaskName 'AD DS Collection Task' -Confirm:$false\"",
                     "clientAppZIPFile" : "ADDS.zip"
                 }
             ],
@@ -1308,7 +1308,7 @@
                     "clientAppDescription": "Custom VM application to collect certificate health metrics (chain, expiry, CRL).",
                     "clientAppVersion": "1.0.0",
                     "clientAppInstallCommand": "powershell -command \"ren certscollection certscollection.zip; expand-archive ./certscollection.zip . ; ./install.ps1\"",
-                    "clientAppUninstallCommand": "powershell -command \"Unregister-ScheduledTask -TaskName 'Certificate Collection Task'\"",
+                    "clientAppUninstallCommand": "powershell -command \"Unregister-ScheduledTask -TaskName 'Certificate Collection Task' -Confirm:$false\"",
                     "clientAppZIPFile": "Certs.zip"
                 }
             ],
