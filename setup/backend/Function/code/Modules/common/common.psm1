@@ -1499,9 +1499,13 @@ function new-pack {
         }
         # Alerts
         $alerts = Search-AzGraph -Query "resources | where type =~ 'microsoft.insights/scheduledqueryrules' | where tags.instanceName =~ '$($instanceName)' and tags.MonitorStarterPacks =~ '$($packtag)'" -UseTenantScope
-        if ($alerts.count -ne 0) {
-            Write-Host "Alerts already exist for DCR $($ruleName). Pack is already installed. Maybe they need updates...who knows?"
+        if ($alerts.count -ne 0 -and $alerts.count -ge $pack.Alerts.Count) {
+            Write-Host "All $($alerts.count) alerts already exist for pack $($packtag). Skipping alert creation."
             $createAlerts=$false
+        }
+        elseif ($alerts.count -ne 0 -and $alerts.count -lt $pack.Alerts.Count) {
+            Write-Host "Found $($alerts.count) alerts but pack defines $($pack.Alerts.Count). Recreating alerts to pick up new definitions."
+            $createAlerts=$true
         }
         else {
             if ($pack.Alerts.Count -ne 0 -and $createAlerts -eq $true) {
