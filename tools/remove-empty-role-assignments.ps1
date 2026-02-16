@@ -1,6 +1,7 @@
 # Description: This script will remove any Azure RBAC Role Assignments that have an 'Unknown' Type.
 $OBJTYPE = "Unknown"
-$ura= Get-AzRoleAssignment | Where-Object {$_.ObjectType.Equals($OBJTYPE)}
+#$ura= Get-AzRoleAssignment | Where-Object {$_.ObjectType.Equals($OBJTYPE)}
+$ura= Get-AzRoleAssignment |  Where-Object {$_.DisplayName -eq $null -and $_.SignInName -eq $null}
 Write-host "Found $($ura.Count) Role Assignments of type $OBJTYPE"
 if ($ura.Count -eq 0) {
     Write-Host "No Role Assignments of type $OBJTYPE found."

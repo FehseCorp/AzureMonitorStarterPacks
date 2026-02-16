@@ -1,17 +1,24 @@
 #######################################################################
 # Common functions used in the Monitoring Packs backend functions.
 #######################################################################
-# Function to add AMA to a VM or arc machine
-# The tags added to the extension are copied from the resource.
 
-# this will be eventually used to update the local catalog from the repo.
-# function get-AMBAJsonFromRepo {
-#     param (
-#         [string]$AMBAJsonURL = "https://azure.github.io/azure-monitor-baseline-alerts/amba-alerts.json"
-#     )
-#     $AMBAJson = Invoke-WebRequest -Uri $AMBAJsonURL -UseBasicParsing | Select-Object -ExpandProperty Content # | ConvertFrom-Json
-#     return $AMBAJson
-# }
+function Write-Log {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        [ValidateSet('Info', 'Warning', 'Error')]
+        [string]$Severity = 'Info',
+        [string]$FunctionName = ''
+    )
+    $timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')
+    $prefix = if ($FunctionName) { "[$timestamp][$Severity][$FunctionName]" } else { "[$timestamp][$Severity]" }
+    switch ($Severity) {
+        'Warning' { Write-Warning "$prefix $Message" }
+        'Error'   { Write-Error "$prefix $Message" }
+        default   { Write-Host "$prefix $Message" }
+    }
+}
+
 function get-AMBAJsonContent {
     $ambaJsonURL=$env:AMBAJsonURL
     if ($null -eq $ambaJsonURL) {
@@ -21,54 +28,6 @@ function get-AMBAJsonContent {
     Write-Host "Fetching AMBA Catalog from $ambaJsonURL"
     get-blobContentFromUrl -url $ambaJsonURL 
 }
-# function get-AMBAJsonContent2 {
-#     $StorageAccountName=$env:StorageAccountName
-#     $ResourceGroupName=$env:ResourceGroup
-#     Write-host "Storage Account: $StorageAccountName"
-#     Write-host "RG: $ResourceGroupName"
-#     $StorageAccount=Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
-#     $sacontext=New-AzStorageContext -StorageAccountName $StorageAccount.StorageAccountName -UseConnectedAccount
-#     $ContainerName = "amba"
-#     $BlobName = "amba-alerts.json"
-#     $Destination = "$($env:TEMP)\$BlobName"
-#     $Blob2HT = @{
-#         Container        = $ContainerName
-#         Blob             = $BlobName
-#         Context          = $sacontext
-#     }
-#     # Check if the blob exists and is not older than 30 days
-#     Write-host "Checking if blob exists and is not older than 30 days..."
-#     $currentblob = Get-AzStorageBlob @Blob2HT #-ErrorAction SilentlyContinue
-#     if ($null -ne $currentblob -and $currentblob.LastModified -gt (Get-Date).AddDays(-30)) {
-#         Write-host "Blob found. Downloading to $Destination."
-#         $BlobContent = Get-AzStorageBlobContent @Blob2HT -Force -Context $sacontext -Destination $Destination
-#         # check if the file exists and was downloaded correctly
-#         if (Test-Path $Destination) {
-#             Write-host "Blob content downloaded successfully to $Destination file."
-#             $AMBAJson = get-content $Destination
-#         } else {
-#             Write-host "Blob content not downloaded. Please check the blob name and container name."
-#         }
-#     } 
-#     else {
-#         Write-Host "Blob not found. Please check the blob name and container name."
-#         # $AMBAJsonURL="https://azure.github.io/azure-monitor-baseline-alerts/amba-alerts.json"
-#         # Invoke-WebRequest -Uri $AMBAJsonURL -UseBasicParsing | Select-Object -ExpandProperty Content 
-#         get-AMBAJsonFromRepo | Out-File -FilePath "amba-alerts.json" -Encoding utf8
-#         # Write json contetnt to a blog in the storage account under the amba container using managed identity
-#         $Blob1HT = @{
-#             File             = "amba-alerts.json"
-#             Container        = $ContainerName
-#             Blob             = $BlobName
-#             Context          = $sacontext
-#             StandardBlobTier = 'Hot'
-#         }
-#         Set-AzStorageBlobContent @Blob1HT
-#         $AMBAJson = get-content $BlobName
-#     }
-#     #$AMBAJson = Invoke-WebRequest -Uri $AMBAJsonURL -UseBasicParsing | Select-Object -ExpandProperty Content # | ConvertFrom-Json
-#     return $AMBAJson
-# }
 function set-systemAssignedIdentity {
     param (
         [Parameter(Mandatory = $true)]
@@ -546,74 +505,6 @@ function get-alertApiVersion {
     $apiVersion = $apiVersions[0]
     return $apiVersion
 }
-# Function to add AMA to a VM or arc machine
-# The tags added to the extension are copied from the resource.
-# function Install-azMonitorAgent {
-#     param (
-#         [Parameter(Mandatory = $true)]
-#         $subscriptionId, 
-#         [Parameter(Mandatory = $true)]
-#         $resourceGroupName,
-#         [Parameter(Mandatory = $true)]
-#         $vmName, 
-#         [Parameter(Mandatory = $true)]
-#         $location,
-#         [Parameter(Mandatory = $true)]
-#         [string]$ExtensionName, #  AzureMonitorWindowsAgent or AzureMonitorLinuxAgent
-#         [Parameter(Mandatory = $true)]
-#         [string]$ExtensionTypeHandlerVersion #1.2 for windows, 1.27 for linux,
-#     )
-#     "Subscription Id: $subscriptionId"
-#     # Identity 
-#     $URL = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Compute/virtualMachines/$vmName" + "?api-version=2018-06-01"
-#     $Method = "PATCH"
-#     $Body = @"
-# {
-#     "identity": {
-#         "type": "SystemAssigned"
-#     }
-# }
-# "@
-#     try {
-#         invoke-Azrestmethod -URI $URL -Method $Method -Payload $Body 
-#     }
-#     catch {
-#         Write-Host "Error setting identity. $($_.Exception.Message)"
-#     }
-#     # Extension
-#     Set-AzContext -SubscriptionId $subscriptionId
-#     $tags = get-azvm -Name $vmName -ResourceGroupName $resourceGroupName | Select-Object -ExpandProperty tags | ConvertTo-Json
-#     $Method = "PUT"
-#     $URL = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Compute/virtualMachines/$vmName/extensions/$ExtensionName" + "?api-version=2023-09-01"
-#     $Body = @"
-#     {
-#         "properties": {
-#             "autoUpgradeMinorVersion": true,
-#             "enableAutomaticUpgrade": true,
-#             "publisher": "Microsoft.Azure.Monitor",
-#             "type": "$ExtensionName",
-#             "typeHandlerVersion": "$ExtensionTypeHandlerVersion",
-#             "settings": {
-#                 "authentication": {
-#                     "managedIdentity": {
-#                         "identifier-name": "mi_res_id",
-#                         "identifier-value": "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.ManagedIdentity/userAssignedIdentities/"
-#                     }
-#                 }
-#             }
-#         },
-#         "location": "$location",
-#         "tags": $tags
-#     }
-# }
-# "@
-#     try {
-#         Invoke-AzRestMethod -URI $URL -Method "PUT" -Payload $Body
-#     }
-#     catch {
-#         Write-Host "Error installing agent. $($_.Exception.Message)"
-#     }
-# }
 function Remove-Agent {
     param (
         [Parameter(Mandatory = $true)]
@@ -642,9 +533,6 @@ function Remove-Agent {
             if ($resource.id.split('/')[7] -eq 'virtualMachines') {
                 # Virtual machine - remove extension
                 Remove-AzVMExtension -Name AzureMonitorLinuxAgent -ResourceGroupName $resourceGroupName  -VMName $resourceName -Force
-                # install-azmonitorAgent -subscriptionId $resourceSubcriptionId -resourceGroupName $resourceGroupName -vmName $resourceName -location $resource.location `
-                # -ExtensionName "AzureMonitorLinuxAgent" -ExtensionTypeHandlerVersion "1.27"
-                # #$agent=Set-AzVMExtension -ResourceGroupName $resourceGroupName -VMName $resourceName -Name "AzureMonitorLinuxAgent" -Publisher "Microsoft.Azure.Monitor" -ExtensionType "AzureMonitorLinuxAgent" -TypeHandlerVersion "1.0" -Location $resource.location -EnableAutomaticUpgrade $true
             }
             else {
                 # Arc machine - remove extension
@@ -656,9 +544,6 @@ function Remove-Agent {
             if ($resourceId.split('/')[7] -eq 'virtualMachines') {
                 # Virtual machine - remove extension
                 Remove-AzVMExtension -Name AzureMonitorWindowsAgent -ResourceGroupName $resourceGroupName  -VMName $resourceName -Force
-                # install-azmonitorAgent -subscriptionId $resourceSubcriptionId -resourceGroupName $resourceGroupName -vmName $resourceName -location $resource.location `
-                # -ExtensionName "AzureMonitorWindowsAgent" -ExtensionTypeHandlerVersion "1.2"
-                # #$agent=Set-AzVMExtension -ResourceGroupName $resourceGroupName -VMName $resourceName -Name "AzureMonitorWindowsAgent" -Publisher "Microsoft.Azure.Monitor" -ExtensionType "AzureMonitorWindowsAgent" -TypeHandlerVersion "1.0" -Location $resource.location -ForceRerun -ForceUpdateTag -EnableAutomaticUpgrade $true
             }
             else {
                 # Arc machine - remove extension
@@ -1242,8 +1127,10 @@ function write-lawdata {
         [Parameter(Mandatory = $false)]
         [string]$appSecret
     )
-    #$dceId="https://amp-mcp1-dce-canadacentral-6f18.canadacentral-1.ingest.monitor.azure.com"
-    # get DCE URL from the DCE Id, using a tag.
+    if ($null -eq $data -or @($data).Count -eq 0) {
+        Write-Host "No data to send to $tableName, skipping."
+        return
+    }
     $streamname='Custom-' + $tableName
     $DCE=Get-AzDataCollectionEndpoint | Where-Object {$_.Tag['instanceName'] -eq $instanceName}
     $tenantId=(Get-AzContext).Tenant.Id
@@ -1612,54 +1499,50 @@ function new-pack {
         }
         # Alerts
         $alerts = Search-AzGraph -Query "resources | where type =~ 'microsoft.insights/scheduledqueryrules' | where tags.instanceName =~ '$($instanceName)' and tags.MonitorStarterPacks =~ '$($packtag)'" -UseTenantScope
-        if ($alerts.count -ne 0) {
-            Write-Host "Alerts already exist for DCR $($ruleName). Pack is already installed. Maybe they need updates...who knows?"
+        if ($alerts.count -ne 0 -and $alerts.count -ge $pack.Alerts.Count) {
+            Write-Host "All $($alerts.count) alerts already exist for pack $($packtag). Skipping alert creation."
             $createAlerts=$false
         }
-        else {
-            if ($pack.Alerts.Count -ne 0 -and $createAlerts -eq $true) {
-                Write-host "Creating $($pack.Alerts.Count) alerts for pack $($packtag)..."
-                # Convert to json and remove square brackets from the start and end of the string
-                $alertlistT = $pack.Alerts# | ConvertTo-Json -Depth 15 -Compress #| Out-String | ForEach-Object { $_ -replace '\"', '"' }
-                # $alertlist = $alertlist.TrimStart('["').TrimEnd('"]')
-                $alertlist=ConvertPSObjectToHashtable $alertlistT
-                $modulePrefix="AMP-$instanceName-$packtag"
-                if ($urlDeployment) {
-                    # $alertfilestoDownload =@('alert.bicep','alerts.bicep','scheduledqueryruleAggregate.bicep','scheduledqueryruleRows.bicep')
-                    # foreach ($file in $alertfilestoDownload) {
-                    #     $templateUri = "$modulesURLroot/$file"
-                    #     #(Invoke-WebRequest -Uri $templateUri).Content | out-file "$($env:temp)/$file"
-                    #     get-blobContentFromUrl -url $templateUri | out-file "$($env:temp)/$file"
-                    # }
-                    New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
-                    -TemplateFile "$($env:temp)/alerts.bicep" `
-                    -ResourceGroupName $resourceGroup `
-                    -Location $location `
-                    -TemplateParameterObject @{
-                        alertlist = $alertlist
-                        AGId = $AGId
-                        moduleprefix = $modulePrefix
-                        packtag = $packtag
-                        Tags = $TagsToUse # Add any tags you want to pass here
-                        workspaceId = $workspaceId
-                        location = $location
-                    }
+        elseif ($alerts.count -ne 0 -and $alerts.count -lt $pack.Alerts.Count) {
+            Write-Host "Found $($alerts.count) alerts but pack defines $($pack.Alerts.Count). Recreating alerts to pick up new definitions."
+            $createAlerts=$true
+        }
+        if ($pack.Alerts.Count -ne 0 -and $createAlerts -eq $true) {
+            Write-host "Creating $($pack.Alerts.Count) alerts for pack $($packtag)..."
+            # Convert to json and remove square brackets from the start and end of the string
+            $alertlistT = $pack.Alerts# | ConvertTo-Json -Depth 15 -Compress #| Out-String | ForEach-Object { $_ -replace '\"', '"' }
+            # $alertlist = $alertlist.TrimStart('["').TrimEnd('"]')
+            $alertlist=ConvertPSObjectToHashtable $alertlistT
+            $modulePrefix="AMP-$instanceName-$packtag"
+            if ($urlDeployment) {
+                New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
+                -TemplateFile "$($env:temp)/alerts.bicep" `
+                -ResourceGroupName $resourceGroup `
+                -Location $location `
+                -TemplateParameterObject @{
+                    alertlist = $alertlist
+                    AGId = $AGId
+                    moduleprefix = $modulePrefix
+                    packtag = $packtag
+                    Tags = $TagsToUse # Add any tags you want to pass here
+                    workspaceId = $workspaceId
+                    location = $location
                 }
-                else {
-                    $alertTemplateFile = "$modulesRoot/alerts/alerts.bicep"    <# Action when all if and elseif conditions are false #>
-                    New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
-                    -TemplateFile $alertTemplateFile `
-                    -ResourceGroupName $resourceGroup `
-                    -Location $location `
-                    -TemplateParameterObject @{
-                        alertlist = $alertlist
-                        AGId = $AGId
-                        moduleprefix = $modulePrefix
-                        packtag = $packtag
-                        Tags = $TagsToUse # Add any tags you want to pass here
-                        workspaceId = $workspaceId
-                        location = $location
-                    }
+            }
+            else {
+                $alertTemplateFile = "$modulesRoot/alerts/alerts.bicep"
+                New-AzResourceGroupDeployment -name "alerts-$packtag-$instanceName-$location" `
+                -TemplateFile $alertTemplateFile `
+                -ResourceGroupName $resourceGroup `
+                -Location $location `
+                -TemplateParameterObject @{
+                    alertlist = $alertlist
+                    AGId = $AGId
+                    moduleprefix = $modulePrefix
+                    packtag = $packtag
+                    Tags = $TagsToUse # Add any tags you want to pass here
+                    workspaceId = $workspaceId
+                    location = $location
                 }
             }
         }
@@ -1680,17 +1563,22 @@ function new-pack {
         if ($pack.Dashboards.Count -ne 0) {
             Write-host "Creating $($pack.Dashboards.Count) dashboards for pack $($packtag)..."
             foreach ($dashboard in $pack.Dashboards) {
-                $dashboardName = $dashboard.Name
-                $dashboardFilePath = $dashboard.DashboardPath
-                $tempfilename= "$($env:temp)\temp-$($dashboardFilePath)"
-                get-blobContentFromUrl -url "$($env:amgdStorageURL)/$($dashboardFilePath)" | out-file $tempfilename
-                new-grafanaDashboard -dashboardName $dashboardName `
-                                     -subscriptionId $env:subscriptionId `
-                                     -resourceGroupName $resourceGroupName `
-                                     -location "centralus" `
-                                     -dashboardTitle $dashboard.Title `
-                                     -dashboardFilePath $tempfilename `
-                                     -packtag $packTag
+                try {
+                    $dashboardName = $dashboard.Name
+                    $dashboardFilePath = $dashboard.DashboardPath
+                    $tempfilename= "$($env:temp)\temp-$($dashboardFilePath)"
+                    get-blobContentFromUrl -url "$($env:amgdStorageURL)/$($dashboardFilePath)" | out-file $tempfilename
+                    new-grafanaDashboard -dashboardName $dashboardName `
+                                         -subscriptionId $env:subscriptionId `
+                                         -resourceGroupName $resourceGroupName `
+                                         -location "centralus" `
+                                         -dashboardTitle $dashboard.Title `
+                                         -dashboardFilePath $tempfilename `
+                                         -packtag $packTag
+                }
+                catch {
+                    Write-Host "WARNING: Failed to create/import dashboard '$($dashboard.Name)': $($_.Exception.Message). Continuing with pack setup."
+                }
             }
         }
     }
@@ -1859,9 +1747,6 @@ function get-blobContainerContentFromUrl {
     }
     return $true
 }
-# function get-blobContentFromUrl2 {
-#     return Get-Content "$($env:temp)/$blobName"
-# }
 function update-blobcontentinURL {
     [CmdletBinding()]
     param (

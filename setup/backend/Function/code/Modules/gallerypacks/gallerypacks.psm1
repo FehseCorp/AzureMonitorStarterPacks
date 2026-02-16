@@ -14,10 +14,19 @@ function New-vmApp {
     )
     #Find gallery by instanceName tag
     $gallery=Get-AzGallery | Where-Object { $_.Tags.instanceName -eq $instanceName }
-    # Find gallery application by packtag
-    $galleryapplications=(Get-AzGalleryApplication -GalleryName $gallery.Name -ResourceGroupName $gallery.ResourceGroupName) | Where-Object {$_.Tag.AdditionalProperties.MonitorStarterPacks -eq $packtag}
+    # Find gallery application by packtag (retry up to 3 times for newly created apps)
+    $galleryapplications=$null
+    $maxRetries=3
+    for ($attempt=1; $attempt -le $maxRetries; $attempt++) {
+        $galleryapplications=(Get-AzGalleryApplication -GalleryName $gallery.Name -ResourceGroupName $gallery.ResourceGroupName) | Where-Object {$_.Tag.AdditionalProperties.MonitorStarterPacks -eq $packtag}
+        if ($galleryapplications.Count -gt 0) { break }
+        if ($attempt -lt $maxRetries) {
+            Write-Host "No gallery applications found for $($packtag) (attempt $attempt/$maxRetries). Retrying in 30 seconds..."
+            Start-Sleep -Seconds 30
+        }
+    }
     if ($galleryapplications.Count -eq 0) {
-        Write-Warning "No gallery applications found for $($packtag). No need to install."
+        Write-Warning "No gallery applications found for $($packtag) after $maxRetries attempts. No need to install."
         return $true
     }
     foreach ($ga in $galleryapplications) {
@@ -47,14 +56,25 @@ function New-vmApp {
         $newAppConfig=New-AzVmGalleryApplication -PackageReferenceId $appversion.Id
         if ($VM) {
             Add-AzVmGalleryApplication -VM $VM -GalleryApplication $newAppConfig -TreatFailureAsDeploymentFailure
-            try {
-                $VM | Update-AzVM
-                Write-Host "Installed $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId)"
-                return $true
-            }
-            catch {
-                Write-Error "Error installing application $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId)"
-                return $false
+            $installRetries = 3
+            for ($installAttempt = 1; $installAttempt -le $installRetries; $installAttempt++) {
+                try {
+                    $VM | Update-AzVM
+                    Write-Host "Installed $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId)"
+                    return $true
+                }
+                catch {
+                    if ($_.Exception.Message -match 'ApplicationNotFound' -and $installAttempt -lt $installRetries) {
+                        Write-Host "Application version not yet available (attempt $installAttempt/$installRetries). Retrying in 30 seconds..."
+                        Start-Sleep -Seconds 30
+                        $VM = Get-AzVM -ResourceId $resourceId
+                        Add-AzVmGalleryApplication -VM $VM -GalleryApplication $newAppConfig -TreatFailureAsDeploymentFailure
+                    }
+                    else {
+                        Write-Error "Error installing application $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId): $_"
+                        return $false
+                    }
+                }
             }
         }
         else {
@@ -95,7 +115,15 @@ function remove-vmapp {
         #
         $VM=Get-AzVM -ResourceId $resourceId
         if ($VM) {
-            $installedApp = $VM.ApplicationProfile.GalleryApplications | Where-Object { $_.PackageReferenceId.ToLower().Contains($ga.id.ToLower()) }
+            if (!($VM.ApplicationProfile.GalleryApplications)) {
+                Write-Host "No applications installed on $($resourceId). Skipping removal of $($ga.Name)."
+                continue
+            }
+            $installedApp = $VM.ApplicationProfile.GalleryApplications | Where-Object { $_.PackageReferenceId -and $_.PackageReferenceId.ToLower().Contains($ga.id.ToLower()) }
+            if (!$installedApp) {
+                Write-Host "Application $($ga.Name) not found on $($resourceId). Skipping."
+                continue
+            }
             Write-host "Removing $($ga.Name) from $($resourceId)"
             try {
                 Remove-AzVmGalleryApplication -VM $VM -GalleryApplicationsReferenceId $installedApp.PackageReferenceId

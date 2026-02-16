@@ -1,0 +1,740 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 7,
+  "links": [],
+  "panels": [
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# Windows Certificate Monitoring\n\nAzure Monitor Starter Packs — Certificate health: expiry, chain validation, and CA certificates.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.2.0",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 30
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "green",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 3
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "certsmonitoring_CL\r\n| extend fields=split(RawData,',')\r\n| extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3])\r\n| where MetricName == 'CertDaysToExpiry' and Value <= 0\r\n| summarize ExpiredCerts=dcount(extract('certThumbprint\":\"([^\"]+)', 1, Tags))",
+            "resources": [
+              "$Workspaces"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${DS_AZURE_MONITOR}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Expired Certificates",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 3
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "certsmonitoring_CL\r\n| extend fields=split(RawData,',')\r\n| extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3])\r\n| where MetricName == 'CertDaysToExpiry' and Value > 0 and Value <= 60\r\n| summarize ExpiringSoon=dcount(extract('certThumbprint\":\"([^\"]+)', 1, Tags))",
+            "resources": [
+              "$Workspaces"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${DS_AZURE_MONITOR}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Expiring Within 60 Days",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 3
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "certsmonitoring_CL\r\n| extend fields=split(RawData,',')\r\n| extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3])\r\n| where MetricName == 'CertChainValid' and Value == 0\r\n| summarize ChainErrors=dcount(extract('certThumbprint\":\"([^\"]+)', 1, Tags))",
+            "resources": [
+              "$Workspaces"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${DS_AZURE_MONITOR}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Chain Validation Failures",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Days to Expiry",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "transparent",
+                "value": 30
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "asc"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "certsmonitoring_CL\r\n| extend fields=split(RawData,',')\r\n| extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3])\r\n| where MetricName == 'CertDaysToExpiry'\r\n| extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags)\r\n| extend certStore=extract('certStore\":\"([^\"]+)', 1, Tags)\r\n| project TimeGenerated, DaysToExpiry=Value, Certificate=strcat(certStore, '/', certSubject)",
+            "resources": [
+              "$Workspaces"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${DS_AZURE_MONITOR}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Certificate Days to Expiry",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DaysToExpiry"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "orange",
+                      "value": 30
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 60
+                    },
+                    {
+                      "color": "green",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ChainValid"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Invalid"
+                      },
+                      "1": {
+                        "color": "green",
+                        "index": 1,
+                        "text": "Valid"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "DaysToExpiry"
+          }
+        ]
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let latestBatch = toscalar(certsmonitoring_CL | summarize max(TimeGenerated));\r\ncertsmonitoring_CL\r\n| where TimeGenerated == latestBatch\r\n| extend fields=split(RawData,',')\r\n| extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3])\r\n| where MetricName in ('CertDaysToExpiry', 'CertChainValid')\r\n| extend certSubject=extract('certSubject\":\"([^\"]+)', 1, Tags)\r\n| extend certThumbprint=extract('certThumbprint\":\"([^\"]+)', 1, Tags)\r\n| extend certStore=extract('certStore\":\"([^\"]+)', 1, Tags)\r\n| extend certNotAfter=extract('certNotAfter\":\"([^\"]+)', 1, Tags)\r\n| summarize DaysToExpiry=maxif(Value, MetricName=='CertDaysToExpiry'), ChainValid=maxif(Value, MetricName=='CertChainValid') by certSubject, certThumbprint, certStore, certNotAfter, _ResourceId\r\n| project VM=_ResourceId, Store=certStore, Subject=certSubject, Thumbprint=certThumbprint, ExpiresOn=certNotAfter, DaysToExpiry, ChainValid",
+            "resources": [
+              "$Workspaces"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${DS_AZURE_MONITOR}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Certificate Inventory (Latest Collection)",
+      "type": "table"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "id": 7,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# CA / Intermediate Certificates",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.2.0",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Days to Expiry",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "transparent",
+                "value": 7
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "asc"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "certsmonitoring_CL\r\n| extend fields=split(RawData,',')\r\n| extend MetricName=tostring(fields[1]), Value=todouble(fields[2]), Tags=tostring(fields[3])\r\n| where MetricName == 'CACertDaysToExpiry'\r\n| extend certIssuer=extract('certIssuer\":\"([^\"]+)', 1, Tags)\r\n| project TimeGenerated, DaysToExpiry=Value, Issuer=certIssuer",
+            "resources": [
+              "$Workspaces"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${DS_AZURE_MONITOR}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "CA Certificate Days to Expiry",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "ME-MngEnvMCAP557154-jofehse-1",
+          "value": "e315fe54-eae5-464d-8266-0f41a0908da8"
+        },
+        "definition": "",
+        "label": "Subscriptions",
+        "name": "Subscriptions",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "queryType": "Azure Subscriptions",
+          "refId": "A"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "Monster-LA32",
+          "value": "/subscriptions/e315fe54-eae5-464d-8266-0f41a0908da8/resourceGroups/rg-MonstarPacks3/providers/Microsoft.OperationalInsights/workspaces/Monster-LA32"
+        },
+        "definition": "",
+        "description": "",
+        "label": "Workspaces",
+        "name": "Workspaces",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "queryType": "Azure Workspaces",
+          "refId": "A",
+          "subscription": "$Subscriptions"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Dashboard-Wincerts2",
+  "uid": "",
+  "version": 7
+}

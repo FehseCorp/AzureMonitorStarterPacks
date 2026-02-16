@@ -145,3 +145,33 @@ Add a new object similar to this example to the `Packs` array in `PacksDef.json`
         // ... more pack definitions ...
     ]
 }
+
+## Validating Your Pack
+
+Before committing your changes, validate `PacksDef.json` against the schema to catch errors early.
+
+### JSON Schema
+
+The schema file [`Packs/PacksDef.schema.json`](../Packs/PacksDef.schema.json) defines all valid fields, types, enums, and patterns. You can reference it in your editor for IntelliSense by adding `"$schema"` to your JSON (optional — the validation script does not require it).
+
+### Validation Script
+
+Run the validation script from the repository root:
+
+```powershell
+.\tools\Validate-PacksDef.ps1
+```
+
+The script checks:
+- **Required fields** — `Name`, `Tag`, `Description`, `OS`, `Rules`, `Alerts`
+- **Tag uniqueness** — no two packs can share the same `Tag`
+- **Tag format** — alphanumeric, hyphens, underscores, and parentheses only
+- **OS values** — must be `Windows`, `Linux`, or `All`
+- **RuleType values** — must be one of: `EventPerformance`, `CustomData`, `IISLogs`, `syslog`, `VMInsights`, `ServiceMap`
+- **Alert severity** — must be 0–4
+- **Alert type** — must be `rows` or `Aggregated`
+- **Duration formats** — `evaluationFrequency` and `windowSize` must be ISO 8601 (e.g., `PT5M`, `PT15M`)
+- **Bicep path** — `RuleNamePath` must end with `.bicep`
+- **Semantic versioning** — `clientAppVersion` must follow `x.y.z` format
+
+The validation also runs automatically in CI on pull requests that modify `PacksDef.json`.

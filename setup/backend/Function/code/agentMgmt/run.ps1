@@ -1,49 +1,61 @@
 
 using namespace System.Net
 
-# Input bindings are passed in via param block.
 param($Request, $TriggerMetadata)
-# Function to add AMA to a VM or arc machine
-# The tags added to the extension are copied from the resource.
-# Write to the Azure Functions log stream.
-Write-Host "PowerShell HTTP trigger function processed a request."
-# Interact with query parameters or the body of the request.
-$resources = $Request.Body.Resources
-"Resources"
-$resources
-$action = $Request.Body.Action
 
-if ($resources) {
-    "Working on $($resources.count) resource(s). Action: $action. Altering AMA configuration."
+Write-Host "agentMgmt: PowerShell HTTP trigger function processed a request."
+
+$resources = $Request.Body.Resources
+$action = $Request.Body.Action
+$statusCode = [HttpStatusCode]::OK
+
+if ([string]::IsNullOrEmpty($action)) {
+    Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+        StatusCode = [HttpStatusCode]::BadRequest
+        Body = '{"error": "Missing required field: Action"}'
+    })
+    return
+}
+
+if (-not $resources -or $resources.Count -eq 0) {
+    Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+        StatusCode = [HttpStatusCode]::BadRequest
+        Body = '{"error": "Missing or empty required field: Resources"}'
+    })
+    return
+}
+
+try {
+    Write-Host "agentMgmt: Working on $($resources.count) resource(s). Action: $action."
     switch ($action) {
         'AddAgent' {
             foreach ($resource in $resources) {
-                # $resourceName=$resource.id.split('/')[8]
-                # $resourceSubcriptionId=$resource.id.split('/')[2]
-                "Running $action for $resourceName resource."
+                Write-Host "agentMgmt: Running $action for $($resource.id)."
                 Add-Agent -resourceId $resource.id -ResourceOS $resource.OSType -location $resource.location
             }
         }
         'RemoveAgent' {
             foreach ($resource in $resources) {
-                # $resourceName=$resource.id.split('/')[8]
-                # $resourceSubcriptionId=$resource.id.split('/')[2]
-                "Running $action for $resourceName resource."
+                Write-Host "agentMgmt: Running $action for $($resource.id)."
                 Remove-Agent -resourceId $resource.id -ResourceOS $resource.OSType -location $resource.location
             }
         }
         default {
-            Write-Host "Invalid Action"
+            $statusCode = [HttpStatusCode]::BadRequest
+            $body = "{""error"": ""Invalid action: $action. Valid actions are: AddAgent, RemoveAgent""}"
         }
     }
+    if ($statusCode -eq [HttpStatusCode]::OK) {
+        $body = "Successfully processed $($resources.count) resource(s) with action '$action'."
+    }
 }
-else
-{
-    "No resources provided."
+catch {
+    Write-Host "agentMgmt: Error processing action '$action': $_"
+    $statusCode = [HttpStatusCode]::InternalServerError
+    $body = "{""error"": ""Error processing action '$action': $($_.Exception.Message)""}"
 }
-$body = "This HTTP triggered function executed successfully. $($resources.count) were altered ($action)."
-#Associate values to output bindings by calling 'Push-OutputBinding'.
+
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-    StatusCode = [HttpStatusCode]::OK
+    StatusCode = $statusCode
     Body = $body
 })
