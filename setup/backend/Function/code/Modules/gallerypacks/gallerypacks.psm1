@@ -56,14 +56,25 @@ function New-vmApp {
         $newAppConfig=New-AzVmGalleryApplication -PackageReferenceId $appversion.Id
         if ($VM) {
             Add-AzVmGalleryApplication -VM $VM -GalleryApplication $newAppConfig -TreatFailureAsDeploymentFailure
-            try {
-                $VM | Update-AzVM
-                Write-Host "Installed $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId)"
-                return $true
-            }
-            catch {
-                Write-Error "Error installing application $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId)"
-                return $false
+            $installRetries = 3
+            for ($installAttempt = 1; $installAttempt -le $installRetries; $installAttempt++) {
+                try {
+                    $VM | Update-AzVM
+                    Write-Host "Installed $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId)"
+                    return $true
+                }
+                catch {
+                    if ($_.Exception.Message -match 'ApplicationNotFound' -and $installAttempt -lt $installRetries) {
+                        Write-Host "Application version not yet available (attempt $installAttempt/$installRetries). Retrying in 30 seconds..."
+                        Start-Sleep -Seconds 30
+                        $VM = Get-AzVM -ResourceId $resourceId
+                        Add-AzVmGalleryApplication -VM $VM -GalleryApplication $newAppConfig -TreatFailureAsDeploymentFailure
+                    }
+                    else {
+                        Write-Error "Error installing application $($appversion.Name) version $($appversion.PublishingProfile.PublishedDate) to $($resourceId): $_"
+                        return $false
+                    }
+                }
             }
         }
         else {
