@@ -596,15 +596,25 @@ function Add-Monitoring { # This adds a single pack to a single resource.
         'IaaS' { 
             #Will check if the required DCRs and alerts already exist. If not, it will create them.
             Write-host "Installing pack for $TagValue, if not installed yet."
-            $packDef=new-pack -location $env:solutionlocation `
-                -instanceName $instanceName `
-                -resourceGroup $resourceGroupName `
-                -workspaceId $workspaceResourceId `
-                -azureMonitorWorkspaceId $azureMonitorWorkspaceId `
-                -packtag $TagValue `
-                -AGId $actionGroupId `
-                -urlDeployment `
-                -installBicep
+            try {
+                $packDef=new-pack -location $env:solutionlocation `
+                    -instanceName $instanceName `
+                    -resourceGroup $resourceGroupName `
+                    -workspaceId $workspaceResourceId `
+                    -azureMonitorWorkspaceId $azureMonitorWorkspaceId `
+                    -packtag $TagValue `
+                    -AGId $actionGroupId `
+                    -urlDeployment `
+                    -installBicep
+            }
+            catch {
+                Write-host "Error installing pack $TagValue. Not proceeding with association or tagging. Error: $($_.Exception.Message)"
+                return
+            }
+            if ($null -eq $packDef) {
+                Write-host "Pack definition for $TagValue is null after install. Not proceeding with association or tagging."
+                return
+            }
             # Once Pack is installed, need to know what else is required for the pack, like Agents, VM Applications, etc.
             # Once the DCRs is in place, add association to the VM (this being IaaS).
             try {
@@ -948,6 +958,7 @@ function new-PaaSAlert {
     else {
         Write-Host "Found $($ambaAlerts.count) alerts for $resourceType."
     }
+    $alertCreationFailed = $false
     foreach ($alert in $ambaAlerts ) {
         if ($alert.type -eq 'metric') {
             # Check if the metric applies to the resource in question.
@@ -957,69 +968,85 @@ function new-PaaSAlert {
             }
             else {
                 $alertType=$alert.Properties.criterionType
-                switch ($alertType) {
-                    'StaticThresholdCriterion' {
-                        new-staticCriterionAlert -alert $alert `
-                                                -packtag $packTag `
-                                                -tagName $TagName `
-                                                -resourceId $resourceId `
-                                                -actionGroupId $actionGroupId `
-                                                -instanceName $instanceName `
-                                                -resourceType $resourceType `
-                                                -resourceGroupName $resourceGroupName
-                    }
-                    'DynamicThresholdCriterion' {
-                        "Creating DynamicThresholdCriterion alert."
-                        $condition=New-AzMetricAlertRuleV2Criteria  -MetricName $alert.Properties.metricName `
-                                                                    -MetricNamespace $alert.Properties.metricNameSpace `
-                                                                    -Operator $alert.Properties.operator `
-                                                                    -DynamicThreshold `
-                                                                    -TimeAggregation $alert.Properties.timeAggregation `
-                                                                    -ViolationCount $alert.properties.failingPeriods.numberOfEvaluationPeriods `
-                                                                    -ThresholdSensitivity $alert.Properties.alertSensitivity 
-                        $rulename="AMP-$instanceName-$resourceName-$($alert.Properties.metricName )-$($alert.Properties.metricNameSpace)".Replace("%","Pct").Replace("/","-")
-                        $automaticMitigation=$null -eq $alert.Properties.autoMitigate ? $false : $alert.Properties.autoMitigate 
-                        $newRule=Add-AzMetricAlertRuleV2 -Name $rulename `
-                                                        -ResourceGroupName $resourceGroupName `
-                                                        -TargetResourceId $resourceId `
-                                                        -Description $alert.description `
-                                                        -Severity $alert.Properties.severity `
-                                                        -Frequency ([System.Xml.XmlConvert]::ToTimeSpan($alert.Properties.evaluationFrequency)) `
-                                                        -Condition $condition `
-                                                        -AutoMitigate $automaticMitigation `
-                                                        -WindowSize ([System.Xml.XmlConvert]::ToTimeSpan($alert.Properties.windowSize)) `
-                                                        -ActionGroupId $actionGroupId 
-                        #update rule with new tags
-                        $tag = @{
-                            $tagName=$packTag
-                            "instanceName"=$instanceName
+                try {
+                    switch ($alertType) {
+                        'StaticThresholdCriterion' {
+                            new-staticCriterionAlert -alert $alert `
+                                                    -packtag $packTag `
+                                                    -tagName $TagName `
+                                                    -resourceId $resourceId `
+                                                    -actionGroupId $actionGroupId `
+                                                    -instanceName $instanceName `
+                                                    -resourceType $resourceType `
+                                                    -resourceGroupName $resourceGroupName
                         }
-                        Write-host "Setting Tag in alert rule $($newRule.Id) with tag $($tagName) and value $($packtag) and adding Instance Name $instanceName."
-                        Update-AzTag -ResourceId $newRule.Id -Tag $tag -Operation Replace
+                        'DynamicThresholdCriterion' {
+                            "Creating DynamicThresholdCriterion alert."
+                            $condition=New-AzMetricAlertRuleV2Criteria  -MetricName $alert.Properties.metricName `
+                                                                        -MetricNamespace $alert.Properties.metricNameSpace `
+                                                                        -Operator $alert.Properties.operator `
+                                                                        -DynamicThreshold `
+                                                                        -TimeAggregation $alert.Properties.timeAggregation `
+                                                                        -ViolationCount $alert.properties.failingPeriods.numberOfEvaluationPeriods `
+                                                                        -ThresholdSensitivity $alert.Properties.alertSensitivity 
+                            $rulename="AMP-$instanceName-$resourceName-$($alert.Properties.metricName )-$($alert.Properties.metricNameSpace)".Replace("%","Pct").Replace("/","-")
+                            $automaticMitigation=$null -eq $alert.Properties.autoMitigate ? $false : $alert.Properties.autoMitigate 
+                            $newRule=Add-AzMetricAlertRuleV2 -Name $rulename `
+                                                            -ResourceGroupName $resourceGroupName `
+                                                            -TargetResourceId $resourceId `
+                                                            -Description $alert.description `
+                                                            -Severity $alert.Properties.severity `
+                                                            -Frequency ([System.Xml.XmlConvert]::ToTimeSpan($alert.Properties.evaluationFrequency)) `
+                                                            -Condition $condition `
+                                                            -AutoMitigate $automaticMitigation `
+                                                            -WindowSize ([System.Xml.XmlConvert]::ToTimeSpan($alert.Properties.windowSize)) `
+                                                            -ActionGroupId $actionGroupId 
+                            #update rule with new tags
+                            $tag = @{
+                                $tagName=$packTag
+                                "instanceName"=$instanceName
+                            }
+                            Write-host "Setting Tag in alert rule $($newRule.Id) with tag $($tagName) and value $($packtag) and adding Instance Name $instanceName."
+                            Update-AzTag -ResourceId $newRule.Id -Tag $tag -Operation Replace
+                        }
+                        default {
+                            Write-Host "Unknown criterion type"
+                        }
                     }
-                    default {
-                        Write-Host "Unknown criterion type"
-                    }
+                }
+                catch {
+                    Write-Host "Error creating metric alert $($alert.name) for $resourceId. Error: $($_.Exception.Message)"
+                    $alertCreationFailed = $true
                 }
             }
         }
         #Activity Log
         if ($alert.type -eq 'ActivityLog') {
-            "Creating Activity Log Alert."       
-            $condition1=New-AzActivityLogAlertAlertRuleAnyOfOrLeafConditionObject -Equal Administrative -Field category
-            $any1=New-AzActivityLogAlertAlertRuleLeafConditionObject -Field properties.status -Equal "$($alert.properties.status)"
-            $any2=New-AzActivityLogAlertAlertRuleLeafConditionObject -Equal "$($alert.properties.operationName)" -Field operationName
-            $condition2=New-AzActivityLogAlertAlertRuleAnyOfOrLeafConditionObject -AnyOf $any1,$any2
-            $actiongroup=New-AzActivityLogAlertActionGroupObject -Id $actionGroupId
-            New-AzActivityLogAlert -Name "AMP-$instanceName-$resourceName-$($alert.Name)" `
-                                -ResourceGroupName $resourceGroupName `
-                                -Description $alert.description `
-                                -Scope $resourceId `
-                                -Action $actiongroup `
-                                -Condition @($condition1,$condition2) `
-                                -Tag @{$tagName=$packTag; "instanceName"=$instanceName} `
-                                -Location "global"                         
+            try {
+                "Creating Activity Log Alert."       
+                $condition1=New-AzActivityLogAlertAlertRuleAnyOfOrLeafConditionObject -Equal Administrative -Field category
+                $any1=New-AzActivityLogAlertAlertRuleLeafConditionObject -Field properties.status -Equal "$($alert.properties.status)"
+                $any2=New-AzActivityLogAlertAlertRuleLeafConditionObject -Equal "$($alert.properties.operationName)" -Field operationName
+                $condition2=New-AzActivityLogAlertAlertRuleAnyOfOrLeafConditionObject -AnyOf $any1,$any2
+                $actiongroup=New-AzActivityLogAlertActionGroupObject -Id $actionGroupId
+                New-AzActivityLogAlert -Name "AMP-$instanceName-$resourceName-$($alert.Name)" `
+                                    -ResourceGroupName $resourceGroupName `
+                                    -Description $alert.description `
+                                    -Scope $resourceId `
+                                    -Action $actiongroup `
+                                    -Condition @($condition1,$condition2) `
+                                    -Tag @{$tagName=$packTag; "instanceName"=$instanceName} `
+                                    -Location "global"
+            }
+            catch {
+                Write-Host "Error creating activity log alert $($alert.Name) for $resourceId. Error: $($_.Exception.Message)"
+                $alertCreationFailed = $true
+            }
         }
+    }
+    if ($alertCreationFailed) {
+        Write-Host "One or more alerts failed to create for $resourceId. Not tagging resource."
+        return
     }
     New-Tag -ResourceId $resourceId -TagName $tagName -TagValue $packTag -instanceName $instanceName
 
@@ -1135,15 +1162,25 @@ function write-lawdata {
         return
     }
     $streamname='Custom-' + $tableName
-    $DCE=Get-AzDataCollectionEndpoint | Where-Object {$_.Tag['instanceName'] -eq $instanceName}
+    # Resolve the correct DCE via the DCR's DataCollectionEndpointId
+    $DCRForEndpoint = Get-AzDataCollectionRule | Where-Object {$_.ImmutableId -eq $DcrImmutableId}
+    if ($null -eq $DCRForEndpoint) {
+        Write-Error "No DCR found with ImmutableId $DcrImmutableId"
+        return $null
+    }
+    $dceResourceId = $DCRForEndpoint.DataCollectionEndpointId
+    if ([string]::IsNullOrEmpty($dceResourceId)) {
+        Write-Error "DCR $($DCRForEndpoint.Name) has no associated Data Collection Endpoint"
+        return $null
+    }
+    $DCE = Get-AzDataCollectionEndpoint -ResourceGroupName $dceResourceId.Split('/')[4] -Name $dceResourceId.Split('/')[8]
     $tenantId=(Get-AzContext).Tenant.Id
-    #$timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
     if ($null -eq $DCE) {
-        Write-Error "No DCE found for instance name $instanceName"
+        Write-Error "No DCE found for resource Id $dceResourceId"
         return $null
     }
     else {
-        Write-host "Found DCE $($DCE.Name) with id $($DCE.Id)"
+        Write-host "Found DCE $($DCE.Name) with id $($DCE.Id) (resolved from DCR ImmutableId $DcrImmutableId)"
         $dceurl=$DCE.LogIngestionEndpoint
         Write-host "DCE URL: $dceurl"
     }
@@ -1159,9 +1196,7 @@ function write-lawdata {
     else {
         $scope="https://monitor.azure.com"
         $bearerToken = (Get-AzAccessToken -ResourceUrl $scope -TenantId $tenantId ).Token
-        #$bearerToken
     }
-    $bearerToken
     # When using a managed identity, use the following line to get the token:
     # $scope = [System.Web.HttpUtility]::UrlEncode("https://monitor.azure.com//.default")   
     # if data is a hashtable, convert it to an array of objects
@@ -1172,7 +1207,6 @@ function write-lawdata {
         $body = $data | ConvertTo-Json 
     }
     
-    $body
     if ([string]::IsNullOrEmpty($streamname)) {
         $streamname=("Custom-$tableName") #.Replace("_CL","")
         Write-host "No stream name provided, using default stream name. $streamname"
@@ -1310,9 +1344,18 @@ function new-pack {
         Write-Error "No DCE Id found!"
         return $false
     }
+    # If multiple DCEs found, resolve the correct one via the ops DCR's endpoint
     if ($DceId.count -gt 1) {
-        Write-Error "More than one DCE found for instance name $instanceName. Please check your configuration."
-        return $false
+        Write-Host "Multiple DCEs found for instance $instanceName. Resolving via ops DCR..."
+        $opsDCR = Get-AzDataCollectionRule | Where-Object {$_.ImmutableId -eq $env:opsdcrimmutableId}
+        if ($null -ne $opsDCR -and -not [string]::IsNullOrEmpty($opsDCR.DataCollectionEndpointId)) {
+            $DceId = $opsDCR.DataCollectionEndpointId
+            Write-Host "Resolved DCE from ops DCR: $DceId"
+        }
+        else {
+            Write-Error "Could not resolve DCE from ops DCR. Multiple DCEs found for instance name $instanceName."
+            return $false
+        }
     }
     #$packlist=get-content ./packs/packsdef.json | ConvertFrom-Json -Depth 15
     Write-host "Found $($packlist.Packs.Count) packs in the file. "
@@ -1339,8 +1382,6 @@ function new-pack {
                 # Fetch the latest Bicep CLI binary
                 (New-Object Net.WebClient).DownloadFile("https://github.com/Azure/bicep/releases/latest/download/bicep-win-x64.exe", "$installPath\bicep.exe")
                 # Add bicep to your PATH
-                $currentPath = $env:PATH
-                if (-not $currentPath.Contains("%USERPROFILE%\.bicep")) { setx PATH ($currentPath + ";%USERPROFILE%\.bicep") }
                 if (-not $env:path.Contains($installPath)) { $env:path += ";$installPath" }
             }
         }
@@ -1512,8 +1553,7 @@ function new-pack {
                                                     -Location $location `
                                                     -rulename $ruleName `
                                                     -azureMonitorWorkspaceId $azureMonitorWorkspaceId `
-                                                    -Tags $TagsToUse `
-                                                    -dceId $dceId
+                                                    -Tags $TagsToUse
                         Write-Host "DCR $($ruleName) created successfully."
                     }                                     
                 }
@@ -1844,6 +1884,7 @@ function import-pack {
     start-opstasks -TaskNames @("AvailablePacks")
 }
 function start-opstasks {
+    [CmdletBinding()]
     param (
         [array]$TaskNames = @("All") # All, AvailablePacks, SupportedServices, MonitoredServices, UnmonitoredServices
     )
@@ -1863,7 +1904,7 @@ function start-opstasks {
             $results=@()
             $packdetails=get-IaaSPacksContent -packContentURL $env:packsUrl | convertfrom-json
             foreach ($pack in $packdetails) {
-                Write-Host "Writing pack $($pack.Name) to LAW with tag $($pack.Tag)"
+                Write-Verbose "Writing pack $($pack.Name) to LAW with tag $($pack.Tag)"
                 $result = @{} # Initialize as a hashtableq
                 $result['TimeGenerated'] = $timestamp
                 $result['Name'] = $pack.Name
@@ -1882,7 +1923,7 @@ function start-opstasks {
             $result = @{} # Initialize as a hashtable
             $services=(get-AmbaCatalog -ambaJsonURL $ambaURL| ConvertFrom-Json).Categories # | convertfrom-json).Categories.namespace| Select-Object @{Label = "nameSpace"; Expression = { $_.ToLower() }}
             foreach ($svc in $services) {
-                Write-host Adding service $($svc.nameSpace)
+                Write-Verbose "Adding service $($svc.nameSpace)"
                 $result = @{} # Initialize as a hashtable
                 $result['TimeGenerated'] = $timestamp
                 $result['category'] = $svc.category

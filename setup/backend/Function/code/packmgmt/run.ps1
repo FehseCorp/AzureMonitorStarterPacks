@@ -69,7 +69,13 @@ try {
                                 if ($InstallDependencyAgent) {
                                     Write-Host "packmgmt: Will install dependency agent. Taglist=$TagList"
                                 }
-                                Add-Agent -resourceId $resource.Resource -ResourceOS $resource.OS -location $resource.Location -InstallDependencyAgent $InstallDependencyAgent
+                                try {
+                                    Add-Agent -resourceId $resource.Resource -ResourceOS $resource.OS -location $resource.Location -InstallDependencyAgent $InstallDependencyAgent
+                                }
+                                catch {
+                                    Write-Host "packmgmt: Error installing agent on $($resource.Resource). Skipping monitoring setup. Error: $($_.Exception.Message)"
+                                    continue
+                                }
                                 foreach ($TagValue in $TagList) {
                                     Write-Host "packmgmt: TAGMGMT adding $TagValue to $($resource.Resource). PackType=$PackType"
                                     Add-Monitoring -resourceId $resource.Resource `
@@ -90,7 +96,13 @@ try {
                                 if ($InstallDependencyAgent) {
                                     Write-Host "packmgmt: Will install dependency agent. Taglist=$Taglist"
                                 }
-                                Add-Agent -resourceId $resource.Resource -ResourceOS $resource.OS -location $resource.Location -InstallDependencyAgent $InstallDependencyAgent
+                                try {
+                                    Add-Agent -resourceId $resource.Resource -ResourceOS $resource.OS -location $resource.Location -InstallDependencyAgent $InstallDependencyAgent
+                                }
+                                catch {
+                                    Write-Host "packmgmt: Error installing agent on $($resource.Resource). Skipping monitoring setup. Error: $($_.Exception.Message)"
+                                    continue
+                                }
                                 Write-Host "packmgmt: PackType=$PackType. Adding tag for $ResourceType. TagValue=$TagValue. Resource=$($resource.Resource)"
                                 Add-Monitoring -resourceId $resource.Resource `
                                     -TagName $TagName `

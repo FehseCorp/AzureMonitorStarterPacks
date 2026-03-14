@@ -147,15 +147,25 @@ function new-discoveryData {
         [string]$appSecret
     )
     #$dceId="https://amp-mcp1-dce-canadacentral-6f18.canadacentral-1.ingest.monitor.azure.com"
-    # get DCE URL from the DCE Id, using a tag.
-    $DCE=Get-AzDataCollectionEndpoint | Where-Object {$_.Tag['instanceName'] -eq $instanceName}
+    # Resolve the correct DCE via the DCR's DataCollectionEndpointId
+    $DCRForEndpoint = Get-AzDataCollectionRule | Where-Object {$_.ImmutableId -eq $DcrImmutableId}
+    if ($null -eq $DCRForEndpoint) {
+        Write-Error "No DCR found with ImmutableId $DcrImmutableId"
+        return $null
+    }
+    $dceResourceId = $DCRForEndpoint.DataCollectionEndpointId
+    if ([string]::IsNullOrEmpty($dceResourceId)) {
+        Write-Error "DCR $($DCRForEndpoint.Name) has no associated Data Collection Endpoint"
+        return $null
+    }
+    $DCE = Get-AzDataCollectionEndpoint -ResourceGroupName $dceResourceId.Split('/')[4] -Name $dceResourceId.Split('/')[8]
     $tenantId=(Get-AzContext).Tenant.Id
     if ($null -eq $DCE) {
-        Write-Error "No DCE found for instance name $instanceName"
+        Write-Error "No DCE found for resource Id $dceResourceId"
         return $null
     }
     else {
-        Write-host "Found DCE $($DCE.Name) with id $($DCE.Id)"
+        Write-host "Found DCE $($DCE.Name) with id $($DCE.Id) (resolved from DCR ImmutableId $DcrImmutableId)"
         $dceurl=$DCE.LogIngestionEndpoint
         Write-host "DCE URL: $dceurl"
     }
@@ -182,7 +192,6 @@ function new-discoveryData {
         $body = $data | ConvertTo-Json 
     }
     
-    $body
     if ([string]::IsNullOrEmpty($streamname)) {
         $streamname=("Custom-$tableName") #.Replace("_CL","")
         Write-host "No stream name provided, using default stream name. $streamname"
