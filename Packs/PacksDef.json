@@ -87,9 +87,9 @@
             ]
         },
         {
-            "Name": "Azure Monitor VM Insights",
+            "Name": "Azure Monitor VM Insights (Classic)",
             "Tag": "VMI",
-            "Description": "Azure Monitor VM Insights",
+            "Description": "Azure Monitor VM Insights (Classic). Uses AMA to send data to Log Analytics. This pack is for VMs that are still using the classic VM Insights experience.",
             "OS": "All",
             "Rules": [
                 {

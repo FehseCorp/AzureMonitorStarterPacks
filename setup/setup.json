@@ -217,6 +217,15 @@
                             "visible": "[equals(steps('Configuration').LAWStatus, 'Existing')]"
                         },
                         {
+                            "name": "infoBoxExistingLAW",
+                            "type": "Microsoft.Common.InfoBox",
+                            "visible": "[equals(steps('Configuration').LAWStatus, 'Existing')]",
+                            "options": {
+                                "text": "[concat('If you are using an existing Log Analytics Workspace that was not created with this setup wizard, you must manually add a tag named **instanceName** with the value **', steps('Configuration').instanceName, '** to the workspace resource. This tag is required for the MonStar Packs to correctly identify and associate the workspace with this deployment instance.')]",
+                                "style": "Info"
+                            }
+                        },
+                        {
                             "name": "deployDiscovery",
                             "type": "Microsoft.Common.CheckBox",
                             "label": "Deploy Discovery features.(Preview)",
