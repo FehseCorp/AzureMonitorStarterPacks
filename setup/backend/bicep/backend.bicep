@@ -18,6 +18,7 @@ param resourceGroupName string
 param imageGalleryName string
 param collectTelemetry bool
 param createNewStorageAccount bool
+param azureMonitorWorkspaceId string = ''
 
 var lawresourceGroup = split(lawresourceid, '/')[4]
 // var packPolicyRoleDefinitionIds=[
@@ -233,7 +234,7 @@ module ambaStorage './modules/uploadAmbaAlerts.bicep' = {
     //sasExpiry: 'PT1H'
   }
 }
-module modulesupload './modules/uploadmodules.bicep' = {
+module modulesupload './modules/uploadModules.bicep' = {
   name: 'modulesstorage-${instanceName}-${location}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   params: {

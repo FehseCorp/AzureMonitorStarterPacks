@@ -256,6 +256,23 @@
             ]
         },
         {
+            "Name": "Azure Monitor VM Insights (OpenTelemetry)",
+            "Tag": "VMIOtel",
+            "Description": "Azure Monitor VM Insights using OpenTelemetry. Uses AMA to send Prometheus metrics to an Azure Monitor workspace. This pack leverages the new OTel-based metrics collection (Preview).",
+            "OS": "All",
+            "Rules": [
+                {
+                    "Rulename": "VMIOtel",
+                    "RuleType": "OTelPrometheus",
+                    "RuleNamePath": "DefaultOTel-rule.bicep",
+                    "xPathQueries": [],
+                    "performanceCounters": []
+                }
+            ],
+            "Alerts": [],
+            "Dashboards": []
+        },
+        {
             "Name": "IIS 2012 ",
             "Tag": "IIS",
             "Description": "IIS 2012 Mangement Pack",

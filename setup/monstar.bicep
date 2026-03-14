@@ -23,6 +23,9 @@ param customerTags object
 param deployDiscovery bool = false
 param collectTelemetry bool = true
 param appInsightsLocation string
+param newAzureMonitorWSName string = ''
+param createNewAzureMonitorWS bool = false
+param existingAzureMonitorWSId string = ''
 
 //var deployPacks = deployAllPacks || deployIaaSPacks //|| deployPaaSPacks || deployPlatformPacks
 var solutionTag='MonitorStarterPacks'
@@ -79,6 +82,19 @@ module logAnalytics '../modules/LAW/law.bicep' = if (createNewLogAnalyticsWS) {
     logAnalyticsWorkspaceName: newLogAnalyticsWSName
     Tags: Tags
     //createNewLogAnalyticsWS: createNewLogAnalyticsWS
+  }
+}
+
+module azureMonitorWorkspace '../modules/LAW/amw.bicep' = if (createNewAzureMonitorWS) {
+  name: 'azureMonitorWorkspace-${location}-${instanceName}'
+  scope: resourceGroup(subscriptionId, resourceGroupName)
+  dependsOn: [
+    resourgeGroup
+  ]
+  params: {
+    location: location
+    azureMonitorWorkspaceName: newAzureMonitorWSName
+    Tags: Tags
   }
 }
 
@@ -147,6 +163,7 @@ module backend './backend/bicep/backend.bicep' = {
     instanceName: instanceName
     collectTelemetry: collectTelemetry
     createNewStorageAccount: createNewStorageAccount
+    azureMonitorWorkspaceId: createNewAzureMonitorWS ? azureMonitorWorkspace.outputs.amwResourceId : existingAzureMonitorWSId
   }
 }
 

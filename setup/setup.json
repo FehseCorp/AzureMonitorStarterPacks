@@ -226,6 +226,62 @@
                             }
                         },
                         {
+                            "name": "AMWStatus",
+                            "type": "Microsoft.Common.OptionsGroup",
+                            "label": "Use New or Existing Azure Monitor Workspace",
+                            "toolTip": "This will be the Azure Monitor workspace used for Managed Prometheus metrics collection.",
+                            "defaultValue": "Existing",
+                            "constraints": {
+                                "allowedValues": [
+                                    {
+                                        "label": "New",
+                                        "value": "New"
+                                    },
+                                    {
+                                        "label": "Existing",
+                                        "value": "Existing"
+                                    }
+                                ],
+                                "required": true
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "AzureMonitorWorkspaceNameNew",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Azure Monitor Workspace Name",
+                            "subLabel": "",
+                            "defaultValue": "MonStar-AMW",
+                            "toolTip": "Name for the new Azure Monitor workspace.",
+                            "constraints": {
+                                "required": "[equals(steps('Configuration').AMWStatus, 'New')]",
+                                "regex": "^[a-zA-Z0-9][a-zA-Z0-9-]{0,62}[a-zA-Z0-9]$",
+                                "validationMessage": "The name must begin and end with a letter or digit, can contain dashes, and be between 2 to 64 characters long."
+                            },
+                            "visible": "[equals(steps('Configuration').AMWStatus, 'New')]"
+                        },
+                        {
+                            "name": "AzureMonitorWorkspaceResource",
+                            "type": "Microsoft.Solutions.ResourceSelector",
+                            "label": "Azure Monitor Workspace",
+                            "toolTip": "Select an existing Azure Monitor workspace for Managed Prometheus metrics.",
+                            "resourceType": "Microsoft.Monitor/accounts",
+                            "constraints": {
+                                "required": "[equals(steps('Configuration').AMWStatus, 'Existing')]"
+                            },
+                            "infoMessages": [],
+                            "visible": "[equals(steps('Configuration').AMWStatus, 'Existing')]"
+                        },
+                        {
+                            "name": "infoBoxExistingAMW",
+                            "type": "Microsoft.Common.InfoBox",
+                            "visible": "[equals(steps('Configuration').AMWStatus, 'Existing')]",
+                            "options": {
+                                "text": "[concat('If you are using an existing Azure Monitor Workspace that was not created with this setup wizard, you must manually add a tag named **instanceName** with the value **', steps('Configuration').instanceName, '** to the workspace resource. This tag is required for the MonStar Packs to correctly identify and associate the workspace with this deployment instance.')]",
+                                "style": "Info"
+                            }
+                        },
+                        {
                             "name": "deployDiscovery",
                             "type": "Microsoft.Common.CheckBox",
                             "label": "Deploy Discovery features.(Preview)",
@@ -391,7 +447,10 @@
                 "customerTags": "[steps('tags').tagsByResource]",
                 "deployDiscovery": "[steps('Configuration').deployDiscovery]",
 		        "collectTelemetry": "[steps('Configuration').collectTelemetry]",
-                "appInsightsLocation": "[steps('Configuration').AppInsightsLocation]"
+                "appInsightsLocation": "[steps('Configuration').AppInsightsLocation]",
+                "newAzureMonitorWSName": "[steps('Configuration').AzureMonitorWorkspaceNameNew]",
+                "createNewAzureMonitorWS": "[equals(steps('Configuration').AMWStatus, 'New')]",
+                "existingAzureMonitorWSId": "[steps('Configuration').AzureMonitorWorkspaceResource.id]"
             },
             "kind": "Subscription",
             "location": "[steps('basics').resourceScope.location.name]",

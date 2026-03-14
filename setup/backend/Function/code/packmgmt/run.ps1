@@ -42,6 +42,7 @@ try {
         $ResourceType = $Request.Body.Type
         $defaultAG = $Request.Body.DefaultAG
         $workspaceResourceId = $Request.Body.WorkspaceId
+        $azureMonitorWorkspaceId = $Request.Body.AzureMonitorWorkspaceId
 
         if (-not $resources -or $resources.Count -eq 0) {
             $statusCode = [HttpStatusCode]::BadRequest
@@ -79,6 +80,7 @@ try {
                                         -resourceType 'Compute' `
                                         -actionGroupId $defaultAG `
                                         -workspaceResourceId $workspaceResourceId `
+                                        -azureMonitorWorkspaceId $azureMonitorWorkspaceId `
                                         -location $resource.Location
                                 }
                             }
@@ -97,6 +99,7 @@ try {
                                     -packType $PackType `
                                     -resourceType 'Compute' `
                                     -workspaceResourceId $workspaceResourceId `
+                                    -azureMonitorWorkspaceId $azureMonitorWorkspaceId `
                                     -actionGroupId $defaultAG `
                                     -location $resource.Location
                             }
@@ -116,7 +119,8 @@ try {
                                     -packtype $packType `
                                     -instanceName $instanceName `
                                     -location $resource.location `
-                                    -workspaceResourceId $workspaceResourceId
+                                    -workspaceResourceId $workspaceResourceId `
+                                    -azureMonitorWorkspaceId $azureMonitorWorkspaceId
                                 start-opstasks -TaskNames @("MonitoredServices","UnmonitoredServices")
                             }
                             default {

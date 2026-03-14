@@ -571,6 +571,8 @@ function Add-Monitoring { # This adds a single pack to a single resource.
         [string]$actionGroupId,
         [Parameter(Mandatory = $true)]
         [string]$workspaceResourceId,
+        [Parameter(Mandatory = $false)]
+        [string]$azureMonitorWorkspaceId = '',
         [Parameter(Mandatory = $true)]
         [string]$location
     )
@@ -598,6 +600,7 @@ function Add-Monitoring { # This adds a single pack to a single resource.
                 -instanceName $instanceName `
                 -resourceGroup $resourceGroupName `
                 -workspaceId $workspaceResourceId `
+                -azureMonitorWorkspaceId $azureMonitorWorkspaceId `
                 -packtag $TagValue `
                 -AGId $actionGroupId `
                 -urlDeployment `
@@ -1279,6 +1282,9 @@ function new-pack {
         #workspaceId
         [Parameter(Mandatory=$true, HelpMessage="Enter the name of the workspaceId.")]
         [string]$workspaceId,
+        #azureMonitorWorkspaceId
+        [Parameter(Mandatory=$false, HelpMessage="Enter the Azure Monitor Workspace resource Id.")]
+        [string]$azureMonitorWorkspaceId = '',
         #agId
         [Parameter(Mandatory=$true, HelpMessage="Enter the name of the agId.")]
         [string]$AGId = $env:AGId,
@@ -1490,6 +1496,22 @@ function new-pack {
                                                     -workspaceResourceId $WorkspaceId `
                                                     -xPathQueries $rule.XPathQueries `
                                                     -counterSpecifiers $rule.performanceCounters `
+                                                    -Tags $TagsToUse `
+                                                    -dceId $dceId
+                        Write-Host "DCR $($ruleName) created successfully."
+                    }
+                    'OTelPrometheus' {
+                        Write-Host "Creating OTel Prometheus DCR $($ruleName)..."
+                        if ([string]::IsNullOrEmpty($azureMonitorWorkspaceId)) {
+                            Write-Error "Azure Monitor Workspace ID is required for OTelPrometheus rule type but was not provided."
+                            continue
+                        }
+                        New-AzResourceGroupDeployment -name "dcr-$packtag-$instanceName-$location" `
+                                                    -TemplateFile "$($env:temp)\$dcrname" `
+                                                    -ResourceGroupName $resourceGroup `
+                                                    -Location $location `
+                                                    -rulename $ruleName `
+                                                    -azureMonitorWorkspaceId $azureMonitorWorkspaceId `
                                                     -Tags $TagsToUse `
                                                     -dceId $dceId
                         Write-Host "DCR $($ruleName) created successfully."
