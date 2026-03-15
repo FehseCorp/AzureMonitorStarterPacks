@@ -1301,7 +1301,7 @@
                           "path": "{logicAppResource}/triggers/manual/run?api-version=2016-06-01",
                           "headers": [],
                           "params": [],
-                          "body": "{ \n  \"function\": \"packmgmt\",\n  \"functionBody\" : {\n    \"Action\":\"AddPack\",\n    \"Resources\": [{taggedVMs}],\n    \"Pack\": \"{PackTagsLeft}\",\n    \"PackType\": \"IaaS\",\n    \"WorkspaceId\": \"{Workspace}\",\n    \"DefaultAG\": \"{DefaultAG}\"\n  }\n}",
+                          "body": "{ \n  \"function\": \"packmgmt\",\n  \"functionBody\" : {\n    \"Action\":\"AddPack\",\n    \"Resources\": [{taggedVMs}],\n    \"Pack\": \"{PackTagsLeft}\",\n    \"PackType\": \"IaaS\",\n    \"WorkspaceId\": \"{Workspace}\",\n    \"AzureMonitorWorkspaceId\": \"{AzureMonitorWorkspace}\",\n    \"DefaultAG\": \"{DefaultAG}\"\n  }\n}",
                           "httpMethod": "POST",
                           "title": "Add Monitoring",
                           "description": "# Please confirm the change.\n\nAdd Monitoring for {PackTagsLeft} Pack(s)",
@@ -1545,7 +1545,7 @@
                               "value": "addTag"
                             }
                           ],
-                          "body": "{ \n  \"function\": \"packmgmt\",\n  \"functionBody\" : {\n    \"Action\":\"AddPack\",\n    \"Resources\": [{vmstotag}],\n    \"Pack\": \"{PackTags}\",\n    \"PackType\": \"IaaS\",\n    \"WorkspaceId\" : \"{Workspace}\",\n    \"DefaultAG\" : \"{DefaultAG}\"\n  }\n}",
+                          "body": "{ \n  \"function\": \"packmgmt\",\n  \"functionBody\" : {\n    \"Action\":\"AddPack\",\n    \"Resources\": [{vmstotag}],\n    \"Pack\": \"{PackTags}\",\n    \"PackType\": \"IaaS\",\n    \"WorkspaceId\" : \"{Workspace}\",\n    \"AzureMonitorWorkspaceId\" : \"{AzureMonitorWorkspace}\",\n    \"DefaultAG\" : \"{DefaultAG}\"\n  }\n}",
                           "httpMethod": "POST",
                           "title": "Enable Monitoring Packs",
                           "description": "# This will enable the pack for the following servers:\n{vmstotag}\n\nby adding the {PackTags} Pack(s) to the resource(s).\n\nWorkspace: {Workspace}\n\nAction Group: {DefaultAG}",
@@ -4582,7 +4582,7 @@
                                     "value": "addTag"
                                   }
                                 ],
-                                "body": "{ \n  \"function\": \"packmgmt\",\n  \"functionBody\" : {\n    \"Action\":\"AddPack\",\n    \"Resources\": [{vmstotagDiscovery}],\n    \"PackType\": \"Discovery\",\n    \"WorkspaceId\": \"{Workspace}\",\n    \"DefaultAG\" : \"{DefaultAG}\"\n  }\n}",
+                                "body": "{ \n  \"function\": \"packmgmt\",\n  \"functionBody\" : {\n    \"Action\":\"AddPack\",\n    \"Resources\": [{vmstotagDiscovery}],\n    \"PackType\": \"Discovery\",\n    \"WorkspaceId\": \"{Workspace}\",\n    \"AzureMonitorWorkspaceId\": \"{AzureMonitorWorkspace}\",\n    \"DefaultAG\" : \"{DefaultAG}\"\n  }\n}",
                                 "httpMethod": "POST",
                                 "title": "Enable Discovery Packs",
                                 "description": "# This will enable the pack for the following servers:\n{vmstotagDiscovery}\n\nby adding the Pack(s) to the resource(s).\n",
@@ -4937,7 +4937,7 @@
                     "path": "{logicAppResource}/triggers/manual/run?api-version=2016-06-01",
                     "headers": [],
                     "params": [],
-                    "body": "{ \r\n  \"function\": \"packmgmt\",\r\n  \"functionBody\" : {\r\n    \"Action\":\"AddPack\",\r\n    \"Resources\": [{vmsDiscoveryTag}],\r\n    \"PackType\": \"IaaS\",\r\n    \"WorkspaceId\" : \"{Workspace}\",\r\n    \"DefaultAG\" : \"{DefaultAG}\"\r\n  }\r\n}",
+                    "body": "{ \r\n  \"function\": \"packmgmt\",\r\n  \"functionBody\" : {\r\n    \"Action\":\"AddPack\",\r\n    \"Resources\": [{vmsDiscoveryTag}],\r\n    \"PackType\": \"IaaS\",\r\n    \"WorkspaceId\" : \"{Workspace}\",\r\n    \"AzureMonitorWorkspaceId\" : \"{AzureMonitorWorkspace}\",\r\n    \"DefaultAG\" : \"{DefaultAG}\"\r\n  }\r\n}",
                     "httpMethod": "POST",
                     "title": "Enable Monitoring",
                     "description": "# Enable Discovery\n\nResources:\n\n{vmsDiscoveryTag}",

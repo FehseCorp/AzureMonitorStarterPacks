@@ -1,0 +1,87 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.41.2.15936",
+      "templateHash": "13520588850882664165"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string"
+    },
+    "azureMonitorWorkspaceId": {
+      "type": "string"
+    },
+    "Tags": {
+      "type": "object"
+    },
+    "ruleName": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "amwFriendlyName": "[split(parameters('azureMonitorWorkspaceId'), '/')[8]]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/dataCollectionRules",
+      "apiVersion": "2024-03-11",
+      "name": "[parameters('ruleName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('Tags')]",
+      "properties": {
+        "description": "Data collection rule for OpenTelemetry VM performance metrics.",
+        "dataSources": {
+          "performanceCountersOTel": [
+            {
+              "name": "OtelDataSource",
+              "streams": [
+                "Microsoft-OtelPerfMetrics"
+              ],
+              "samplingFrequencyInSeconds": 60,
+              "counterSpecifiers": [
+                "system.filesystem.usage",
+                "system.disk.io",
+                "system.disk.operation_time",
+                "system.disk.operations",
+                "system.memory.usage",
+                "system.network.io",
+                "system.cpu.time",
+                "system.network.dropped",
+                "system.network.errors",
+                "system.uptime"
+              ]
+            }
+          ]
+        },
+        "destinations": {
+          "monitoringAccounts": [
+            {
+              "accountResourceId": "[parameters('azureMonitorWorkspaceId')]",
+              "name": "[variables('amwFriendlyName')]"
+            }
+          ]
+        },
+        "dataFlows": [
+          {
+            "streams": [
+              "Microsoft-OtelPerfMetrics"
+            ],
+            "destinations": [
+              "[variables('amwFriendlyName')]"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "otelDCRId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Insights/dataCollectionRules', parameters('ruleName'))]"
+    }
+  }
+}

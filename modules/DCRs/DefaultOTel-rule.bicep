@@ -2,29 +2,35 @@ param location string
 param azureMonitorWorkspaceId string
 param Tags object
 param ruleName string
-param dceId string
-
-@allowed(['Linux', 'Windows', 'All'])
-param kind string = 'All'
 
 var amwFriendlyName = split(azureMonitorWorkspaceId, '/')[8]
 
-resource otelDCR 'Microsoft.Insights/dataCollectionRules@2023-03-11' = {
+resource otelDCR 'Microsoft.Insights/dataCollectionRules@2024-03-11' = {
   name: ruleName
   location: location
   tags: Tags
-  kind: kind
   properties: {
-    description: 'Data collection rule for OpenTelemetry Prometheus metrics.'
-    dataCollectionEndpointId: dceId
+    description: 'Data collection rule for OpenTelemetry VM performance metrics.'
     dataSources: {
-      prometheusForwarder: [
+      performanceCountersOTel: [
         {
-          name: 'PrometheusDataSource'
+          name: 'OtelDataSource'
           streams: [
-            'Microsoft-PrometheusMetrics'
+            'Microsoft-OtelPerfMetrics'
           ]
-          labelIncludeFilter: {}
+          samplingFrequencyInSeconds: 60
+          counterSpecifiers: [
+            'system.filesystem.usage'
+            'system.disk.io'
+            'system.disk.operation_time'
+            'system.disk.operations'
+            'system.memory.usage'
+            'system.network.io'
+            'system.cpu.time'
+            'system.network.dropped'
+            'system.network.errors'
+            'system.uptime'
+          ]
         }
       ]
     }
@@ -39,7 +45,7 @@ resource otelDCR 'Microsoft.Insights/dataCollectionRules@2023-03-11' = {
     dataFlows: [
       {
         streams: [
-          'Microsoft-PrometheusMetrics'
+          'Microsoft-OtelPerfMetrics'
         ]
         destinations: [
           amwFriendlyName
