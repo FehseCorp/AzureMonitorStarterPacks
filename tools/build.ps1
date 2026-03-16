@@ -28,7 +28,7 @@ function Add-Artifact {
 }
 
 # --- Pack definition JSON files ---
-Write-Host "[1/8] Zipping pack definition JSON files..."
+Write-Host "[1/10] Zipping pack definition JSON files..."
 try {
     $packsDir = Join-Path $repoRoot 'Packs'
     $packsFiles = Get-ChildItem -Path $packsDir -Filter '*.json' -File
@@ -45,7 +45,7 @@ catch {
 }
 
 # --- Grafana Dashboards (Managed Grafana) ---
-Write-Host "[2/8] Zipping Grafana dashboards..."
+Write-Host "[2/10] Zipping Grafana dashboards..."
 try {
     $dashDir = Join-Path $repoRoot 'Packs\dashboards'
     if (Test-Path $dashDir) {
@@ -73,7 +73,7 @@ catch {
 }
 
 # --- AMGD Dashboards ---
-Write-Host "[3/8] Zipping AMGD dashboards..."
+Write-Host "[3/10] Zipping AMGD dashboards..."
 try {
     $amgdDir = Join-Path $repoRoot 'Packs\AMGD'
     if (Test-Path $amgdDir) {
@@ -101,7 +101,7 @@ catch {
 }
 
 # --- Function App code ---
-Write-Host "[4/9] Zipping Function App code..."
+Write-Host "[4/10] Zipping Function App code..."
 try {
     $funcDir = Join-Path $repoRoot 'setup\backend\Function\code'
     if (-not (Test-Path $funcDir)) {
@@ -125,7 +125,7 @@ catch {
 }
 
 # --- Admin Portal SPA ---
-Write-Host "[5/9] Building Admin Portal SPA..."
+Write-Host "[5/10] Building Admin Portal SPA..."
 try {
     $portalDir = Join-Path $repoRoot 'portal'
     if (-not (Test-Path $portalDir)) {
@@ -187,7 +187,7 @@ catch {
 }
 
 # --- Discovery scripts ---
-Write-Host "[6/9] Packaging discovery scripts..."
+Write-Host "[6/10] Packaging discovery scripts..."
 try {
     # Linux discovery
     $linuxClientDir = Join-Path $repoRoot 'setup\discovery\Linux\client'
@@ -226,7 +226,7 @@ catch {
 }
 
 # --- Client applications for packs ---
-Write-Host "[7/9] Zipping client applications..."
+Write-Host "[7/10] Zipping client applications..."
 try {
     $packsDir = Join-Path $repoRoot 'Packs'
     $appsDir = Join-Path $packsDir 'applications'
@@ -261,7 +261,7 @@ catch {
 }
 
 # --- Modules zip ---
-Write-Host "[8/9] Zipping Bicep modules..."
+Write-Host "[8/10] Zipping Bicep modules..."
 try {
     $modulesDir = Join-Path $repoRoot 'modules'
     if (-not (Test-Path $modulesDir)) {
@@ -283,7 +283,7 @@ catch {
 }
 
 # --- Bicep build ---
-Write-Host "[9/9] Compiling Bicep templates..."
+Write-Host "[9/10] Compiling Bicep templates..."
 try {
     $buildConfigPath = Join-Path $repoRoot 'tools\build.json'
     if (-not (Test-Path $buildConfigPath)) {
@@ -313,6 +313,25 @@ try {
 }
 catch {
     $buildErrors += "Bicep compilation: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# --- Update deploytest.md with current branch ---
+Write-Host "[10/10] Updating deploytest.md with current branch..."
+try {
+    $branch = git -C $repoRoot rev-parse --abbrev-ref HEAD
+    if ($LASTEXITCODE -ne 0) { throw "Failed to determine current git branch" }
+    $deployTestPath = Join-Path $repoRoot 'tools' 'deploytest.md'
+    if (-not (Test-Path $deployTestPath)) {
+        throw "deploytest.md not found: $deployTestPath"
+    }
+    $content = Get-Content $deployTestPath -Raw
+    $content = $content -replace '(refs%2Fheads%2F)[^%]+(%2F)', "`${1}$branch`${2}"
+    Set-Content -Path $deployTestPath -Value $content -NoNewline
+    Write-Host "  OK: deploytest.md updated to branch '$branch'."
+}
+catch {
+    $buildErrors += "deploytest.md update: $($_.Exception.Message)"
     Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
 }
 
