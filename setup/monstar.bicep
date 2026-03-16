@@ -26,7 +26,7 @@ param appInsightsLocation string
 param newAzureMonitorWSName string = ''
 param createNewAzureMonitorWS bool = false
 param existingAzureMonitorWSId string = ''
-param deployPortal bool = false
+param deployPortal bool = true
 @description('URL to the portal.zip package (e.g. GitHub Release URL). Required when deployPortal is true.')
 param portalPackageUrl string = 'https://github.com/FehseCorp/AzureMonitorStarterPacks/raw/refs/heads/createPortal/setup/backend/portal.zip'
 
