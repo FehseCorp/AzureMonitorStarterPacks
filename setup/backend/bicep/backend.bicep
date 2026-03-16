@@ -292,6 +292,7 @@ module portal './modules/portal.bicep' = if (deployPortal && portalname != '') {
     Tags: Tags
     functionAppUrl: backendFunction.outputs.functionAppUrl
     userManagedIdentity: functionUserManagedIdentity.outputs.userManagedIdentityResourceId
+    userManagedIdentityPrincipalId: functionUserManagedIdentity.outputs.userManagedIdentityPrincipalId
     portalPackageUrl: portalPackageUrl
     instanceName: instanceName
   }

@@ -4,6 +4,7 @@ param location string
 param Tags object
 param functionAppUrl string
 param userManagedIdentity string
+param userManagedIdentityPrincipalId string
 param portalPackageUrl string
 param instanceName string
 
@@ -45,6 +46,17 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
   }
 }
 
+// Website Contributor role so the deployment script identity can deploy the app code
+resource portalWebsiteContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(portalSite.id, userManagedIdentityPrincipalId, 'de139f84-1756-47ae-9be6-808fbbe84772')
+  scope: portalSite
+  properties: {
+    principalId: userManagedIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'de139f84-1756-47ae-9be6-808fbbe84772')
+  }
+}
+
 // Download portal.zip from the package URL and deploy it to the web app
 resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
   name: 'deployscript-Portal-${instanceName}-${location}'
@@ -77,6 +89,9 @@ resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' =
     ]
     scriptContent: 'curl -sL "$PACKAGE_URL" -o portal.zip && az webapp deploy --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --src-path portal.zip --type zip'
   }
+  dependsOn: [
+    portalWebsiteContributor
+  ]
 }
 
 output portalUrl string = 'https://${portalSite.properties.defaultHostName}'
