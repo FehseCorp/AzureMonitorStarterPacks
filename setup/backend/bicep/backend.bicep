@@ -19,7 +19,7 @@ param imageGalleryName string
 param collectTelemetry bool
 param createNewStorageAccount bool
 param azureMonitorWorkspaceId string = ''
-param deployPortal bool = false
+param deployPortal bool = true
 param portalname string = ''
 param portalPackageUrl string = ''
 
