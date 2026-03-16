@@ -8,6 +8,9 @@ param userManagedIdentityPrincipalId string
 param portalPackageUrl string
 param instanceName string
 
+// Microsoft Graph provider for app registration
+extension microsoftGraphV1_0
+
 // Separate B1 Linux plan for the portal
 resource portalPlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: '${portalName}-plan'
@@ -28,18 +31,25 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
   location: location
   kind: 'app,linux'
   tags: Tags
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: portalPlan.id
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
-      appCommandLine: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
+      appCommandLine: 'printf \'{"clientId":"%s","tenantId":"%s","functionAppUrl":"%s"}\\n\' "$AZURE_CLIENT_ID" "$AZURE_TENANT_ID" "$FUNCTION_APP_URL" > /home/site/wwwroot/config.json && pm2 serve /home/site/wwwroot --no-daemon --spa'
       minTlsVersion: '1.2'
       http20Enabled: true
       appSettings: [
         {
           name: 'FUNCTION_APP_URL'
           value: functionAppUrl
+        }
+        {
+          name: 'AZURE_TENANT_ID'
+          value: tenant().tenantId
         }
       ]
     }
@@ -96,3 +106,76 @@ resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' =
 
 output portalUrl string = 'https://${portalSite.properties.defaultHostName}'
 output portalName string = portalSite.name
+
+// --- Entra app registration for the portal SPA (via Microsoft Graph Bicep) ---
+resource portalAppRegistration 'Microsoft.Graph/applications@v1.0' = {
+  displayName: '${portalName}-SPA'
+  uniqueName: '${portalName}-SPA'
+  signInAudience: 'AzureADMyOrg'
+  spa: {
+    redirectUris: [
+      'https://${portalSite.properties.defaultHostName}'
+      'http://localhost:5174'
+    ]
+  }
+  requiredResourceAccess: [
+    {
+      // Azure Service Management — user_impersonation
+      resourceAppId: '797f4846-ba00-4fd7-ba43-dac1f8f63013'
+      resourceAccess: [
+        {
+          id: '41094075-9dad-400e-a0bd-54e686782033'
+          type: 'Scope'
+        }
+      ]
+    }
+    {
+      // Log Analytics API — Data.Read
+      resourceAppId: 'ca7f3f0b-7d91-482c-8e09-c5d840d0eac5'
+      resourceAccess: [
+        {
+          id: 'e4aa47b9-9a69-4109-82ed-36ec70d85571'
+          type: 'Scope'
+        }
+      ]
+    }
+  ]
+}
+
+// Inject the auto-created client ID into the portal web app settings
+resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+  name: 'deployscript-PortalEntraSettings-${instanceName}-${location}'
+  tags: Tags
+  location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userManagedIdentity}': {}
+    }
+  }
+  kind: 'AzureCLI'
+  properties: {
+    azCliVersion: '2.42.0'
+    timeout: 'PT5M'
+    retentionInterval: 'PT1H'
+    environmentVariables: [
+      {
+        name: 'RESOURCE_GROUP'
+        value: resourceGroup().name
+      }
+      {
+        name: 'WEBAPP_NAME'
+        value: portalSite.name
+      }
+      {
+        name: 'CLIENT_ID'
+        value: portalAppRegistration.appId
+      }
+    ]
+    scriptContent: 'az webapp config appsettings set --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --settings AZURE_CLIENT_ID="$CLIENT_ID" --output none && echo "AZURE_CLIENT_ID set to $CLIENT_ID"'
+  }
+  dependsOn: [
+    deployPortalScript
+    portalWebsiteContributor
+  ]
+}

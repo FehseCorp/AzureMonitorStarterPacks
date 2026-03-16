@@ -14,7 +14,7 @@ import {
 } from "@azure/msal-react";
 import { PublicClientApplication, EventType, BrowserAuthError } from "@azure/msal-browser";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { msalConfig, managementScope } from "./auth/msalConfig";
+import { loadRuntimeConfig, buildMsalConfig, managementScope } from "./auth/msalConfig";
 import { AppShell } from "./components/Layout/AppShell";
 import { GettingStartedPage } from "./pages/GettingStarted/GettingStartedPage";
 import { StatusPage } from "./pages/Status/StatusPage";
@@ -29,7 +29,7 @@ import { LogsPage } from "./pages/Logs/LogsPage";
 import { ConfigProvider } from "./hooks/useConfig";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 
-const msalInstance = new PublicClientApplication(msalConfig);
+let msalInstance: PublicClientApplication | null = null;
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -41,7 +41,7 @@ const queryClient = new QueryClient({
 
 function LoginPage() {
   const handleLogin = () => {
-    msalInstance.loginRedirect(managementScope);
+    msalInstance!.loginRedirect(managementScope);
   };
   return (
     <div
@@ -67,10 +67,17 @@ function App() {
   const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
-    msalInstance.initialize().then(() => {
-      // Handle redirect response after login
-      return msalInstance.handleRedirectPromise();
+    loadRuntimeConfig().then((runtimeConfig) => {
+      if (!runtimeConfig.clientId) {
+        setInitError("No Azure Client ID configured. Set AZURE_CLIENT_ID on the App Service or VITE_AZURE_CLIENT_ID for local dev.");
+        return;
+      }
+      msalInstance = new PublicClientApplication(buildMsalConfig(runtimeConfig));
+      return msalInstance.initialize().then(() => {
+        return msalInstance!.handleRedirectPromise();
+      });
     }).then((response) => {
+      if (!msalInstance) return;
       if (response?.account) {
         msalInstance.setActiveAccount(response.account);
       } else {
@@ -84,7 +91,7 @@ function App() {
         if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
           const account = (event.payload as { account?: unknown }).account;
           if (account) {
-            msalInstance.setActiveAccount(account as Parameters<typeof msalInstance.setActiveAccount>[0]);
+            msalInstance!.setActiveAccount(account as Parameters<typeof msalInstance.setActiveAccount>[0]);
           }
         }
       });
@@ -123,7 +130,7 @@ function App() {
     );
   }
   return (
-    <MsalProvider instance={msalInstance}>
+    <MsalProvider instance={msalInstance!}>
       <FluentProvider theme={webLightTheme}>
         <QueryClientProvider client={queryClient}>
           <AuthenticatedTemplate>
