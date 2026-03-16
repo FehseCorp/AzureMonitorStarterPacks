@@ -6,6 +6,9 @@
 # secret files
 setup/backend/Function/code/local.settings.json
 
+# Build artifacts
+setup/backend/backend.zip
+
 # User-specific files
 *.rsuser
 *.suo

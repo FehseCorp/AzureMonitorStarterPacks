@@ -10,6 +10,7 @@ param sasExpiry string = dateTimeAdd(utcNow(), 'PT2H')
 param lawresourceid string
 param appInsightsLocation string
 param imageGalleryName string
+param portalOrigin string = ''
 param packsURL string
 param ambaJsonURL string
 param packsModulesRootURL string
@@ -155,9 +156,9 @@ resource azfunctionsite 'Microsoft.Web/sites@2024-04-01' = {
           minimumElasticInstanceCount: 0
           minTlsVersion: '1.2'
           cors: {
-              allowedOrigins: [
+              allowedOrigins: union([
                   'https://portal.azure.com'
-              ]
+              ], portalOrigin != '' ? [portalOrigin] : [])
               supportCredentials: true
           }  
       }
@@ -246,4 +247,8 @@ resource monitoringkey 'Microsoft.Web/sites/host/functionKeys@2022-03-01' = {
     value: apiManagementKey
   }  
 } 
+
+output functionAppUrl string = 'https://${azfunctionsite.properties.defaultHostName}'
+output functionAppName string = azfunctionsite.name
+output appInsightsId string = appinsights.id
 

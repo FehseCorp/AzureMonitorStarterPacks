@@ -23,7 +23,12 @@ This document details the plan to replace the current Azure Workbook-based admin
 | **Configuration** | Resource List | Select instance, subscriptions, workspace, function, logic app, Grafana, action group, AMW |
 | **Logs** | — | App Insights invocations and traces for backend functions |
 
-### 2.2 Backend Function App Endpoints (called directly — no Logic App)
+### 2.2 Backend Function App Endpoints (called directly — no Logic App)az ad app permission add \
+  --id 5f382e30-2ce2-4e06-a2f6-27f0b0cf1f47 \
+  --api ca7f3f0b-7d91-482c-8e09-c5d840d0eac5 \
+  --api-permissions e4aa47b9-9a69-4109-82ed-36ec70d85571=Scope
+
+az ad app permission admin-consent --id 5f382e30-2ce2-4e06-a2f6-27f0b0cf1f47
 
 | Function Endpoint | Actions | Purpose |
 |----------|---------|---------|
@@ -741,13 +746,58 @@ Split-pane (matching workbook):
 - `staticwebapp.config.json` for route fallback and API proxy
 - Staging/Production environments
 
-#### 10.5 Deliverables
+#### 10.5 Security: Function App Auth — Comprehensive Review
+> **Priority — CRITICAL.** This affects **every** portal-to-backend call, not just pack listing. All five Function App endpoints require auth:
+> - `GET  /api/config` (pack catalog, service lists, discovery results, etc.)
+> - `POST /api/packmgmt` (add/remove/import packs on VMs and PaaS services)
+> - `POST /api/alertConfigMgmt` (enable/disable/update/delete alert rules)
+> - `POST /api/agentMgmt` (install/remove Azure Monitor Agent)
+> - `POST /api/opstasksondemand` (refresh backend caches)
+>
+> The current approach (retrieve host key via ARM `listkeys`, pass as `?code=` query param) is a **temporary dev shortcut**. A proper, general-purpose auth solution must be in place before production.
+
+##### Option A — Entra ID Easy Auth (Recommended)
+- [ ] Enable **App Service Authentication** (Easy Auth) on the Function App, configured for the same Entra ID tenant
+- [ ] Set all function `authLevel` values to `anonymous` (Easy Auth validates the bearer token at the platform level before the function code runs)
+- [ ] The portal already acquires an Entra ID token — just pass it as `Authorization: Bearer <token>` (no keys, no `?code=`)
+- [ ] Configure **allowed token audiences** on the Function App to restrict access to the portal's app registration only
+- [ ] Add CORS allowed origins on the Function App (the portal's SWA domain) so the Vite proxy is no longer needed in production
+
+##### Option B — Managed Identity (if portal is hosted on App Service / SWA with linked backend)
+- [ ] Assign a **system-managed identity** to the Static Web App / App Service hosting the portal
+- [ ] Grant that identity the **Website Contributor** or a custom role on the Function App
+- [ ] Function App validates the identity's token — zero secrets involved
+
+##### Option C — Keys retained (last resort only)
+- [ ] If keys absolutely must stay, implement a **server-side proxy** (e.g. SWA linked API or a lightweight API Management layer) so keys never leave the server
+- [ ] Keys must **never** appear in:
+  - Browser network tab URLs (`?code=` is visible in DevTools and browser history)
+  - `console.log`, `console.error`, or any client-side logging
+  - Application Insights telemetry or custom traces
+  - localStorage, sessionStorage, cookies, or any client-visible store
+- [ ] Key retrieval must use the **minimum-privilege ARM scope**
+- [ ] Key cache TTL should be as **short as practical** (currently 1 hour — reduce if possible)
+- [ ] Implement **key rotation awareness** (handle 401 by clearing cache and re-fetching)
+
+##### General cleanup
+- [ ] Remove all `console.log` statements that could leak keys, tokens, or sensitive request details before production
+- [ ] Audit `functionClient.ts`, `useBackendAction.ts`, and `PackSelector.tsx` for any key/token exposure
+- [ ] Ensure error handlers and React Query `onError` callbacks never serialize full request URLs containing keys
+
+#### 10.6 Deliverables
 - [ ] Dark mode toggle
 - [ ] Responsive design
 - [ ] Unit test coverage > 70%
 - [ ] CI/CD pipeline
+- [ ] Function App auth hardened (Easy Auth or Managed Identity)
 - [ ] Staging deployment
 - [ ] Production deployment
+
+---
+
+### Post-Conversion Optimization: Configuration Storage
+
+> **Note:** The current Configuration page uses browser localStorage, which is a temporary approach for the initial build. Once the portal is deployed as a proper web app, most configuration (instance name, function app URL, workspace ID, action group, AMW, etc.) can be injected via **web app environment variables** or stored in a **small backing database** (e.g. Azure Table Storage, Cosmos DB, or even a JSON blob). During the Bicep deployment, these values are already known and can be written directly into the app's settings. This would eliminate or greatly reduce the manual configuration step, making the portal essentially zero-config after deployment.
 
 ---
 

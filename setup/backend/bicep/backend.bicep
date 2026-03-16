@@ -19,6 +19,9 @@ param imageGalleryName string
 param collectTelemetry bool
 param createNewStorageAccount bool
 param azureMonitorWorkspaceId string = ''
+param deployPortal bool = false
+param portalname string = ''
+param portalPackageUrl string = ''
 
 var lawresourceGroup = split(lawresourceid, '/')[4]
 // var packPolicyRoleDefinitionIds=[
@@ -113,6 +116,7 @@ module backendFunction './modules/function.bicep' = {
     applicationsURL: applicationsupload.outputs.applicationsURL
     subscriptionId: subscriptionId
     opsdcrimmutableId: opsDCR.outputs.opsdcrimmutableId
+    portalOrigin: deployPortal && portalname != '' ? 'https://${portalname}.azurewebsites.net' : ''
   }
 }
 module logicapp './modules/logicapp.bicep' = {
@@ -277,4 +281,20 @@ output ambaStorageURL string = ambaStorage.outputs.fileURL
 // output packsUserManagedResourceId string = packsUserManagedIdentity.outputs.userManagedIdentityResourceId
 output functionUserManagedIdentityId string = functionUserManagedIdentity.outputs.userManagedIdentityResourceId
 output dceId string = dataCollectionEndpoint.outputs.dceId
+
+// Portal Web App
+module portal './modules/portal.bicep' = if (deployPortal && portalname != '') {
+  name: 'portal-${instanceName}-${location}'
+  scope: resourceGroup(subscriptionId, resourceGroupName)
+  params: {
+    portalName: portalname
+    location: location
+    Tags: Tags
+    functionAppUrl: backendFunction.outputs.functionAppUrl
+    userManagedIdentity: functionUserManagedIdentity.outputs.userManagedIdentityResourceId
+    portalPackageUrl: portalPackageUrl
+    instanceName: instanceName
+  }
+}
+output portalUrl string = deployPortal && portalname != '' ? portal.outputs.portalUrl : ''
 

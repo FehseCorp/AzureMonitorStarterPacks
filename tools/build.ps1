@@ -101,7 +101,7 @@ catch {
 }
 
 # --- Function App code ---
-Write-Host "[4/8] Zipping Function App code..."
+Write-Host "[4/9] Zipping Function App code..."
 try {
     $funcDir = Join-Path $repoRoot 'setup\backend\Function\code'
     if (-not (Test-Path $funcDir)) {
@@ -124,8 +124,70 @@ catch {
     Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
 }
 
+# --- Admin Portal SPA ---
+Write-Host "[5/9] Building Admin Portal SPA..."
+try {
+    $portalDir = Join-Path $repoRoot 'portal'
+    if (-not (Test-Path $portalDir)) {
+        Write-Host "  SKIP: portal directory not found."
+    }
+    elseif (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+        # npm/Node.js not available — check for a pre-built dist folder
+        $distDir = Join-Path $portalDir 'dist'
+        if (Test-Path $distDir) {
+            $destPath = Join-Path $repoRoot 'setup' 'backend' 'portal.zip'
+            Remove-Item $destPath -ErrorAction SilentlyContinue
+            Push-Location $distDir
+            try {
+                Compress-Archive -Path * -DestinationPath $destPath -Force
+            }
+            finally {
+                Pop-Location
+            }
+            Add-Artifact $destPath
+            Write-Host "  OK: portal.zip created from existing dist."
+        }
+        else {
+            Write-Host "  SKIP: npm not found and no pre-built dist. Run 'npm ci && npx vite build' in portal/ first."
+        }
+    }
+    else {
+        Push-Location $portalDir
+        try {
+            Write-Host "  Installing npm dependencies..."
+            npm ci --silent 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "npm ci failed with exit code $LASTEXITCODE" }
+
+            Write-Host "  Running Vite build..."
+            npx vite build 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "vite build failed with exit code $LASTEXITCODE" }
+        }
+        finally {
+            Pop-Location
+        }
+
+        $distDir = Join-Path $portalDir 'dist'
+        if (-not (Test-Path $distDir)) { throw "dist directory not found after build" }
+        $destPath = Join-Path $repoRoot 'setup' 'backend' 'portal.zip'
+        Remove-Item $destPath -ErrorAction SilentlyContinue
+        Push-Location $distDir
+        try {
+            Compress-Archive -Path * -DestinationPath $destPath -Force
+        }
+        finally {
+            Pop-Location
+        }
+        Add-Artifact $destPath
+        Write-Host "  OK: portal.zip created."
+    }
+}
+catch {
+    $buildErrors += "Admin Portal SPA: $($_.Exception.Message)"
+    Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
+}
+
 # --- Discovery scripts ---
-Write-Host "[5/8] Packaging discovery scripts..."
+Write-Host "[6/9] Packaging discovery scripts..."
 try {
     # Linux discovery
     $linuxClientDir = Join-Path $repoRoot 'setup\discovery\Linux\client'
@@ -164,7 +226,7 @@ catch {
 }
 
 # --- Client applications for packs ---
-Write-Host "[6/8] Zipping client applications..."
+Write-Host "[7/9] Zipping client applications..."
 try {
     $packsDir = Join-Path $repoRoot 'Packs'
     $appsDir = Join-Path $packsDir 'applications'
@@ -199,7 +261,7 @@ catch {
 }
 
 # --- Modules zip ---
-Write-Host "[7/8] Zipping Bicep modules..."
+Write-Host "[8/9] Zipping Bicep modules..."
 try {
     $modulesDir = Join-Path $repoRoot 'modules'
     if (-not (Test-Path $modulesDir)) {
@@ -221,7 +283,7 @@ catch {
 }
 
 # --- Bicep build ---
-Write-Host "[8/8] Compiling Bicep templates..."
+Write-Host "[9/9] Compiling Bicep templates..."
 try {
     $buildConfigPath = Join-Path $repoRoot 'tools\build.json'
     if (-not (Test-Path $buildConfigPath)) {

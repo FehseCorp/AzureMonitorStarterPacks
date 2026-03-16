@@ -26,6 +26,9 @@ param appInsightsLocation string
 param newAzureMonitorWSName string = ''
 param createNewAzureMonitorWS bool = false
 param existingAzureMonitorWSId string = ''
+param deployPortal bool = false
+@description('URL to the portal.zip package (e.g. GitHub Release URL). Required when deployPortal is true.')
+param portalPackageUrl string = ''
 
 //var deployPacks = deployAllPacks || deployIaaSPacks //|| deployPaaSPacks || deployPlatformPacks
 var solutionTag='MonitorStarterPacks'
@@ -39,6 +42,7 @@ var Tags = (customerTags=={}) ? tempTags : union(tempTags,customerTags.All)
 var functionName = 'AMP-${instanceName}-${split(subscriptionId,'-')[0]}-Function'
 var logicAppName = 'AMP-${instanceName}-LogicApp'
 var ImageGalleryName = 'AMP${instanceName}Gallery'
+var portalName = 'AMP-${instanceName}-${split(subscriptionId,'-')[0]}-Portal'
 
 module resourgeGroup './backend/bicep/modules/mg/resourceGroup.bicep' = if (createNewResourceGroup) {
   name: 'RGMonitoringPacks-${location}-${instanceName}'
@@ -164,6 +168,9 @@ module backend './backend/bicep/backend.bicep' = {
     collectTelemetry: collectTelemetry
     createNewStorageAccount: createNewStorageAccount
     azureMonitorWorkspaceId: createNewAzureMonitorWS ? azureMonitorWorkspace.outputs.amwResourceId : existingAzureMonitorWSId
+    deployPortal: deployPortal
+    portalname: portalName
+    portalPackageUrl: portalPackageUrl
   }
 }
 
