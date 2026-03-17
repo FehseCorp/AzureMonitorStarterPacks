@@ -17,9 +17,6 @@ param instanceName string
 var lawName = last(split(lawResourceId, '/'))
 var amwName = azureMonitorWorkspaceId != '' ? last(split(azureMonitorWorkspaceId, '/')) : ''
 
-// Microsoft Graph provider for app registration
-extension microsoftGraphV1_0
-
 // Separate B1 Linux plan for the portal
 resource portalPlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: '${portalName}-plan'
@@ -152,44 +149,14 @@ resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' =
 output portalUrl string = 'https://${portalSite.properties.defaultHostName}'
 output portalName string = portalSite.name
 
-// --- Entra app registration for the portal SPA (via Microsoft Graph Bicep) ---
-resource portalAppRegistration 'Microsoft.Graph/applications@v1.0' = {
-  displayName: '${portalName}-SPA'
-  uniqueName: '${portalName}-SPA'
-  signInAudience: 'AzureADMyOrg'
-  spa: {
-    redirectUris: [
-      'https://${portalSite.properties.defaultHostName}'
-      'http://localhost:5174'
-    ]
-  }
-  requiredResourceAccess: [
-    {
-      // Azure Service Management — user_impersonation
-      resourceAppId: '797f4846-ba00-4fd7-ba43-dac1f8f63013'
-      resourceAccess: [
-        {
-          id: '41094075-9dad-400e-a0bd-54e686782033'
-          type: 'Scope'
-        }
-      ]
-    }
-    {
-      // Log Analytics API — Data.Read
-      resourceAppId: 'ca7f3f0b-7d91-482c-8e09-c5d840d0eac5'
-      resourceAccess: [
-        {
-          id: 'e4aa47b9-9a69-4109-82ed-36ec70d85571'
-          type: 'Scope'
-        }
-      ]
-    }
-  ]
-}
-
-// Inject the auto-created client ID into the portal web app settings
+// --- Entra app registration for the portal SPA ---
+// Attempts to create/update an app registration via az ad commands.
+// Requires the managed identity to have Application Developer directory role
+// or Application.ReadWrite.OwnedBy Graph permission.
+// If the identity lacks permission, the script succeeds with a warning and
+// AZURE_CLIENT_ID is left empty — the portal shows a setup message.
 resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
-  name: 'deployscript-PortalEntraSettings-${instanceName}-${location}'
+  name: 'deployscript-PortalEntra-${instanceName}-${location}'
   tags: Tags
   location: location
   identity: {
@@ -205,6 +172,14 @@ resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' 
     retentionInterval: 'PT1H'
     environmentVariables: [
       {
+        name: 'APP_NAME'
+        value: '${portalName}-SPA'
+      }
+      {
+        name: 'REDIRECT_URI'
+        value: 'https://${portalSite.properties.defaultHostName}'
+      }
+      {
         name: 'RESOURCE_GROUP'
         value: resourceGroup().name
       }
@@ -212,12 +187,53 @@ resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' 
         name: 'WEBAPP_NAME'
         value: portalSite.name
       }
-      {
-        name: 'CLIENT_ID'
-        value: portalAppRegistration.appId
-      }
     ]
-    scriptContent: 'az webapp config appsettings set --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --settings AZURE_CLIENT_ID="$CLIENT_ID" --output none && echo "AZURE_CLIENT_ID set to $CLIENT_ID"'
+    scriptContent: '''
+      set +e
+      # Look for existing app registration
+      CLIENT_ID=$(az ad app list --display-name "$APP_NAME" --query "[0].appId" -o tsv 2>/dev/null)
+
+      if [ -z "$CLIENT_ID" ]; then
+        # Try to create a new app registration
+        CLIENT_ID=$(az ad app create \
+          --display-name "$APP_NAME" \
+          --sign-in-audience AzureADMyOrg \
+          --enable-id-token-issuance false \
+          --enable-access-token-issuance false \
+          --query appId -o tsv 2>/dev/null)
+
+        if [ -z "$CLIENT_ID" ]; then
+          echo "WARNING: Could not create app registration '$APP_NAME'."
+          echo "Grant the deployment identity the 'Application Developer' Entra directory role,"
+          echo "or create the app registration manually and set AZURE_CLIENT_ID on the portal App Service."
+          exit 0
+        fi
+        echo "Created app registration: $CLIENT_ID"
+      else
+        echo "Found existing app registration: $CLIENT_ID"
+      fi
+
+      # Configure SPA redirect URIs
+      az ad app update --id "$CLIENT_ID" \
+        --spa-redirect-uris "$REDIRECT_URI" "http://localhost:5174" 2>/dev/null || true
+
+      # Add required API permissions (Azure Service Management + Log Analytics)
+      # Azure Service Management — user_impersonation
+      az ad app permission add --id "$CLIENT_ID" \
+        --api 797f4846-ba00-4fd7-ba43-dac1f8f63013 \
+        --api-permissions 41094075-9dad-400e-a0bd-54e686782033=Scope 2>/dev/null || true
+      # Log Analytics API — Data.Read
+      az ad app permission add --id "$CLIENT_ID" \
+        --api ca7f3f0b-7d91-482c-8e09-c5d840d0eac5 \
+        --api-permissions e4aa47b9-9a69-4109-82ed-36ec70d85571=Scope 2>/dev/null || true
+
+      # Set AZURE_CLIENT_ID on the portal App Service
+      az webapp config appsettings set \
+        --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" \
+        --settings AZURE_CLIENT_ID="$CLIENT_ID" --output none
+
+      echo "AZURE_CLIENT_ID set to $CLIENT_ID"
+    '''
   }
   dependsOn: [
     deployPortalScript
