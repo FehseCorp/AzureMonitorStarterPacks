@@ -7,7 +7,16 @@ import { LogLevel, type Configuration } from "@azure/msal-browser";
 export interface RuntimeConfig {
   clientId: string;
   tenantId: string;
+  instanceName?: string;
   functionAppUrl?: string;
+  functionAppResourceId?: string;
+  functionAppName?: string;
+  workspaceId?: string;
+  workspaceName?: string;
+  appInsightsId?: string;
+  appInsightsName?: string;
+  azureMonitorWorkspaceId?: string;
+  azureMonitorWorkspaceName?: string;
 }
 
 let _runtimeConfig: RuntimeConfig | null = null;

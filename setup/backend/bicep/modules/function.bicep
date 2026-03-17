@@ -250,5 +250,7 @@ resource monitoringkey 'Microsoft.Web/sites/host/functionKeys@2022-03-01' = {
 
 output functionAppUrl string = 'https://${azfunctionsite.properties.defaultHostName}'
 output functionAppName string = azfunctionsite.name
+output functionAppResourceId string = azfunctionsite.id
 output appInsightsId string = appinsights.id
+output appInsightsName string = appinsights.name
 

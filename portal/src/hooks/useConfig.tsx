@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
+import { getRuntimeConfig } from "../auth/msalConfig";
 
 export interface AppConfig {
   instanceName: string;
@@ -38,15 +39,39 @@ const defaultConfig: AppConfig = {
 };
 
 function loadConfig(): AppConfig {
+  const seeded = { ...defaultConfig };
+
+  // Seed from runtime config (deployment-injected values)
+  try {
+    const rt = getRuntimeConfig();
+    if (rt.instanceName) seeded.instanceName = rt.instanceName;
+    if (rt.functionAppUrl) seeded.functionAppUrl = rt.functionAppUrl;
+    if (rt.functionAppResourceId) seeded.functionAppId = rt.functionAppResourceId;
+    if (rt.functionAppName) seeded.functionAppName = rt.functionAppName;
+    if (rt.workspaceId) seeded.workspaceId = rt.workspaceId;
+    if (rt.workspaceName) seeded.workspaceName = rt.workspaceName;
+    if (rt.appInsightsId) seeded.appInsightsId = rt.appInsightsId;
+    if (rt.appInsightsName) seeded.appInsightsName = rt.appInsightsName;
+    if (rt.azureMonitorWorkspaceId) seeded.azureMonitorWorkspaceId = rt.azureMonitorWorkspaceId;
+    if (rt.azureMonitorWorkspaceName) seeded.azureMonitorWorkspaceName = rt.azureMonitorWorkspaceName;
+  } catch {
+    // runtime config not yet loaded
+  }
+
+  // Overlay user-stored overrides from localStorage
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return { ...defaultConfig, ...JSON.parse(stored) };
+      const parsed = JSON.parse(stored) as Partial<AppConfig>;
+      for (const key of Object.keys(parsed) as (keyof AppConfig)[]) {
+        if (parsed[key]) seeded[key] = parsed[key]!;
+      }
     }
   } catch {
     // ignore parse errors
   }
-  return defaultConfig;
+
+  return seeded;
 }
 
 interface ConfigContextValue {

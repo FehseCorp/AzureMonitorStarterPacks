@@ -3,10 +3,19 @@ param portalName string
 param location string
 param Tags object
 param functionAppUrl string
+param functionAppResourceId string
+param functionAppName string
+param lawResourceId string
+param appInsightsId string
+param appInsightsName string
+param azureMonitorWorkspaceId string = ''
 param userManagedIdentity string
 param userManagedIdentityPrincipalId string
 param portalPackageUrl string
 param instanceName string
+
+var lawName = last(split(lawResourceId, '/'))
+var amwName = azureMonitorWorkspaceId != '' ? last(split(azureMonitorWorkspaceId, '/')) : ''
 
 // Microsoft Graph provider for app registration
 extension microsoftGraphV1_0
@@ -39,13 +48,49 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
-      appCommandLine: 'printf \'{"clientId":"%s","tenantId":"%s","functionAppUrl":"%s"}\\n\' "$AZURE_CLIENT_ID" "$AZURE_TENANT_ID" "$FUNCTION_APP_URL" > /home/site/wwwroot/config.json && pm2 serve /home/site/wwwroot --no-daemon --spa'
+      appCommandLine: 'cat > /home/site/wwwroot/config.json <<EOF\n{"clientId":"$AZURE_CLIENT_ID","tenantId":"$AZURE_TENANT_ID","instanceName":"$INSTANCE_NAME","functionAppUrl":"$FUNCTION_APP_URL","functionAppResourceId":"$FUNCTION_APP_RESOURCE_ID","functionAppName":"$FUNCTION_APP_NAME","workspaceId":"$LAW_RESOURCE_ID","workspaceName":"$LAW_NAME","appInsightsId":"$APP_INSIGHTS_ID","appInsightsName":"$APP_INSIGHTS_NAME","azureMonitorWorkspaceId":"$AMW_ID","azureMonitorWorkspaceName":"$AMW_NAME"}\nEOF\npm2 serve /home/site/wwwroot --no-daemon --spa'
       minTlsVersion: '1.2'
       http20Enabled: true
       appSettings: [
         {
+          name: 'INSTANCE_NAME'
+          value: instanceName
+        }
+        {
           name: 'FUNCTION_APP_URL'
           value: functionAppUrl
+        }
+        {
+          name: 'FUNCTION_APP_RESOURCE_ID'
+          value: functionAppResourceId
+        }
+        {
+          name: 'FUNCTION_APP_NAME'
+          value: functionAppName
+        }
+        {
+          name: 'LAW_RESOURCE_ID'
+          value: lawResourceId
+        }
+        {
+          name: 'LAW_NAME'
+          value: lawName
+        }
+        {
+          name: 'APP_INSIGHTS_ID'
+          value: appInsightsId
+        }
+        {
+          name: 'APP_INSIGHTS_NAME'
+          value: appInsightsName
+        }
+        {
+          name: 'AMW_ID'
+          value: azureMonitorWorkspaceId
+        }
+        {
+          name: 'AMW_NAME'
+          value: amwName
         }
         {
           name: 'AZURE_TENANT_ID'

@@ -291,6 +291,12 @@ module portal './modules/portal.bicep' = if (deployPortal && portalname != '') {
     location: location
     Tags: Tags
     functionAppUrl: backendFunction.outputs.functionAppUrl
+    functionAppResourceId: backendFunction.outputs.functionAppResourceId
+    functionAppName: backendFunction.outputs.functionAppName
+    lawResourceId: lawresourceid
+    appInsightsId: backendFunction.outputs.appInsightsId
+    appInsightsName: backendFunction.outputs.appInsightsName
+    azureMonitorWorkspaceId: azureMonitorWorkspaceId
     userManagedIdentity: functionUserManagedIdentity.outputs.userManagedIdentityResourceId
     userManagedIdentityPrincipalId: functionUserManagedIdentity.outputs.userManagedIdentityPrincipalId
     portalPackageUrl: portalPackageUrl
