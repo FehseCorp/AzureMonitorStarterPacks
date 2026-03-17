@@ -45,7 +45,7 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
-      appCommandLine: 'echo "{\\"clientId\\":\\"$AZURE_CLIENT_ID\\",\\"tenantId\\":\\"$AZURE_TENANT_ID\\",\\"instanceName\\":\\"$INSTANCE_NAME\\",\\"functionAppUrl\\":\\"$FUNCTION_APP_URL\\",\\"functionAppResourceId\\":\\"$FUNCTION_APP_RESOURCE_ID\\",\\"functionAppName\\":\\"$FUNCTION_APP_NAME\\",\\"workspaceId\\":\\"$LAW_RESOURCE_ID\\",\\"workspaceName\\":\\"$LAW_NAME\\",\\"appInsightsId\\":\\"$APP_INSIGHTS_ID\\",\\"appInsightsName\\":\\"$APP_INSIGHTS_NAME\\",\\"azureMonitorWorkspaceId\\":\\"$AMW_ID\\",\\"azureMonitorWorkspaceName\\":\\"$AMW_NAME\\"}" > /home/site/wwwroot/config.json && pm2 serve /home/site/wwwroot --no-daemon --spa'
+      appCommandLine: 'node -e "const e=process.env;require(\'fs\').writeFileSync(\'/home/site/wwwroot/config.json\',JSON.stringify({clientId:e.AZURE_CLIENT_ID,tenantId:e.AZURE_TENANT_ID,instanceName:e.INSTANCE_NAME,functionAppUrl:e.FUNCTION_APP_URL,functionAppResourceId:e.FUNCTION_APP_RESOURCE_ID,functionAppName:e.FUNCTION_APP_NAME,workspaceId:e.LAW_RESOURCE_ID,workspaceName:e.LAW_NAME,appInsightsId:e.APP_INSIGHTS_ID,appInsightsName:e.APP_INSIGHTS_NAME,azureMonitorWorkspaceId:e.AMW_ID,azureMonitorWorkspaceName:e.AMW_NAME}))" && pm2 serve /home/site/wwwroot --no-daemon --spa'
       minTlsVersion: '1.2'
       http20Enabled: true
       appSettings: [
@@ -139,7 +139,7 @@ resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' =
         value: resourceGroup().name
       }
     ]
-    scriptContent: 'curl -sL "$PACKAGE_URL" -o portal.zip && az webapp deploy --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --src-path portal.zip --type zip'
+    scriptContent: 'curl -sL "$PACKAGE_URL" -o portal.zip && az webapp deployment source config-zip --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --src portal.zip'
   }
   dependsOn: [
     portalWebsiteContributor
