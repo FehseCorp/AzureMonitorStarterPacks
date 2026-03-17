@@ -45,7 +45,7 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
-      appCommandLine: 'cat > /home/site/wwwroot/config.json <<EOF\n{"clientId":"$AZURE_CLIENT_ID","tenantId":"$AZURE_TENANT_ID","instanceName":"$INSTANCE_NAME","functionAppUrl":"$FUNCTION_APP_URL","functionAppResourceId":"$FUNCTION_APP_RESOURCE_ID","functionAppName":"$FUNCTION_APP_NAME","workspaceId":"$LAW_RESOURCE_ID","workspaceName":"$LAW_NAME","appInsightsId":"$APP_INSIGHTS_ID","appInsightsName":"$APP_INSIGHTS_NAME","azureMonitorWorkspaceId":"$AMW_ID","azureMonitorWorkspaceName":"$AMW_NAME"}\nEOF\npm2 serve /home/site/wwwroot --no-daemon --spa'
+      appCommandLine: 'echo "{\\"clientId\\":\\"$AZURE_CLIENT_ID\\",\\"tenantId\\":\\"$AZURE_TENANT_ID\\",\\"instanceName\\":\\"$INSTANCE_NAME\\",\\"functionAppUrl\\":\\"$FUNCTION_APP_URL\\",\\"functionAppResourceId\\":\\"$FUNCTION_APP_RESOURCE_ID\\",\\"functionAppName\\":\\"$FUNCTION_APP_NAME\\",\\"workspaceId\\":\\"$LAW_RESOURCE_ID\\",\\"workspaceName\\":\\"$LAW_NAME\\",\\"appInsightsId\\":\\"$APP_INSIGHTS_ID\\",\\"appInsightsName\\":\\"$APP_INSIGHTS_NAME\\",\\"azureMonitorWorkspaceId\\":\\"$AMW_ID\\",\\"azureMonitorWorkspaceName\\":\\"$AMW_NAME\\"}" > /home/site/wwwroot/config.json && pm2 serve /home/site/wwwroot --no-daemon --spa'
       minTlsVersion: '1.2'
       http20Enabled: true
       appSettings: [
