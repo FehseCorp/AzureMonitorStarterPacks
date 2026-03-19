@@ -17,6 +17,7 @@ import {
   type DataGridProps,
 } from "@fluentui/react-components";
 import {
+  ArrowSyncRegular,
   CheckmarkCircleFilled,
   DismissCircleFilled,
 } from "@fluentui/react-icons";
@@ -159,7 +160,16 @@ export function NonMonitoredServers() {
 
   return (
     <div className={styles.container}>
-      <Title3>Non-Monitored Machines</Title3>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Title3>Non-Monitored Machines</Title3>
+        <Button
+          appearance="subtle"
+          icon={<ArrowSyncRegular style={vmsQuery.isFetching ? { animation: "spin 1s linear infinite" } : undefined} />}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["nonMonitoredVMs"] })}
+          disabled={vmsQuery.isFetching}
+          title="Refresh"
+        />
+      </div>
 
       {selectedIds.size > 0 && (
         <>

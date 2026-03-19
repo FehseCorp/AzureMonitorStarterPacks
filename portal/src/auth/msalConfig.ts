@@ -28,10 +28,16 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
     const res = await fetch("/config.json");
     if (res.ok) {
       const json = await res.json();
-      if (json.clientId && json.clientId !== "%s") {
-        _runtimeConfig = json;
-        return _runtimeConfig;
-      }
+      // Use config.json values, falling back to Vite env vars for clientId/tenantId
+      const config: RuntimeConfig = {
+        ...json,
+        clientId: (json.clientId && json.clientId !== "%s")
+          ? json.clientId
+          : (import.meta.env.VITE_AZURE_CLIENT_ID || ""),
+        tenantId: json.tenantId || import.meta.env.VITE_AZURE_TENANT_ID || "common",
+      };
+      _runtimeConfig = config;
+      return config;
     }
   } catch {
     // config.json not available — fall through to env vars

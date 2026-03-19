@@ -3,10 +3,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {
   FluentProvider,
   webLightTheme,
+  webDarkTheme,
   Title2,
   Button,
   Spinner,
 } from "@fluentui/react-components";
+import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import {
   MsalProvider,
   AuthenticatedTemplate,
@@ -62,9 +64,11 @@ function LoginPage() {
   );
 }
 
-function App() {
+function AppInner() {
   const [isReady, setIsReady] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const { mode } = useTheme();
+  const theme = mode === "dark" ? webDarkTheme : webLightTheme;
 
   useEffect(() => {
     loadRuntimeConfig().then((runtimeConfig) => {
@@ -111,7 +115,7 @@ function App() {
 
   if (initError) {
     return (
-      <FluentProvider theme={webLightTheme}>
+      <FluentProvider theme={theme}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", gap: 16 }}>
           <Title2>MSAL Initialization Error</Title2>
           <p style={{ color: "red", maxWidth: 600, wordBreak: "break-all" }}>{initError}</p>
@@ -122,7 +126,7 @@ function App() {
 
   if (!isReady) {
     return (
-      <FluentProvider theme={webLightTheme}>
+      <FluentProvider theme={theme}>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
           <Spinner size="large" label="Initializing..." />
         </div>
@@ -131,7 +135,7 @@ function App() {
   }
   return (
     <MsalProvider instance={msalInstance!}>
-      <FluentProvider theme={webLightTheme}>
+      <FluentProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
           <AuthenticatedTemplate>
             <ConfigProvider>
@@ -163,6 +167,14 @@ function App() {
         </QueryClientProvider>
       </FluentProvider>
     </MsalProvider>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
   );
 }
 

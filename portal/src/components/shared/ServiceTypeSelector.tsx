@@ -66,9 +66,16 @@ export function ServiceTypeSelector({
         onOptionSelect={(_, data) => {
           const opts = data.selectedOptions;
           if (opts.includes(ALL_VALUE)) {
-            onSelectionChange([]);
+            if (isAll) {
+              // "All" was already active — user picked a specific type, so drop "All"
+              onSelectionChange(opts.filter((o) => o !== ALL_VALUE));
+            } else {
+              // User clicked "All" — reset to show everything
+              onSelectionChange([]);
+            }
           } else {
-            onSelectionChange(opts.filter((o) => o !== ALL_VALUE));
+            // No "All" in the new set — if empty, fall back to All
+            onSelectionChange(opts.length > 0 ? opts : []);
           }
         }}
       >

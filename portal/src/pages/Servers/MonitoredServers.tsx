@@ -18,6 +18,7 @@ import {
   type DataGridProps,
 } from "@fluentui/react-components";
 import {
+  ArrowSyncRegular,
   CheckmarkCircleFilled,
   DismissCircleFilled,
 } from "@fluentui/react-icons";
@@ -235,7 +236,16 @@ export function MonitoredServers() {
 
   return (
     <div className={styles.container}>
-      <Title3>Monitored Machines</Title3>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Title3>Monitored Machines</Title3>
+        <Button
+          appearance="subtle"
+          icon={<ArrowSyncRegular style={taggedQ.isFetching || assocQ.isFetching ? { animation: "spin 1s linear infinite" } : undefined} />}
+          onClick={() => { queryClient.invalidateQueries({ queryKey: ["taggedVMs"] }); queryClient.invalidateQueries({ queryKey: ["dcrAssociations"] }); }}
+          disabled={taggedQ.isFetching || assocQ.isFetching}
+          title="Refresh"
+        />
+      </div>
 
       {selectedIds.size > 0 && (
         <>

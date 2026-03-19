@@ -1094,49 +1094,28 @@ function get-nonMonitoredPaaSServices {
     return $body
 }
 function get-monitoredPaaSServices {
-    $ambaURL=$env:AMBAJsonURL
     $instanceName=$env:InstanceName
-    Write-Host "Fetching AMBA Catalog from $ambaURL"
-    if ($null -eq $ambaURL) {
-      Write-Host "Error fetching AMBA URL, stopping function"
-      $body = "Error fetching AMBA URL, stopping function"
-    #   Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-    #       StatusCode = [HttpStatusCode]::BadRequest
-    #       Body       = $body
-    #       })
-    }
-    $ambaCatalog=get-AmbaCatalog | ConvertFrom-Json -Depth 10
-    if ($ambaCatalog) {
-      Write-host "Found $($ambaCatalog.categories.count) categories in AMBA catalog."
-      $nameSpacesWithAlerts=($ambaCatalog.Categories).namespace | Where-Object {$_ -ne 'N/A'}
-      Write-host "Found $(($nameSpacesWithAlerts).count) namespaces with alerts."
-      #create an array of namespaceSpacesWithAlerts to use in the query (between single quotes, separated by commas and surrounded by parentheses)
-      $nameSpacesWithAlerts=($nameSpacesWithAlerts | ForEach-Object { "'$_'" }) -join ','
+    Write-Host "get-monitoredPaaSServices: Looking for monitored PaaS resources with instanceName=$instanceName"
 
+    # Query ARG directly for any tagged resource that isn't IaaS or monitoring infrastructure
 $PaaSQuery=@"
 resources | where isnotempty(tags.MonitorStarterPacks) and tags.instanceName =~ '$instanceName'
-| where type in~ ($nameSpacesWithAlerts) 
-| where not(type in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines',"microsoft.insights/scheduledqueryrules","microsoft.insights/metricalerts","microsoft.insights/activitylogalerts",'microsoft.insights/datacollectionrules'))
-| project Resource=id, type,tag=tostring(tags.MonitorStarterPacks),resourceGroup, location, subscriptionId, ['kind']
-| join kind=fullouter    (resources
-    | where tolower(type) in ("microsoft.insights/metricalerts","microsoft.insights/activitylogalerts")
+| where not(type in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines','microsoft.insights/scheduledqueryrules','microsoft.insights/metricalerts','microsoft.insights/activitylogalerts','microsoft.insights/datacollectionrules','microsoft.insights/datacollectionendpoints','microsoft.web/sites','microsoft.web/serverfarms','microsoft.insights/components','microsoft.compute/galleries','microsoft.compute/galleries/applications','microsoft.compute/galleries/applications/versions','microsoft.operationalinsights/workspaces','microsoft.monitor/accounts','microsoft.storage/storageaccounts'))
+| project Resource=id, type, tag=tostring(tags.MonitorStarterPacks), resourceGroup, location, subscriptionId, ['kind']
+| join kind=leftouter (resources
+    | where tolower(type) in ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')
     | where isnotempty(tags.MonitorStarterPacks) and tags.instanceName =~ '$instanceName'
     | summarize AlertCount=count() by Resource=tostring(properties.scopes[0]), MP=tostring(tags.MonitorStarterPacks)) on Resource
-| summarize by AlertCount=iff(isnull(AlertCount),0,AlertCount),Resource=iff(isnotempty(Resource),Resource,Resource1), Type=['type'], tag=['type'],resourceGroup=resourceGroup, kind, location, subscriptionId
+| project AlertCount=iff(isnull(AlertCount),0,AlertCount), Resource, Type=type, tag, resourceGroup, kind, location, subscriptionId
 "@
-      Write-host "PaasQuery to be used: $PaaSQuery"
-      $resourcesThatHavealertsAvailable= (Search-AzGraph $PaaSQuery) | convertto-json #| Where-Object {$_.type -in $nameSpacesWithAlerts}
-      if ($resourcesThatHavealertsAvailable.Count -gt 0) {
-          $body="{""Monitored Resources"" : $resourcesThatHavealertsAvailable }" 
-      }
-      else {
-        Write-host :"Found no resources..."
-        $body = '{}'
-      }
+    Write-host "PaaSQuery: $PaaSQuery"
+    $results = Search-AzGraph -Query $PaaSQuery -UseTenantScope
+    Write-host "Found $($results.Count) monitored PaaS resource(s)."
+    if ($results.Count -gt 0) {
+        $body = "{""Monitored Resources"" : $($results | ConvertTo-Json -Depth 5) }"
     }
     else {
-        Write-host "Error fetching catalog, stopping function."
-        $body = "{}"
+        $body = '{}'
     }
     return $body
 }

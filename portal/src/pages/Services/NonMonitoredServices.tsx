@@ -16,6 +16,7 @@ import {
   tokens,
   type DataGridProps,
 } from "@fluentui/react-components";
+import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
@@ -125,7 +126,11 @@ export function NonMonitoredServices() {
       if (parsed && typeof parsed === "object") {
         const obj = parsed as Record<string, unknown>;
         for (const key of Object.keys(obj)) {
-          if (Array.isArray(obj[key])) return obj[key] as PaaSRow[];
+          const val = obj[key];
+          if (Array.isArray(val)) return val as PaaSRow[];
+          if (val && typeof val === "object" && !Array.isArray(val) && "Resource" in (val as Record<string, unknown>)) {
+            return [val as PaaSRow];
+          }
         }
       }
       return [];
@@ -208,7 +213,16 @@ export function NonMonitoredServices() {
 
   return (
     <div className={styles.container}>
-      <Title3>Non-Monitored Services</Title3>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Title3>Non-Monitored Services</Title3>
+        <Button
+          appearance="subtle"
+          icon={<ArrowSyncRegular style={servicesQ.isFetching ? { animation: "spin 1s linear infinite" } : undefined} />}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["nonMonitoredPaaS"] })}
+          disabled={servicesQ.isFetching}
+          title="Refresh"
+        />
+      </div>
 
       <ServiceTypeSelector
         serviceTypes={serviceTypes}

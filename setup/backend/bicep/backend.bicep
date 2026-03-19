@@ -116,7 +116,7 @@ module backendFunction './modules/function.bicep' = {
     applicationsURL: applicationsupload.outputs.applicationsURL
     subscriptionId: subscriptionId
     opsdcrimmutableId: opsDCR.outputs.opsdcrimmutableId
-    portalOrigin: deployPortal && portalname != '' ? 'https://${portalname}.azurewebsites.net' : ''
+    portalOrigin: deployPortal && portalname != '' ? 'https://${toLower(portalname)}.azurewebsites.net' : ''
   }
 }
 module logicapp './modules/logicapp.bicep' = {

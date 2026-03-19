@@ -45,55 +45,9 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
-      appCommandLine: 'node -e "const e=process.env;require(\'fs\').writeFileSync(\'/home/site/wwwroot/config.json\',JSON.stringify({clientId:e.AZURE_CLIENT_ID,tenantId:e.AZURE_TENANT_ID,instanceName:e.INSTANCE_NAME,functionAppUrl:e.FUNCTION_APP_URL,functionAppResourceId:e.FUNCTION_APP_RESOURCE_ID,functionAppName:e.FUNCTION_APP_NAME,workspaceId:e.LAW_RESOURCE_ID,workspaceName:e.LAW_NAME,appInsightsId:e.APP_INSIGHTS_ID,appInsightsName:e.APP_INSIGHTS_NAME,azureMonitorWorkspaceId:e.AMW_ID,azureMonitorWorkspaceName:e.AMW_NAME}))" && pm2 serve /home/site/wwwroot --no-daemon --spa'
+      appCommandLine: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
       minTlsVersion: '1.2'
       http20Enabled: true
-      appSettings: [
-        {
-          name: 'INSTANCE_NAME'
-          value: instanceName
-        }
-        {
-          name: 'FUNCTION_APP_URL'
-          value: functionAppUrl
-        }
-        {
-          name: 'FUNCTION_APP_RESOURCE_ID'
-          value: functionAppResourceId
-        }
-        {
-          name: 'FUNCTION_APP_NAME'
-          value: functionAppName
-        }
-        {
-          name: 'LAW_RESOURCE_ID'
-          value: lawResourceId
-        }
-        {
-          name: 'LAW_NAME'
-          value: lawName
-        }
-        {
-          name: 'APP_INSIGHTS_ID'
-          value: appInsightsId
-        }
-        {
-          name: 'APP_INSIGHTS_NAME'
-          value: appInsightsName
-        }
-        {
-          name: 'AMW_ID'
-          value: azureMonitorWorkspaceId
-        }
-        {
-          name: 'AMW_NAME'
-          value: amwName
-        }
-        {
-          name: 'AZURE_TENANT_ID'
-          value: tenant().tenantId
-        }
-      ]
     }
   }
 }
@@ -138,8 +92,79 @@ resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' =
         name: 'RESOURCE_GROUP'
         value: resourceGroup().name
       }
+      {
+        name: 'AZURE_CLIENT_ID'
+        value: ''
+      }
+      {
+        name: 'AZURE_TENANT_ID'
+        value: tenant().tenantId
+      }
+      {
+        name: 'INSTANCE_NAME'
+        value: instanceName
+      }
+      {
+        name: 'FUNCTION_APP_URL'
+        value: functionAppUrl
+      }
+      {
+        name: 'FUNCTION_APP_RESOURCE_ID'
+        value: functionAppResourceId
+      }
+      {
+        name: 'FUNCTION_APP_NAME'
+        value: functionAppName
+      }
+      {
+        name: 'LAW_RESOURCE_ID'
+        value: lawResourceId
+      }
+      {
+        name: 'LAW_NAME'
+        value: lawName
+      }
+      {
+        name: 'APP_INSIGHTS_ID'
+        value: appInsightsId
+      }
+      {
+        name: 'APP_INSIGHTS_NAME'
+        value: appInsightsName
+      }
+      {
+        name: 'AMW_ID'
+        value: azureMonitorWorkspaceId
+      }
+      {
+        name: 'AMW_NAME'
+        value: amwName
+      }
     ]
-    scriptContent: 'curl -sL "$PACKAGE_URL" -o portal.zip && az webapp deployment source config-zip --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --src portal.zip'
+    scriptContent: '''
+      # Deploy the portal zip
+      curl -sL "$PACKAGE_URL" -o portal.zip
+      az webapp deployment source config-zip --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --src portal.zip
+
+      # Build config.json with deployment-time values
+      printf '{"clientId":"%s","tenantId":"%s","instanceName":"%s","functionAppUrl":"%s","functionAppResourceId":"%s","functionAppName":"%s","workspaceId":"%s","workspaceName":"%s","appInsightsId":"%s","appInsightsName":"%s","azureMonitorWorkspaceId":"%s","azureMonitorWorkspaceName":"%s"}' \
+        "$AZURE_CLIENT_ID" "$AZURE_TENANT_ID" "$INSTANCE_NAME" \
+        "$FUNCTION_APP_URL" "$FUNCTION_APP_RESOURCE_ID" "$FUNCTION_APP_NAME" \
+        "$LAW_RESOURCE_ID" "$LAW_NAME" \
+        "$APP_INSIGHTS_ID" "$APP_INSIGHTS_NAME" \
+        "$AMW_ID" "$AMW_NAME" > config.json
+
+      # Upload config.json to the app via Kudu VFS API
+      KUDU_URL="https://${WEBAPP_NAME}.scm.azurewebsites.net"
+      TOKEN=$(az account get-access-token --resource "https://${WEBAPP_NAME}.scm.azurewebsites.net" --query accessToken -o tsv 2>/dev/null || az account get-access-token --query accessToken -o tsv)
+      curl -sS -X PUT "${KUDU_URL}/api/vfs/site/wwwroot/config.json" \
+        -H "Authorization: Bearer ${TOKEN}" \
+        -H "If-Match: *" \
+        -H "Content-Type: application/json" \
+        --data-binary @config.json
+
+      echo "config.json deployed to ${WEBAPP_NAME}"
+    '''
   }
   dependsOn: [
     portalWebsiteContributor

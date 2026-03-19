@@ -5,8 +5,10 @@ import {
   Title3,
   Button,
 } from "@fluentui/react-components";
-import { SignOutRegular } from "@fluentui/react-icons";
+import { SignOutRegular, WeatherMoonRegular, WeatherSunnyRegular } from "@fluentui/react-icons";
 import { TabNavigation } from "./TabNavigation";
+import { DiagnosticsPanel } from "../DiagnosticsPanel";
+import { useTheme } from "../../hooks/useTheme";
 
 const useStyles = makeStyles({
   root: {
@@ -41,6 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const styles = useStyles();
   const { instance, accounts } = useMsal();
   const account = accounts[0];
+  const { mode, toggle } = useTheme();
 
   const handleLogout = () => {
     instance.logoutRedirect();
@@ -52,21 +55,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Title3 className={styles.title}>
           Azure Monitor Starter Packs — Admin Portal
         </Title3>
-        {account && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Button
             appearance="transparent"
-            icon={<SignOutRegular />}
-            onClick={handleLogout}
+            icon={mode === "dark" ? <WeatherSunnyRegular /> : <WeatherMoonRegular />}
+            onClick={toggle}
             style={{ color: tokens.colorNeutralForegroundOnBrand }}
-          >
-            {account.name ?? account.username}
-          </Button>
-        )}
+            title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          />
+          {account && (
+            <Button
+              appearance="transparent"
+              icon={<SignOutRegular />}
+              onClick={handleLogout}
+              style={{ color: tokens.colorNeutralForegroundOnBrand }}
+            >
+              {account.name ?? account.username}
+            </Button>
+          )}
+        </div>
       </header>
       <nav className={styles.nav}>
         <TabNavigation />
       </nav>
       <main className={styles.content}>{children}</main>
+      <DiagnosticsPanel />
     </div>
   );
 }

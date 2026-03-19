@@ -58,13 +58,23 @@ function loadConfig(): AppConfig {
     // runtime config not yet loaded
   }
 
-  // Overlay user-stored overrides from localStorage
+  // Overlay user-stored overrides from localStorage, but ONLY for
+  // fields that are user-selectable (not deployment-injected).
+  // Deployment-injected fields from runtime config always win.
+  const userOverridableKeys: Set<keyof AppConfig> = new Set([
+    "actionGroupId",
+    "actionGroupName",
+    "grafanaId",
+    "grafanaEndpoint",
+  ]);
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored) as Partial<AppConfig>;
       for (const key of Object.keys(parsed) as (keyof AppConfig)[]) {
-        if (parsed[key]) seeded[key] = parsed[key]!;
+        if (parsed[key] && userOverridableKeys.has(key)) {
+          seeded[key] = parsed[key]!;
+        }
       }
     }
   } catch {

@@ -3,5 +3,11 @@
     "azureFunctions.deploySubpath": "setup/backend/Function/code",
     "azureFunctions.projectLanguage": "PowerShell",
     "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen"
+    "debug.internalConsoleOptions": "neverOpen",
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/b1e924f9-d16f-4260-a3c8-ff1ee462956b/resourceGroups/rg-monstarpacks4/providers/Microsoft.Web/sites/AMP-mp4-b1e924f9-Portal",
+    "appService.deploySubpath": "portal"
 }

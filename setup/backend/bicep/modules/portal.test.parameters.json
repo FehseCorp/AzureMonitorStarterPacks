@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "portalName": { "value": "AMP-mp4-b1e924f9-Portal" },
+    "location": { "value": "canadacentral" },
+    "Tags": {
+      "value": {
+        "solutionVersion": "0.1",
+        "instanceName": "mp4",
+        "MonitorStarterPacksComponents": "BackendComponent"
+      }
+    },
+    "functionAppUrl": { "value": "https://amp-mp4-b1e924f9-function.azurewebsites.net" },
+    "functionAppResourceId": { "value": "/subscriptions/b1e924f9-d16f-4260-a3c8-ff1ee462956b/resourceGroups/rg-MonstarPacks4/providers/Microsoft.Web/sites/AMP-mp4-b1e924f9-Function" },
+    "functionAppName": { "value": "AMP-mp4-b1e924f9-Function" },
+    "lawResourceId": { "value": "/subscriptions/b1e924f9-d16f-4260-a3c8-ff1ee462956b/resourceGroups/rg-MonstarPacks4/providers/Microsoft.OperationalInsights/workspaces/Monster-LA4" },
+    "appInsightsId": { "value": "/subscriptions/b1e924f9-d16f-4260-a3c8-ff1ee462956b/resourceGroups/rg-MonstarPacks4/providers/Microsoft.Insights/components/AMP-mp4-b1e924f9-Function" },
+    "appInsightsName": { "value": "AMP-mp4-b1e924f9-Function" },
+    "azureMonitorWorkspaceId": { "value": "/subscriptions/b1e924f9-d16f-4260-a3c8-ff1ee462956b/resourceGroups/rg-MonstarPacks4/providers/Microsoft.Monitor/accounts/MonStar-AMW4" },
+    "userManagedIdentity": { "value": "/subscriptions/b1e924f9-d16f-4260-a3c8-ff1ee462956b/resourceGroups/rg-MonstarPacks4/providers/Microsoft.ManagedIdentity/userAssignedIdentities/AMP-mp4-UMI-Function" },
+    "userManagedIdentityPrincipalId": { "value": "57d1ac5e-baf9-448d-bbcf-5bcd8966a955" },
+    "portalPackageUrl": { "value": "https://github.com/FehseCorp/AzureMonitorStarterPacks/raw/refs/heads/createPortal/setup/backend/portal.zip" },
+    "instanceName": { "value": "mp4" }
+  }
+}
