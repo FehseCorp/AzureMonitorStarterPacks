@@ -1119,103 +1119,6 @@ resources | where isnotempty(tags.MonitorStarterPacks) and tags.instanceName =~ 
     }
     return $body
 }
-function write-lawdata {
-     param (
-        [Parameter(Mandatory = $true)]
-        [string]$instanceName,
-        [Parameter(Mandatory = $true)]
-        [object]$data,
-        [Parameter(Mandatory = $true)]
-        [string]$DcrImmutableId,
-        [Parameter(Mandatory = $true)]
-        [string]$tableName,
-        [Parameter(Mandatory = $false)]
-        [switch]$localtest,
-        [Parameter(Mandatory = $false)]
-        [string]$appId,
-        [Parameter(Mandatory = $false)]
-        [string]$appSecret
-    )
-    if ($null -eq $data -or @($data).Count -eq 0) {
-        Write-Host "No data to send to $tableName, skipping."
-        return
-    }
-    $streamname='Custom-' + $tableName
-    # Resolve the correct DCE via the DCR's DataCollectionEndpointId
-    $DCRForEndpoint = Get-AzDataCollectionRule | Where-Object {$_.ImmutableId -eq $DcrImmutableId}
-    if ($null -eq $DCRForEndpoint) {
-        Write-Error "No DCR found with ImmutableId $DcrImmutableId"
-        return $null
-    }
-    $dceResourceId = $DCRForEndpoint.DataCollectionEndpointId
-    if ([string]::IsNullOrEmpty($dceResourceId)) {
-        Write-Error "DCR $($DCRForEndpoint.Name) has no associated Data Collection Endpoint"
-        return $null
-    }
-    $DCE = Get-AzDataCollectionEndpoint -ResourceGroupName $dceResourceId.Split('/')[4] -Name $dceResourceId.Split('/')[8]
-    $tenantId=(Get-AzContext).Tenant.Id
-    if ($null -eq $DCE) {
-        Write-Error "No DCE found for resource Id $dceResourceId"
-        return $null
-    }
-    else {
-        Write-host "Found DCE $($DCE.Name) with id $($DCE.Id) (resolved from DCR ImmutableId $DcrImmutableId)"
-        $dceurl=$DCE.LogIngestionEndpoint
-        Write-host "DCE URL: $dceurl"
-    }
-    if ($localtest) {
-        Write-host "Running in local test mode. Using appId and appSecret to get bearer token."
-        Add-Type -AssemblyName System.Web
-        $scope = [System.Web.HttpUtility]::UrlEncode("https://monitor.azure.com//.default")   
-        $body = "client_id=$appId&scope=$scope&client_secret=$appSecret&grant_type=client_credentials";
-        $headers = @{"Content-Type" = "application/x-www-form-urlencoded" };
-        $uri = "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token"
-        $bearerToken = (Invoke-RestMethod -Uri $uri -Method "Post" -Body $body -Headers $headers).access_token
-    }
-    else {
-        $scope="https://monitor.azure.com"
-        $bearerToken = (Get-AzAccessToken -ResourceUrl $scope -TenantId $tenantId ).Token
-    }
-    # When using a managed identity, use the following line to get the token:
-    # $scope = [System.Web.HttpUtility]::UrlEncode("https://monitor.azure.com//.default")   
-    # if data is a hashtable, convert it to an array of objects
-    if ($data.count -eq 1) {
-        $body = "[$($data | ConvertTo-Json -Depth 10)]"
-    }
-    else {
-        $body = $data | ConvertTo-Json 
-    }
-    
-    if ([string]::IsNullOrEmpty($streamname)) {
-        $streamname=("Custom-$tableName") #.Replace("_CL","")
-        Write-host "No stream name provided, using default stream name. $streamname"
-    }
-    else {
-        Write-host "Using stream name $streamname"
-    }
-    #$headers = @{"Authorization" = "Bearer $bearerToken"; "Content-Type" = "application/json" };
-    # The stream name is what counts here and needs to match the stream name in the DCR.
-    $uri = "$dceurl/dataCollectionRules/$DcrImmutableId/streams/$streamname"+"?api-version=2023-01-01";
-    Write-host "Sending data to DCR at $uri"
-    try {
-        #$uploadResponse = Invoke-RestMethod -Uri $uri -Method "Post" -Body $body -Headers $headers;
-        $uploadResponse=Invoke-RestMethod -Method Post -Uri $uri -Headers @{"Authorization"="Bearer $bearerToken"} -Body $body -ContentType "application/json"   
-        Write-host "Data sent to DCR successfully."
-        Write-host "Response: $($uploadResponse | ConvertTo-Json -Depth 10)"
-    }
-    catch {
-        Write-Error "Error sending data to DCR: $_"
-        return $null
-    }
-}
-function new-availableiaaspacksdata {
-    $results=@()
-    $result = @{} # Initialize as a hashtable
-    $result['TimeGenerated'] = $timestamp                    
-    $result['packlist']=get-availableIaaSPacks -packContentURL $env:packsUrl
-    $results += $result
-    write-lawdata -instanceName $env:instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName AvailableIaaSPacks_CL #-localtest -appId $appid -appSecret $secretId
-}
 function get-AmbaCatalog {
     Write-Host "Get-AmbaCatalog: Fetching AMBA Catalog from storage account."
     $ambaJSONContent=get-AMBAJsonContent #-ambaJsonURL $ambaJsonURL
@@ -1323,18 +1226,10 @@ function new-pack {
         Write-Error "No DCE Id found!"
         return $false
     }
-    # If multiple DCEs found, resolve the correct one via the ops DCR's endpoint
+    # If multiple DCEs found, pick the first one
     if ($DceId.count -gt 1) {
-        Write-Host "Multiple DCEs found for instance $instanceName. Resolving via ops DCR..."
-        $opsDCR = Get-AzDataCollectionRule | Where-Object {$_.ImmutableId -eq $env:opsdcrimmutableId}
-        if ($null -ne $opsDCR -and -not [string]::IsNullOrEmpty($opsDCR.DataCollectionEndpointId)) {
-            $DceId = $opsDCR.DataCollectionEndpointId
-            Write-Host "Resolved DCE from ops DCR: $DceId"
-        }
-        else {
-            Write-Error "Could not resolve DCE from ops DCR. Multiple DCEs found for instance name $instanceName."
-            return $false
-        }
+        Write-Host "Multiple DCEs found for instance $instanceName. Using the first one."
+        $DceId = $DceId[0]
     }
     #$packlist=get-content ./packs/packsdef.json | ConvertFrom-Json -Depth 15
     Write-host "Found $($packlist.Packs.Count) packs in the file. "
@@ -1859,111 +1754,7 @@ function import-pack {
         $body = "Error updating blob content in $PacksUrl. $_"
         return $body
     }
-    Write-host "Pack import completed. Updating packs available in LAW."
-    start-opstasks -TaskNames @("AvailablePacks")
-}
-function start-opstasks {
-    [CmdletBinding()]
-    param (
-        [array]$TaskNames = @("All") # All, AvailablePacks, SupportedServices, MonitoredServices, UnmonitoredServices
-    )
-    # Right now there are 4 tasks
-    # 1. Check for new packs available and write to LAW
-    # 2. Check for supported services and write to LAW
-    # 3. Check for monitored services and write to LAW
-    # 4. Check for unmonitored services and write to LAW
-    # I want to add a parameter to run only one task at a time.
-    Write-Host "Starting Ops tasks..."
-    Write-host "Tasks to run: $($TaskNames -join ', ')"
-    $timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    $instanceName=$env:InstanceName
-    if ($instanceName) {
-        # Check for new packs available
-        if ($TaskNames -contains "All" -or $TaskNames -contains "AvailablePacks") {
-            $results=@()
-            $packdetails=get-IaaSPacksContent -packContentURL $env:packsUrl | convertfrom-json
-            foreach ($pack in $packdetails) {
-                Write-Verbose "Writing pack $($pack.Name) to LAW with tag $($pack.Tag)"
-                $result = @{} # Initialize as a hashtableq
-                $result['TimeGenerated'] = $timestamp
-                $result['Name'] = $pack.Name
-                $result['Tag'] = $pack.Tag
-                $result['NumberofRules'] = $pack.NumberofRules
-                $result['NumberofAlerts'] = $pack.NumberofAlerts
-                $result['AlertNames'] = $pack.AlertNames
-                $results += $result
-            }
-            Write-host "Writing available IaaS Packs to LAW. Number of packs: $($results.Count)"
-            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName AvailableIaaSPacks_CL #-localtest -appId $appid -appSecret $secretId
-        }
-        if ($TaskNames -contains "All" -or $TaskNames -contains "SupportedServices") {
-            # Check for supported Services
-            $results=@()
-            $result = @{} # Initialize as a hashtable
-            $services=(get-AmbaCatalog -ambaJsonURL $ambaURL| ConvertFrom-Json).Categories # | convertfrom-json).Categories.namespace| Select-Object @{Label = "nameSpace"; Expression = { $_.ToLower() }}
-            foreach ($svc in $services) {
-                Write-Verbose "Adding service $($svc.nameSpace)"
-                $result = @{} # Initialize as a hashtable
-                $result['TimeGenerated'] = $timestamp
-                $result['category'] = $svc.category
-                $result['namespace'] = $svc.namespace
-                $result['service'] = $svc.service
-                $result['metricnamespace'] = $svc.metricnamespace
-                $result['tag'] = $svc.tag
-                $result['NumberOfMetrics'] = $svc.NumberOfMetrics
-                $result['Details'] = $svc.Details
-                $results += $result
-            }
-            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName SupportedServices_CL #-localtest -appId $appid -appSecret $secretId
-        }
-        # check for monitored services
-        if ($TaskNames -contains "All" -or $TaskNames -contains "MonitoredServices") {
-            $results=@()
-            $monitoredServices=(get-monitoredPaaSServices | convertfrom-json -depth 10).'Monitored Resources'
-            foreach ($svc in $monitoredServices) {
-                #Write-host Adding monitored service $($svc.Resource)
-                $result = @{} # Initialize as a hashtable
-                $result['TimeGenerated'] = $timestamp
-                $result['Resource'] = $svc.Resource
-                $result['resourcetype'] = $svc.Type
-                $result['resourceGroup'] = $svc.resourceGroup
-                $result['resourcekind'] = $svc.kind
-                $result['location']= $svc.location
-                $result['subscriptionId'] = $svc.subscriptionId
-                if ($null -ne $svc.AlertCount) {
-                    $result['AlertCount'] = [int]$svc.AlertCount
-                } else {
-                    $result['AlertCount'] = 0
-                }
-                $results += $result
-            }
-            #write data to LAW
-            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName MonitoredPaaSTable_CL #-localtest -appId $appid -appSecret $secretId
-        }
-        # check for unmonitored services
-        if ($TaskNames -contains "All" -or $TaskNames -contains "UnmonitoredServices") {
-            $results=@()
-            $nonMonitoredServices=(get-nonMonitoredPaaSServices | convertfrom-json).'Non-Monitored Resources'
-            foreach ($svc in $nonMonitoredServices) {  
-                # Write-host Adding non-monitored service $($svc.Resource)
-                $result = @{} # Initialize as a hashtable
-                $result['TimeGenerated'] = $timestamp
-                $result['Resource'] = $svc.Resource
-                $result['resourcetype'] = $svc.Type
-                $result['resourceGroup'] = $svc.resourceGroup
-                $result['resourcekind'] = $svc.kind
-                $result['location']= $svc.location
-                $result['subscriptionId'] = $svc.subscriptionId
-                $results += $result
-            }
-            #write data to LAW
-            write-lawdata -instanceName $instanceName -data $results -DcrImmutableId $env:opsdcrimmutableId -tableName NonMonitoredPaaSTable_CL #-localtest -appId $appid -appSecret $secretId
-        }    
-    }
-    else {
-        Write-Host "No instance name provided."
-    }
-
+    Write-host "Pack import completed."
 }
 function get-availableIaaSPacks {
     param (

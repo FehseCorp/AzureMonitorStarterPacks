@@ -67,22 +67,6 @@ module gallery './modules/aig.bicep' ={
     userManagedIdentity: functionUserManagedIdentity.outputs.userManagedIdentityResourceId
   }
 }
-module opstables './modules/opstables.bicep' = {
-  name: 'opstables-${instanceName}-${location}'
-  scope: resourceGroup(subscriptionId, lawresourceGroup)
-  params: {
-    //dceId: dataCollectionEndpoint.outputs.dceId
-    workspaceResourceId: lawresourceid
-  }
-}
-module opsDCR './modules/opsdcr.bicep' = {
-  name: 'opsdcr-${instanceName}-${location}'
-  scope: resourceGroup(subscriptionId, resourceGroupName)
-  params: {
-    dceId: dataCollectionEndpoint.outputs.dceId
-    workspaceResourceId: lawresourceid
-  }
-}
 // Module below implements function, storage account, and app insights
 module backendFunction './modules/function.bicep' = {
   name: functionname
@@ -112,7 +96,6 @@ module backendFunction './modules/function.bicep' = {
     packsModulesRootURL: modulesupload.outputs.modulesURL
     applicationsURL: applicationsupload.outputs.applicationsURL
     subscriptionId: subscriptionId
-    opsdcrimmutableId: opsDCR.outputs.opsdcrimmutableId
     portalOrigin: deployPortal && portalname != '' ? 'https://${toLower(portalname)}.azurewebsites.net' : ''
   }
 }

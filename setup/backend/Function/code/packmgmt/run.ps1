@@ -133,7 +133,6 @@ try {
                                     -location $resource.location `
                                     -workspaceResourceId $workspaceResourceId `
                                     -azureMonitorWorkspaceId $azureMonitorWorkspaceId
-                                start-opstasks -TaskNames @("MonitoredServices","UnmonitoredServices")
                             }
                             default {
                                 Write-Host "packmgmt: Invalid PackType: $PackType"
@@ -175,7 +174,6 @@ try {
                             }
                         }
                     }
-                    start-opstasks
                 }
                 default {
                     $statusCode = [HttpStatusCode]::BadRequest

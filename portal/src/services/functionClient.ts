@@ -2,7 +2,6 @@ const FUNCTION_ENDPOINTS = {
   packmgmt: "/api/packmgmt",
   alertConfigMgmt: "/api/alertConfigMgmt",
   agentMgmt: "/api/agentMgmt",
-  opstasksondemand: "/api/opstasksondemand",
   config: "/api/config",
   policymgmt: "/api/policymgmt",
 } as const;
