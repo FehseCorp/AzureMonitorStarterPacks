@@ -17,7 +17,7 @@ import {
 import { useMsal } from "@azure/msal-react";
 import { useConfig } from "../hooks/useConfig";
 import { getRuntimeConfig, managementScope } from "../auth/msalConfig";
-import { getFunctionKey, callFunction } from "../services/functionClient";
+import { callFunction } from "../services/functionClient";
 
 const useStyles = makeStyles({
   fab: {
@@ -195,31 +195,7 @@ export function DiagnosticsPanel() {
       return;
     }
 
-    // --- Step 4: Function Key via ARM ---
-    setStep("functionKey", { status: "running", detail: "" });
-    let functionKey = "";
-    if (!config.functionAppId) {
-      setStep("functionKey", {
-        status: "fail",
-        detail: `functionAppId is empty — cannot call ARM listkeys API.\nconfig.functionAppId = "${config.functionAppId}"`,
-      });
-    } else {
-      try {
-        functionKey = await getFunctionKey(config.functionAppId, accessToken);
-        setStep("functionKey", {
-          status: "ok",
-          detail: `Key retrieved (${functionKey.length} chars): ${functionKey.substring(0, 8)}...`,
-        });
-      } catch (err) {
-        const detail = err instanceof Error ? err.message : String(err);
-        setStep("functionKey", {
-          status: "fail",
-          detail: `getFunctionKey() failed:\n${detail}\n\nfunctionAppId: ${config.functionAppId}`,
-        });
-      }
-    }
-
-    // --- Step 5: Call Function App (test endpoint) ---
+    // --- Step 4: Call Function App (test endpoint) ---
     setStep("callFunction", { status: "running", detail: "" });
     if (!config.functionAppUrl) {
       setStep("callFunction", {
@@ -234,7 +210,6 @@ export function DiagnosticsPanel() {
           "config",
           undefined,
           { Action: "getavailableIaaSPacks" },
-          functionKey || undefined
         );
         const resultStr = typeof result === "string" ? result : JSON.stringify(result, null, 2);
         setStep("callFunction", {
@@ -250,12 +225,10 @@ export function DiagnosticsPanel() {
       }
     }
 
-    // --- Step 5b: Raw fetch to function app (bypass callFunction) ---
+    // --- Step 4b: Raw fetch to function app (bypass callFunction) ---
     setStep("rawFetch", { status: "running", detail: "" });
     if (config.functionAppUrl) {
-      const testUrl = functionKey
-        ? `${config.functionAppUrl}/api/config?Action=getavailableIaaSPacks&code=${functionKey}`
-        : `${config.functionAppUrl}/api/config?Action=getavailableIaaSPacks`;
+      const testUrl = `${config.functionAppUrl}/api/config?Action=getavailableIaaSPacks`;
       try {
         const res = await fetch(testUrl, {
           method: "GET",
@@ -279,7 +252,7 @@ export function DiagnosticsPanel() {
       setStep("rawFetch", { status: "fail", detail: "No functionAppUrl" });
     }
 
-    // --- Step 6: CORS preflight test ---
+    // --- Step 5: CORS preflight test ---
     setStep("corsPreflight", { status: "running", detail: "" });
     if (config.functionAppUrl) {
       try {
@@ -336,10 +309,9 @@ export function DiagnosticsPanel() {
     { key: "configJson", label: "2. Fetch /config.json" },
     { key: "appConfig", label: "3. AppConfig (useConfig)" },
     { key: "msalAuth", label: "4. MSAL Token Acquisition" },
-    { key: "functionKey", label: "5. Function Key (ARM listkeys)" },
-    { key: "callFunction", label: "6. callFunction() — API call" },
-    { key: "rawFetch", label: "7. Raw fetch() — bypass wrapper" },
-    { key: "corsPreflight", label: "8. CORS preflight (OPTIONS)" },
+    { key: "callFunction", label: "5. callFunction() — API call" },
+    { key: "rawFetch", label: "6. Raw fetch() — bypass wrapper" },
+    { key: "corsPreflight", label: "7. CORS preflight (OPTIONS)" },
   ];
 
   return (

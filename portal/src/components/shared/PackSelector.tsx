@@ -9,7 +9,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
-import { callFunction, getFunctionKey } from "../../services/functionClient";
+import { callFunction } from "../../services/functionClient";
 import { useConfig } from "../../hooks/useConfig";
 
 const useStyles = makeStyles({
@@ -45,22 +45,12 @@ export function PackSelector({
         account,
       });
 
-      // Retrieve function key via ARM API
-      let functionKey: string | undefined;
-      if (config.functionAppId) {
-        functionKey = await getFunctionKey(
-          config.functionAppId,
-          tokenResponse.accessToken
-        );
-      }
-
       const result = await callFunction(
         config.functionAppUrl,
         tokenResponse.accessToken,
         "config",
         undefined,
         { Action: "getavailableIaaSPacks" },
-        functionKey
       );
       console.log("[PackSelector] raw response:", result);
       // API may return a JSON array directly, or a JSON string that needs parsing

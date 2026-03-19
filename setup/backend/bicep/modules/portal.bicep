@@ -212,6 +212,14 @@ resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' 
         name: 'WEBAPP_NAME'
         value: portalSite.name
       }
+      {
+        name: 'FUNCTION_APP_NAME'
+        value: functionAppName
+      }
+      {
+        name: 'TENANT_ID'
+        value: subscription().tenantId
+      }
     ]
     scriptContent: '''
       set +e
@@ -258,6 +266,32 @@ resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' 
         --settings AZURE_CLIENT_ID="$CLIENT_ID" --output none
 
       echo "AZURE_CLIENT_ID set to $CLIENT_ID"
+
+      # Enable Entra ID (EasyAuth) on the Function App
+      # This validates bearer tokens from the portal SPA — no function keys needed
+      az webapp auth update \
+        --resource-group "$RESOURCE_GROUP" --name "$FUNCTION_APP_NAME" \
+        --enabled true \
+        --action Return401 \
+        --aad-client-id "$CLIENT_ID" \
+        --aad-issuer "https://login.microsoftonline.com/$TENANT_ID/v2.0" \
+        --aad-allowed-token-audiences "api://$CLIENT_ID" \
+        --output none 2>/dev/null || true
+
+      echo "EasyAuth enabled on Function App $FUNCTION_APP_NAME with client ID $CLIENT_ID"
+
+      # Enable Entra ID (EasyAuth) on the Function App
+      # This validates bearer tokens from the portal SPA — no function keys needed
+      az webapp auth update \
+        --resource-group "$RESOURCE_GROUP" --name "$FUNCTION_APP_NAME" \
+        --enabled true \
+        --action Return401 \
+        --aad-client-id "$CLIENT_ID" \
+        --aad-issuer "https://login.microsoftonline.com/$TENANT_ID/v2.0" \
+        --aad-allowed-token-audiences "api://$CLIENT_ID" \
+        --output none 2>/dev/null || true
+
+      echo "EasyAuth enabled on Function App $FUNCTION_APP_NAME with client ID $CLIENT_ID"
     '''
   }
   dependsOn: [

@@ -23,7 +23,7 @@ import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
 import { useBackendAction } from "../../hooks/useBackendAction";
 import { useConfig } from "../../hooks/useConfig";
-import { callFunction, getFunctionKey } from "../../services/functionClient";
+import { callFunction } from "../../services/functionClient";
 import { ServiceTypeSelector } from "../../components/shared/ServiceTypeSelector";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { Pagination } from "../../components/common/Pagination";
@@ -120,17 +120,12 @@ export function MonitoredServices() {
         ...managementScope,
         account,
       });
-      let functionKey: string | undefined;
-      if (config.functionAppId) {
-        functionKey = await getFunctionKey(config.functionAppId, tokenResponse.accessToken);
-      }
       const result = await callFunction(
         config.functionAppUrl,
         tokenResponse.accessToken,
         "config",
         undefined,
         { Action: "getMonitoredPaaS" },
-        functionKey
       );
       // Response shape: { "Monitored Resources": [...] } or direct array
       let parsed = result;

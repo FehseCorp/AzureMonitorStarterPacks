@@ -22,7 +22,6 @@ param opsdcrimmutableId string
 var deploymentContainerName = 'deploy'
 var tempfilename = '${filename}.tmp'
 
-param apiManagementKey string= base64(newGuid())
 param solutionTag string
 param instanceName string
 
@@ -233,20 +232,6 @@ resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
     WorkspaceResourceId: lawresourceid
   }
 }
-
-var keyName = 'monitoringKey'
-
-resource monitoringkey 'Microsoft.Web/sites/host/functionKeys@2022-03-01' = { 
-  dependsOn: [ 
-    azfunctionsiteconfig 
-  ]
-  tags: Tags
-  name: '${functionname}/default/${keyName}'  
-  properties: {  
-    name: keyName  
-    value: apiManagementKey
-  }  
-} 
 
 output functionAppUrl string = 'https://${azfunctionsite.properties.defaultHostName}'
 output functionAppName string = azfunctionsite.name

@@ -40,7 +40,6 @@ solutionVersion: solutionVersion
 instanceName: instanceName}
 var Tags = (customerTags=={}) ? tempTags : union(tempTags,customerTags.All)
 var functionName = 'AMP-${instanceName}-${split(subscriptionId,'-')[0]}-Function'
-var logicAppName = 'AMP-${instanceName}-LogicApp'
 var ImageGalleryName = 'AMP${instanceName}Gallery'
 var portalName = 'AMP-${instanceName}-${split(subscriptionId,'-')[0]}-Portal'
 
@@ -161,10 +160,6 @@ module backend './backend/bicep/backend.bicep' = {
     Tags: Tags
     storageAccountName: storageAccountName
     subscriptionId: subscriptionId
-    solutionTag: solutionTag
-    imageGalleryName: ImageGalleryName
-    logicappname: logicAppName
-    instanceName: instanceName
     collectTelemetry: collectTelemetry
     createNewStorageAccount: createNewStorageAccount
     azureMonitorWorkspaceId: createNewAzureMonitorWS ? azureMonitorWorkspace.outputs.amwResourceId : existingAzureMonitorWSId

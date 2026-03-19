@@ -22,7 +22,7 @@ import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
 import { useConfig } from "../../hooks/useConfig";
 import { useBackendAction } from "../../hooks/useBackendAction";
-import { callFunction, getFunctionKey } from "../../services/functionClient";
+import { callFunction } from "../../services/functionClient";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { Pagination } from "../../components/common/Pagination";
 
@@ -68,11 +68,7 @@ export function DiscoveryResults() {
     queryFn: async () => {
       if (!account) throw new Error("Not authenticated");
       const tokenResponse = await instance.acquireTokenSilent({ ...managementScope, account });
-      let functionKey: string | undefined;
-      if (config.functionAppId) {
-        functionKey = await getFunctionKey(config.functionAppId, tokenResponse.accessToken);
-      }
-      const result = await callFunction(config.functionAppUrl, tokenResponse.accessToken, "config", undefined, { Action: "getdiscoveryresults" }, functionKey);
+      const result = await callFunction(config.functionAppUrl, tokenResponse.accessToken, "config", undefined, { Action: "getdiscoveryresults" });
       // Response shape: { Discovered: [...] } or raw array
       if (result && typeof result === "object" && "Discovered" in (result as Record<string, unknown>)) {
         const disc = (result as Record<string, unknown>).Discovered;

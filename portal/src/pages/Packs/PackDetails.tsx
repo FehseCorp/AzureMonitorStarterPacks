@@ -20,7 +20,7 @@ import { useBackendAction } from "../../hooks/useBackendAction";
 import { useQuery } from "@tanstack/react-query";
 import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
-import { callFunction, getFunctionKey } from "../../services/functionClient";
+import { callFunction } from "../../services/functionClient";
 import { useConfig } from "../../hooks/useConfig";
 
 const useStyles = makeStyles({
@@ -131,21 +131,12 @@ function useConfigQuery<T>(action: string, queryKey: string) {
         account,
       });
 
-      let functionKey: string | undefined;
-      if (config.functionAppId) {
-        functionKey = await getFunctionKey(
-          config.functionAppId,
-          tokenResponse.accessToken
-        );
-      }
-
       const result = await callFunction(
         config.functionAppUrl,
         tokenResponse.accessToken,
         "config",
         undefined,
         { Action: action },
-        functionKey
       );
       return result as T;
     },

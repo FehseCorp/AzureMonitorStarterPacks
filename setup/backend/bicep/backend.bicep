@@ -2,7 +2,6 @@ targetScope = 'subscription'
 
 @description('The name for the function app that you wish to create')
 param functionname string
-param logicappname string
 param instanceName string
 //param currentUserIdObject string
 param location string
@@ -49,9 +48,7 @@ var backendFunctionRoleDefinitionIds = [
   '85a2d0d9-2eba-4c9c-b355-11c2cc0788ab' // Compute Gallery Artifacts Publisher (VM Applications)
   '0618ae3d-2930-4bb7-aa00-718db34ee9f9' // Azure Monitor dashboard with grafana
 ]
-var logicappRequiredRoleassignments = [
-  '4633458b-17de-408a-b874-0445c86b69e6'   //keyvault reader role
-]
+
 var telemetryInfo = json(loadTextContent('./telemetry.json'))
 
 module telemetry './nested_telemetry.bicep' =  if (collectTelemetry) {
@@ -119,21 +116,7 @@ module backendFunction './modules/function.bicep' = {
     portalOrigin: deployPortal && portalname != '' ? 'https://${toLower(portalname)}.azurewebsites.net' : ''
   }
 }
-module logicapp './modules/logicapp.bicep' = {
-  name: logicappname
-  scope: resourceGroup(subscriptionId, resourceGroupName)
-  dependsOn: [
-    backendFunction
-  ]
-  params: {
-    functioname: functionname
-    logicAppName: logicappname
-    location: location
-    Tags: Tags
-    keyvaultid: keyvault.outputs.kvResourceId
-    subscriptionId: subscriptionId
-  }
-}
+
 module extendedWorkbook './modules/extendedworkbook.bicep' = {
   name: 'workbook2deployment-${instanceName}-${location}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
@@ -187,30 +170,14 @@ module functionUserManagedIdentity 'modules/userManagedIdentity.bicep' = {
 //Add keyvault
 module keyvault 'modules/keyvault.bicep' = {
   name: 'amp-${instanceName}-kv-${substring(uniqueString(subscriptionId, resourceGroupName, 'keyvault'), 0, 6)}'
-  dependsOn: [
-    backendFunction
-  ]
   scope: resourceGroup(subscriptionId, resourceGroupName)
   params: {
     kvName: 'amp-${instanceName}-kv-${substring(uniqueString(subscriptionId, resourceGroupName, 'keyvault'), 0, 6)}'
     location: location
     Tags: Tags
-    functionName: functionname
   }
 }
-//Add permissions for loginapp as a user to keyvault
-module userIdentityRoleAssignments '../../../modules/rbac/subscription/roleassignment.bicep' =  [for (roledefinitionId, i) in logicappRequiredRoleassignments:  {
-  name: 'logiapprbac-${i}'
-  //scope: managementGroup(mgname)
-  params: {
-    resourcename: keyvault.outputs.kvResourceId
-    principalId: logicapp.outputs.logicAppPrincipalId
-    solutionTag: solutionTag
-    roleDefinitionId: roledefinitionId
-    roleShortName: roledefinitionId
-    instanceName: instanceName
-  }
-}]
+
 // Module to upload the packsdef.json to the storage account.
 module packsDefStorage './modules/uploadPackDef.bicep' = {
   name: 'PacksDefStorage-${instanceName}-${location}'

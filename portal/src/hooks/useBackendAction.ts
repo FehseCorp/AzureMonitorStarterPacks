@@ -4,7 +4,6 @@ import { managementScope } from "../auth/msalConfig";
 import { acquireToken } from "../auth/acquireToken";
 import {
   callFunction,
-  getFunctionKey,
   type FunctionEndpoint,
 } from "../services/functionClient";
 import { useConfig } from "./useConfig";
@@ -35,22 +34,12 @@ export function useBackendAction(
 
       const tokenResponse = await acquireToken(instance, account, managementScope);
 
-      // Retrieve function key if we have the function app resource ID
-      let functionKey: string | undefined;
-      if (config.functionAppId) {
-        functionKey = await getFunctionKey(
-          config.functionAppId,
-          tokenResponse.accessToken
-        );
-      }
-
       return callFunction(
         config.functionAppUrl,
         tokenResponse.accessToken,
         endpoint,
         body,
         queryParams,
-        functionKey
       );
     },
     ...options,
