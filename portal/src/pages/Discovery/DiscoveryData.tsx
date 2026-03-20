@@ -36,7 +36,7 @@ export function DiscoveryData() {
     { staleTime: 60_000 },
   );
 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [tagFilter, setTagFilter] = useState<string[]>([]);
 
@@ -65,7 +65,7 @@ export function DiscoveryData() {
     });
   }, [rows, tagFilter]);
 
-  const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const columns = useMemo(
     () => columnKeys.map((key) =>
@@ -129,7 +129,7 @@ export function DiscoveryData() {
               )}
             </DataGridBody>
           </DataGrid>
-          <Pagination total={filtered.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(0); }} />
+          <Pagination totalItems={filtered.length} currentPage={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }} />
         </>
       )}
     </div>

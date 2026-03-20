@@ -47,7 +47,7 @@ export function Heartbeat() {
     { staleTime: 60_000 },
   );
 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
   const rows: HeartbeatRow[] = useMemo(() => {
@@ -62,7 +62,7 @@ export function Heartbeat() {
     }));
   }, [data]);
 
-  const paged = rows.slice(page * pageSize, (page + 1) * pageSize);
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   const columns = useMemo(
     () => [
@@ -114,11 +114,11 @@ export function Heartbeat() {
       </DataGrid>
 
       <Pagination
-        total={rows.length}
-        page={page}
+        totalItems={rows.length}
+        currentPage={page}
         pageSize={pageSize}
         onPageChange={setPage}
-        onPageSizeChange={(sz) => { setPageSize(sz); setPage(0); }}
+        onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }}
       />
     </div>
   );

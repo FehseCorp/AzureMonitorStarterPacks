@@ -22,7 +22,7 @@ param deployPortal bool = true
 param portalname string = ''
 param portalPackageUrl string = ''
 
-var lawresourceGroup = split(lawresourceid, '/')[4]
+//var lawresourceGroup = split(lawresourceid, '/')[4]
 // var packPolicyRoleDefinitionIds=[
 //   // '749f88d5-cbae-40b8-bcfc-e573ddc772fa' // Monitoring Contributor Role Definition Id for Monitoring Contributor
 //   // '92aaf0da-9dab-42b6-94a3-d43ce8d16293' // Log Analytics Contributor Role Definition Id for Log Analytics Contributor
@@ -47,6 +47,7 @@ var backendFunctionRoleDefinitionIds = [
   '641177b8-a67a-45b9-a033-47bc880bb21e' // Managed Application Contributor (Entra ID)
   '85a2d0d9-2eba-4c9c-b355-11c2cc0788ab' // Compute Gallery Artifacts Publisher (VM Applications)
   '0618ae3d-2930-4bb7-aa00-718db34ee9f9' // Azure Monitor dashboard with grafana
+  'b0d8363b-8ddd-447d-831f-62ca05bff136' // Monitoring Data Reader (Prometheus query on Azure Monitor Workspace)
 ]
 
 var telemetryInfo = json(loadTextContent('./telemetry.json'))

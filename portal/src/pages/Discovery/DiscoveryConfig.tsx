@@ -52,7 +52,7 @@ export function DiscoveryConfig() {
   const [tab, setTab] = useState<DiscTab>("tagged");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
   const taggedQ = useARGQuery("discovery-tagged", argDiscoveryTaggedVMs(config.instanceName));
@@ -75,7 +75,7 @@ export function DiscoveryConfig() {
     }));
   }, [rawData]);
 
-  const paged = rows.slice(page * pageSize, (page + 1) * pageSize);
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   const taggedColumns = useMemo(() => [
     createTableColumn<DiscVM>({ columnId: "name", renderHeaderCell: () => "Name", renderCell: (r) => r.name }),
@@ -205,7 +205,7 @@ export function DiscoveryConfig() {
               )}
             </DataGridBody>
           </DataGrid>
-          <Pagination total={rows.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(0); }} />
+          <Pagination totalItems={rows.length} currentPage={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }} />
         </>
       )}
 

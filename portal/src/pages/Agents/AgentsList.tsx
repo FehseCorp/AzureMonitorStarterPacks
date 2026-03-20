@@ -90,7 +90,7 @@ export function AgentsList() {
   const [confirmAction, setConfirmAction] = useState<"AddAgent" | "RemoveAgent" | null>(null);
   const [osFilter, setOsFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
   const rows: AgentRow[] = useMemo(() => {
@@ -117,7 +117,7 @@ export function AgentsList() {
     return result;
   }, [rows, osFilter, statusFilter]);
 
-  const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   // Summaries
   const summary = useMemo(() => {
@@ -223,11 +223,11 @@ export function AgentsList() {
       </DataGrid>
 
       <Pagination
-        total={filtered.length}
-        page={page}
+        totalItems={filtered.length}
+        currentPage={page}
         pageSize={pageSize}
         onPageChange={setPage}
-        onPageSizeChange={(sz) => { setPageSize(sz); setPage(0); }}
+        onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }}
       />
 
       <ConfirmDialog

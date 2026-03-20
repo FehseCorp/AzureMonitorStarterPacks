@@ -4,6 +4,7 @@ const FUNCTION_ENDPOINTS = {
   agentMgmt: "/api/agentMgmt",
   config: "/api/config",
   policymgmt: "/api/policymgmt",
+  prometheus: "/api/prometheus",
 } as const;
 
 export type FunctionEndpoint = keyof typeof FUNCTION_ENDPOINTS;

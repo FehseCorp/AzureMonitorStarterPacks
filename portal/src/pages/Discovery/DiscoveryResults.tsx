@@ -86,11 +86,11 @@ export function DiscoveryResults() {
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
   const rows: DiscoveryRow[] = useMemo(() => data ?? [], [data]);
-  const paged = rows.slice(page * pageSize, (page + 1) * pageSize);
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   const onSelectionChange: DataGridProps["onSelectionChange"] = (_e, d) => setSelected(d.selectedItems as Set<string>);
 
@@ -151,7 +151,7 @@ export function DiscoveryResults() {
             </DataGridBody>
           </DataGrid>
 
-          <Pagination total={rows.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(0); }} />
+          <Pagination totalItems={rows.length} currentPage={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }} />
         </>
       )}
 

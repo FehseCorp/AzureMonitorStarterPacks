@@ -44,7 +44,7 @@ export function VMApplications() {
   const s = useStyles();
   const { config } = useConfig();
   const { data, isLoading, error } = useARGQuery("vm-applications", argVMApplications(config.instanceName));
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
   const rows: VMAppRow[] = useMemo(() => {
@@ -59,7 +59,7 @@ export function VMApplications() {
     }));
   }, [data]);
 
-  const paged = rows.slice(page * pageSize, (page + 1) * pageSize);
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   if (isLoading) return <Spinner label="Loading VM applications…" />;
   if (error) return <Text>Error loading VM applications.</Text>;
@@ -83,7 +83,7 @@ export function VMApplications() {
               )}
             </DataGridBody>
           </DataGrid>
-          <Pagination total={rows.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(0); }} />
+          <Pagination totalItems={rows.length} currentPage={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }} />
         </>
       )}
     </div>
