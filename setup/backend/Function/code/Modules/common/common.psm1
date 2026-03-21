@@ -464,7 +464,7 @@ function Remove-Monitoring {
             }
             if ($diagnosticConfig) {
                 "Found diagnostic setting. Removing..."
-                Remove-AzDiagnosticSetting -ResourceId $resourceId -Name "AMSP-$TagValue"
+                Remove-AzDiagnosticSetting -ResourceId $resourceId -Name "AMP-$TagValue"
             }
             else {
                 "No diagnostic setting found."
@@ -485,6 +485,8 @@ function Remove-Monitoring {
                 Write-host "Found alert rule $($alertRule.Name) for $resourceId. Removing..."
                 Remove-AzResource -ResourceId $alertRule.id -Force -ErrorAction SilentlyContinue
             }
+            "Removing tag $TagName for $TagValue."
+            remove-tag -resourceId $resourceId -TagName $TagName -TagValue $TagValue -instanceName $instanceName
         }
     }
 }

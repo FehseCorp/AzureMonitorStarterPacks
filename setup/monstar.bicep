@@ -166,6 +166,9 @@ module backend './backend/bicep/backend.bicep' = {
     deployPortal: deployPortal
     portalname: portalName
     portalPackageUrl: portalPackageUrl
+    imageGalleryName: ImageGalleryName
+    instanceName: instanceName
+    solutionTag: solutionTag
   }
 }
 
