@@ -631,7 +631,10 @@ function Add-Monitoring { # This adds a single pack to a single resource.
                 # Need a VM application for the pack. This is only for IaaS packs.
                 Write-host "Addinng VM application for $TagValue."
                 try {
-                    New-VMApp -instanceName $instanceName -resourceId $resourceId -packtag $TagValue
+                    $vmAppResult = New-VMApp -instanceName $instanceName -resourceId $resourceId -packtag $TagValue
+                    if ($vmAppResult -eq $false) {
+                        throw "New-VMApp returned false for $TagValue."
+                    }
                     Write-host "VM application created for $TagValue, if any. Adding tag."
                 }
                 catch {
@@ -664,7 +667,10 @@ function Add-Monitoring { # This adds a single pack to a single resource.
             # Add VM application for the pack, if required. For discovery packs, this is always required.
             Write-host "Addinng VM application for $TagValue."
             try {
-                New-VMApp -instanceName $instanceName -resourceId $resourceId -packtag $TagValue
+                $vmAppResult = New-VMApp -instanceName $instanceName -resourceId $resourceId -packtag $TagValue
+                if ($vmAppResult -eq $false) {
+                    throw "New-VMApp returned false for $TagValue."
+                }
                 Write-host "VM application created for $TagValue, if any. Adding tag."
             }
             catch {
@@ -679,7 +685,9 @@ function Add-Monitoring { # This adds a single pack to a single resource.
             }
             catch {
                 Write-host "Error adding tag to resource $resourceId. $($_.Exception.Message)"
-                # should remove VM App and association since pack tag is not there.
+                Write-host "Removing VM application and DCR association for $TagValue since tag was not added."
+                try { remove-vmapp -ResourceId $resourceId -packtag $TagValue -instanceName $instanceName } catch { Write-host "Error removing VM app during rollback: $($_.Exception.Message)" }
+                try { Remove-DCRa -resourceId $resourceId -TagValue $TagValue -instanceName $instanceName } catch { Write-host "Error removing DCR association during rollback: $($_.Exception.Message)" }
                 return
             }
             # if ($null -ne $packDef.Agents) {

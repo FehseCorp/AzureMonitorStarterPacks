@@ -182,6 +182,7 @@ export function DiscoveryConfig() {
       Resource: r.id,
       OS: r.OS,
       Location: r.location,
+      Packs: r.Packs ?? "",
     }));
     action.mutate(
       { endpoint: "packmgmt", body: { Action: "RemoveTag", Pack: "All", PackType: "Discovery", Resources: resources } },
@@ -258,6 +259,8 @@ export function DiscoveryConfig() {
         title={confirmAction === "enable" ? "Enable Discovery" : "Remove Discovery"}
         onConfirm={() => confirmAction === "enable" ? handleEnableDiscovery() : handleRemoveDiscovery()}
         onCancel={() => setConfirmAction(null)}
+        isPending={action.isPending}
+        danger={confirmAction === "remove"}
       >
         {`${confirmAction === "enable" ? "Enable discovery on" : "Remove discovery from"} ${selected.size} selected machine(s)?`}
       </ConfirmDialog>
