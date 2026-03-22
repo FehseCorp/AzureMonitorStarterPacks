@@ -380,22 +380,43 @@ resources
 /** Discovery tagged VMs (WinDisc/LxDisc) — machines with discovery packs */
 export const argDiscoveryTaggedVMs = (instanceName: string) => `
 resources
-| where type =~ 'microsoft.compute/virtualmachines' or type =~ 'microsoft.hybridcompute/machines'
+| where type =~ 'microsoft.hybridcompute/machines'
 | where tags.instanceName =~ '${instanceName}'
 | where tags.MonitorStarterPacks has 'WinDisc' or tags.MonitorStarterPacks has 'LxDisc'
 | project id, name, resourceGroup,
-    OS=coalesce(tostring(properties.storageProfile.osDisk.osType), tostring(properties.osType)),
-    Packs=tostring(tags.MonitorStarterPacks), location, subscriptionId
+    OS=tostring(properties.osType),
+    Packs=tostring(tags.MonitorStarterPacks), location, subscriptionId,
+    state=iff(properties.status=='Connected','On','Off')
+| union (
+    resources
+    | where type =~ 'microsoft.compute/virtualmachines'
+    | where tags.instanceName =~ '${instanceName}'
+    | where tags.MonitorStarterPacks has 'WinDisc' or tags.MonitorStarterPacks has 'LxDisc'
+    | project id, name, resourceGroup,
+        OS=tostring(properties.storageProfile.osDisk.osType),
+        Packs=tostring(tags.MonitorStarterPacks), location, subscriptionId,
+        state=iff(properties.extended.instanceView.powerState.code=='PowerState/running','On','Off')
+)
 `;
 
 /** Non-tagged VMs for discovery — machines without any MonitorStarterPacks tag */
-export const argDiscoveryNonTaggedVMs = (instanceName: string) => `
+export const argDiscoveryNonTaggedVMs = (_instanceName: string) => `
 resources
-| where type =~ 'microsoft.compute/virtualmachines' or type =~ 'microsoft.hybridcompute/machines'
+| where type =~ 'microsoft.hybridcompute/machines'
 | where isempty(tags.MonitorStarterPacks)
 | project id, name, resourceGroup,
-    OS=coalesce(tostring(properties.storageProfile.osDisk.osType), tostring(properties.osType)),
-    location, subscriptionId
+    OS=tostring(properties.osType),
+    location, subscriptionId,
+    state=iff(properties.status=='Connected','On','Off')
+| union (
+    resources
+    | where type =~ 'microsoft.compute/virtualmachines'
+    | where isempty(tags.MonitorStarterPacks)
+    | project id, name, resourceGroup,
+        OS=tostring(properties.storageProfile.osDisk.osType),
+        location, subscriptionId,
+        state=iff(properties.extended.instanceView.powerState.code=='PowerState/running','On','Off')
+)
 `;
 
 /** Non-monitored VMs (for agent install — those without AMA) */
