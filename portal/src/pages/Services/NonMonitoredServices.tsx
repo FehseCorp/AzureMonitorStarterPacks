@@ -23,7 +23,7 @@ import { managementScope } from "../../auth/msalConfig";
 import { useBackendAction } from "../../hooks/useBackendAction";
 import { useConfig } from "../../hooks/useConfig";
 import { callFunction } from "../../services/functionClient";
-import { ServiceTypeSelector } from "../../components/shared/ServiceTypeSelector";
+import { FilterBar, type FilterState, type FilterDimension } from "../../components/common/FilterBar";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { Pagination } from "../../components/common/Pagination";
 
@@ -91,7 +91,8 @@ export function NonMonitoredServices() {
   const account = accounts[0];
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [filterState, setFilterState] = useState<FilterState>({});
+  const [searchText, setSearchText] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -134,19 +135,48 @@ export function NonMonitoredServices() {
     staleTime: 60_000,
   });
 
-  // Derive service types from loaded data (only types that actually exist unmonitored)
-  const serviceTypes = useMemo(
-    () => [...new Set((servicesQ.data ?? []).map((r) => r.type).filter(Boolean))].sort(),
-    [servicesQ.data]
-  );
-
-  // Filter — empty selectedTypes means "All" (show everything)
-  const rows = useMemo(() => {
+  // Build filter dimensions from loaded data
+  const filterDimensions: FilterDimension[] = useMemo(() => {
     const all = servicesQ.data ?? [];
-    if (selectedTypes.length === 0) return all;
-    const typeSet = new Set(selectedTypes.map((t) => t.toLowerCase()));
-    return all.filter((r) => typeSet.has((r.type ?? "").toLowerCase()));
-  }, [servicesQ.data, selectedTypes]);
+    const types = [...new Set(all.map((r) => r.type).filter(Boolean))].sort();
+    const locations = [...new Set(all.map((r) => r.location).filter(Boolean))].sort();
+    const kinds = [...new Set(all.map((r) => r.kind).filter(Boolean))].sort();
+    const rgs = [...new Set(all.map((r) => r.resourceGroup).filter(Boolean))].sort();
+    return [
+      { key: "type", label: "Type", values: types, defaultVisible: true },
+      { key: "location", label: "Location", values: locations, defaultVisible: true },
+      { key: "kind", label: "Kind", values: kinds },
+      { key: "resourceGroup", label: "Resource Group", values: rgs },
+    ];
+  }, [servicesQ.data]);
+
+  // Filter by bubble selections + free-text search
+  const rows = useMemo(() => {
+    let result = servicesQ.data ?? [];
+    // Dimension filters
+    for (const dim of filterDimensions) {
+      const sel = filterState[dim.key];
+      if (sel && sel.length > 0) {
+        const allowed = new Set(sel.map((v) => v.toLowerCase()));
+        result = result.filter((r) => {
+          const val = (r as Record<string, unknown>)[dim.key];
+          return typeof val === "string" && allowed.has(val.toLowerCase());
+        });
+      }
+    }
+    // Free-text search across all visible fields
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase();
+      result = result.filter((r) =>
+        resourceName(r.Resource).toLowerCase().includes(q) ||
+        (r.type ?? "").toLowerCase().includes(q) ||
+        (r.resourceGroup ?? "").toLowerCase().includes(q) ||
+        (r.kind ?? "").toLowerCase().includes(q) ||
+        (r.location ?? "").toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [servicesQ.data, filterDimensions, filterState, searchText]);
 
   // Paginate
   const pagedRows = useMemo(
@@ -219,19 +249,23 @@ export function NonMonitoredServices() {
         />
       </div>
 
-      <ServiceTypeSelector
-        serviceTypes={serviceTypes}
-        selectedTypes={selectedTypes}
-        onSelectionChange={(types) => {
-          setSelectedTypes(types);
+      <FilterBar
+        dimensions={filterDimensions}
+        filterState={filterState}
+        onFilterChange={(state) => {
+          setFilterState(state);
           setSelectedIds(new Set());
           setCurrentPage(1);
         }}
-        isLoading={servicesQ.isLoading}
-        label="Select Service Type(s) to display"
+        searchText={searchText}
+        onSearchTextChange={(text) => {
+          setSearchText(text);
+          setSelectedIds(new Set());
+          setCurrentPage(1);
+        }}
       />
 
-      {selectedTypes.length === 0 && (servicesQ.data ?? []).length === 0 && (
+      {(servicesQ.data ?? []).length === 0 && (
         <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
           No non-monitored services found.
         </Text>
@@ -284,8 +318,8 @@ export function NonMonitoredServices() {
             onPageSizeChange={setPageSize}
           />
         </>
-      ) : rows.length === 0 && (servicesQ.data ?? []).length > 0 && selectedTypes.length > 0 ? (
-        <Text>No non-monitored services found for the selected type(s).</Text>
+      ) : rows.length === 0 && (servicesQ.data ?? []).length > 0 ? (
+        <Text>No services match the current filters.</Text>
       ) : null}
 
       <ConfirmDialog

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   DataGrid,
   DataGridHeader,
@@ -27,6 +27,7 @@ import { useBackendAction } from "../../hooks/useBackendAction";
 import { useConfig } from "../../hooks/useConfig";
 import { ARG_NON_MONITORED_VMS } from "../../services/queries/argQueries";
 import { PackSelector } from "../../components/shared/PackSelector";
+import { FilterBar, type FilterState, type FilterDimension } from "../../components/common/FilterBar";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 
 const useStyles = makeStyles({
@@ -100,6 +101,8 @@ export function NonMonitoredServers() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedPacks, setSelectedPacks] = useState<string[]>([]);
+  const [filterState, setFilterState] = useState<FilterState>({});
+  const [searchText, setSearchText] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const vmsQuery = useARGQuery(
@@ -108,7 +111,44 @@ export function NonMonitoredServers() {
     { enabled: true }
   );
 
-  const rows = (vmsQuery.data ?? []) as unknown as VMRow[];
+  const allRows = (vmsQuery.data ?? []) as unknown as VMRow[];
+
+  // Build filter dimensions
+  const filterDimensions: FilterDimension[] = useMemo(() => {
+    const oses = [...new Set(allRows.map((r) => r.OS).filter(Boolean))].sort();
+    const locations = [...new Set(allRows.map((r) => r.Location).filter(Boolean))].sort();
+    const rgs = [...new Set(allRows.map((r) => r["Resource Group"]).filter(Boolean))].sort();
+    return [
+      { key: "OS", label: "OS", values: oses, defaultVisible: true },
+      { key: "Location", label: "Location", values: locations, defaultVisible: true },
+      { key: "Resource Group", label: "Resource Group", values: rgs },
+    ];
+  }, [allRows]);
+
+  // Apply filters
+  const rows = useMemo(() => {
+    let result = allRows;
+    for (const dim of filterDimensions) {
+      const sel = filterState[dim.key];
+      if (sel && sel.length > 0) {
+        const allowed = new Set(sel.map((v) => v.toLowerCase()));
+        result = result.filter((r) => {
+          const val = (r as Record<string, unknown>)[dim.key];
+          return typeof val === "string" && allowed.has(val.toLowerCase());
+        });
+      }
+    }
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase();
+      result = result.filter((r) =>
+        resourceName(r.Resource).toLowerCase().includes(q) ||
+        (r["Resource Group"] ?? "").toLowerCase().includes(q) ||
+        (r.OS ?? "").toLowerCase().includes(q) ||
+        (r.Location ?? "").toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [allRows, filterDimensions, filterState, searchText]);
 
   const action = useBackendAction({
     onSuccess: () => {
@@ -170,6 +210,20 @@ export function NonMonitoredServers() {
           title="Refresh"
         />
       </div>
+
+      <FilterBar
+        dimensions={filterDimensions}
+        filterState={filterState}
+        onFilterChange={(state) => {
+          setFilterState(state);
+          setSelectedIds(new Set());
+        }}
+        searchText={searchText}
+        onSearchTextChange={(text) => {
+          setSearchText(text);
+          setSelectedIds(new Set());
+        }}
+      />
 
       {selectedIds.size > 0 && (
         <>
