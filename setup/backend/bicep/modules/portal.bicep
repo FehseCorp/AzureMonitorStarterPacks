@@ -44,7 +44,7 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
     serverFarmId: portalPlan.id
     httpsOnly: true
     siteConfig: {
-      linuxFxVersion: 'NODE|20-lts'
+      linuxFxVersion: 'NODE|22-lts'
       appCommandLine: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
       minTlsVersion: '1.2'
       http20Enabled: true
