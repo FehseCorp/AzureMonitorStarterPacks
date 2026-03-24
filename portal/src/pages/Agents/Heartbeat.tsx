@@ -90,9 +90,9 @@ export function Heartbeat() {
     [],
   );
 
-  if (isLoading) return <Spinner label="Loading heartbeat data…" />;
-  if (error) return <Text>Error loading heartbeat data.</Text>;
   if (!config.workspaceId) return <Text>Configure a Log Analytics workspace in the Configuration page.</Text>;
+  if (isLoading) return <Spinner label="Loading heartbeat data\u2026" />;
+  if (error) return <Text style={{ color: tokens.colorPaletteRedForeground1 }}>Error loading heartbeat data: {error instanceof Error ? error.message : String(error)}</Text>;
 
   return (
     <div className={s.container}>

@@ -61,8 +61,9 @@ export function VMApplications() {
 
   const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
-  if (isLoading) return <Spinner label="Loading VM applications…" />;
-  if (error) return <Text>Error loading VM applications.</Text>;
+  if (!config.instanceName) return <Text>Please select an instance in the Configuration tab first.</Text>;
+  if (isLoading) return <Spinner label="Loading VM applications\u2026" />;
+  if (error) return <Text style={{ color: tokens.colorPaletteRedForeground1 }}>Error loading VM applications: {error instanceof Error ? error.message : String(error)}</Text>;
 
   return (
     <div className={s.container}>

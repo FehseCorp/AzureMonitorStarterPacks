@@ -367,14 +367,15 @@ resources
 export const argVMApplications = (instanceName: string) => `
 resources
 | where type =~ 'microsoft.compute/virtualmachines'
-| where tags.instanceName =~ '${instanceName}'
-| where isnotempty(properties.applicationProfile)
 | mv-expand app = properties.applicationProfile.galleryApplications
+| where app != ''
 | extend appId = tostring(app.packageReferenceId)
+| extend gallery = tostring(split(appId, '/')[8])
+| where gallery contains '${instanceName}'
 | project name, resourceGroup, location,
     appName=tostring(split(appId, '/')[10]),
     appVersion=tostring(split(appId, '/')[12]),
-    gallery=tostring(split(appId, '/')[8])
+    gallery
 `;
 
 /** Discovery tagged VMs (WinDisc/LxDisc) — machines with discovery packs */

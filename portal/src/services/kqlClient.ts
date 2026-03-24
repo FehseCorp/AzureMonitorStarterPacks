@@ -25,9 +25,11 @@ export async function queryWorkspace(
     getToken: async () => ({ token, expiresOnTimestamp: Date.now() + 3600000 }),
   };
   const client = new LogsQueryClient(credential);
-  const result = await client.queryWorkspace(workspaceId, query, {
-    duration: timespan,
-  });
+  // workspaceId may be a full ARM resource ID or a workspace GUID
+  const isResourceId = workspaceId.startsWith("/");
+  const result = isResourceId
+    ? await client.queryResource(workspaceId, query, { duration: timespan })
+    : await client.queryWorkspace(workspaceId, query, { duration: timespan });
   return toRows(result as never);
 }
 

@@ -1,6 +1,6 @@
 # Monitoring Starter Packs (MonStar Packs)
 
-# V3 (Public Preview)
+# V3.5
 
 ## Objectives
 
@@ -14,8 +14,9 @@
 
 For a detailed solution anatomy, please refer to [Solution Anatomy](./Docs/solution-anatomy.md)
 
-## What is new in V3 (Preview)
+## What is new in V3.5 (Preview)
 
+- Custom Portal!
 - No dependency on policies
 - Flexible Discovery
 - Quicker deployment
