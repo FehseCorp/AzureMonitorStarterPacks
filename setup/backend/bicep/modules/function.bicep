@@ -195,6 +195,9 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
     AzureWebJobsStorage__accountName: discoveryStorage.name
     AzureWebJobsStorage__credential: 'managedidentity'
     AzureWebJobsStorage__clientId: userManagedIdentityClientId
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING__accountName: discoveryStorage.name
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING__credential: 'managedidentity'
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING__clientId: userManagedIdentityClientId
     WEBSITE_CONTENTSHARE: contentShareName
     WEBSITE_RUN_FROM_PACKAGE: '${discoveryStorage.properties.primaryEndpoints.blob}${deploymentContainerName}/${filename}'
     WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID: userManagedIdentity
