@@ -154,7 +154,7 @@ export function FilterBar({
       <Input
         className={styles.searchInput}
         contentBefore={<FilterRegular />}
-        placeholder="Filter for any field\u2026"
+        placeholder="Filter for any field"
         value={searchText}
         onChange={(_, d) => onSearchTextChange(d.value)}
         size="medium"

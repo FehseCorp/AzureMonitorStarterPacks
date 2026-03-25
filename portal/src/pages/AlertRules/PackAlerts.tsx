@@ -13,18 +13,18 @@ import {
   Text,
   Title3,
   Toolbar,
-  Dropdown,
-  Option,
   makeStyles,
   tokens,
   type DataGridProps,
 } from "@fluentui/react-components";
+import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useARGQuery } from "../../hooks/useARGQuery";
 import { useBackendAction } from "../../hooks/useBackendAction";
 import { useConfig } from "../../hooks/useConfig";
 import { argPackAlerts } from "../../services/queries/argQueries";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { FilterBar, type FilterState, type FilterDimension } from "../../components/common/FilterBar";
 import { Pagination } from "../../components/common/Pagination";
 import { ActionGroupPicker } from "../../components/shared/ActionGroupPicker";
 
@@ -124,7 +124,8 @@ export function PackAlerts() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [dialogAction, setDialogAction] = useState<DialogAction>(null);
-  const [packFilter, setPackFilter] = useState<string>("__all__");
+  const [filterState, setFilterState] = useState<FilterState>({});
+  const [searchText, setSearchText] = useState("");
   const [showAGPicker, setShowAGPicker] = useState(false);
   const [pendingActionGroup, setPendingActionGroup] = useState<{ id: string; name: string } | null>(null);
   const [page, setPage] = useState(1);
@@ -140,20 +141,50 @@ export function PackAlerts() {
     return (alertsQ.data ?? []) as unknown as AlertRow[];
   }, [alertsQ.data]);
 
-  // Derive pack filter options from data
-  const packOptions = useMemo(() => {
-    const packs = new Set<string>();
-    for (const r of allRows) {
-      if (r.Pack) packs.add(r.Pack);
-    }
-    return Array.from(packs).sort();
+  // Build filter dimensions from data
+  const filterDimensions: FilterDimension[] = useMemo(() => {
+    const packs = [...new Set(allRows.map((r) => r.Pack).filter(Boolean))].sort();
+    const types = [...new Set(allRows.map((r) => alertTypeName(r.type)).filter(Boolean))].sort();
+    const severities = [...new Set(allRows.map((r) => r.Severity).filter(Boolean))].sort();
+    const enabledValues = [...new Set(allRows.map((r) => r.Enabled?.toLowerCase() === "true" ? "Yes" : "No"))].sort();
+    const rgs = [...new Set(allRows.map((r) => r.resourceGroup).filter(Boolean))].sort();
+    return [
+      { key: "Pack", label: "Pack", values: packs, defaultVisible: true },
+      { key: "Type", label: "Type", values: types, defaultVisible: true },
+      { key: "Severity", label: "Severity", values: severities },
+      { key: "Enabled", label: "Enabled", values: enabledValues },
+      { key: "resourceGroup", label: "Resource Group", values: rgs },
+    ];
   }, [allRows]);
 
-  // Filter by selected pack
+  // Apply filters
   const filteredRows = useMemo(() => {
-    if (packFilter === "__all__") return allRows;
-    return allRows.filter((r) => r.Pack === packFilter);
-  }, [allRows, packFilter]);
+    let result = allRows;
+    for (const dim of filterDimensions) {
+      const sel = filterState[dim.key];
+      if (sel && sel.length > 0) {
+        const allowed = new Set(sel.map((v) => v.toLowerCase()));
+        result = result.filter((r) => {
+          let val: string;
+          if (dim.key === "Type") val = alertTypeName(r.type);
+          else if (dim.key === "Enabled") val = r.Enabled?.toLowerCase() === "true" ? "Yes" : "No";
+          else val = (r as Record<string, unknown>)[dim.key] as string ?? "";
+          return allowed.has(val.toLowerCase());
+        });
+      }
+    }
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase();
+      result = result.filter((r) =>
+        r.name.toLowerCase().includes(q) ||
+        (r.Pack ?? "").toLowerCase().includes(q) ||
+        alertTypeName(r.type).toLowerCase().includes(q) ||
+        (r.Severity ?? "").toLowerCase().includes(q) ||
+        (r.resourceGroup ?? "").toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [allRows, filterDimensions, filterState, searchText]);
 
   // Paginate
   const pagedRows = useMemo(() => {
@@ -232,23 +263,32 @@ export function PackAlerts() {
 
   return (
     <div className={styles.container}>
-      <Title3>Pack Alert Rules</Title3>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Title3>Pack Alert Rules</Title3>
+        <Button
+          appearance="subtle"
+          icon={<ArrowSyncRegular style={alertsQ.isFetching ? { animation: "spin 1s linear infinite" } : undefined} />}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["packAlerts"] })}
+          disabled={alertsQ.isFetching}
+          title="Refresh"
+        />
+      </div>
 
-      <Dropdown
-        placeholder="Filter by Pack"
-        value={packFilter === "__all__" ? "All Packs" : packFilter}
-        selectedOptions={[packFilter]}
-        onOptionSelect={(_, data) => {
-          setPackFilter(data.optionValue ?? "__all__");
+      <FilterBar
+        dimensions={filterDimensions}
+        filterState={filterState}
+        onFilterChange={(state) => {
+          setFilterState(state);
+          setSelectedIds(new Set());
           setPage(1);
         }}
-        style={{ maxWidth: 250 }}
-      >
-        <Option value="__all__">All Packs</Option>
-        {packOptions.map((p) => (
-          <Option key={p} value={p}>{p}</Option>
-        ))}
-      </Dropdown>
+        searchText={searchText}
+        onSearchTextChange={(text) => {
+          setSearchText(text);
+          setSelectedIds(new Set());
+          setPage(1);
+        }}
+      />
 
       {selectedIds.size > 0 && (
         <Toolbar className={styles.toolbar}>
