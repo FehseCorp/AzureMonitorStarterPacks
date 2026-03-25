@@ -50,7 +50,7 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
         value: loadFileAsBase64('../../../../Packs/PacksDef.zip')
       }
     ]
-    scriptContent: 'echo "$CONTENT" > ${tempfilename}.tmp && cat ${tempfilename}.tmp | base64 -d > ${tempfilename}.zip && unzip ${tempfilename}.zip  && az storage blob upload -f ${filename} -c ${containerName} -n ${filename} --overwrite true'
+    scriptContent: 'echo "$CONTENT" > ${tempfilename}.tmp && cat ${tempfilename}.tmp | base64 -d > ${tempfilename}.zip && unzip ${tempfilename}.zip  && az storage blob upload -f ${filename} -c ${containerName} -n ${filename} --overwrite true --auth-mode login'
   }
 }
 

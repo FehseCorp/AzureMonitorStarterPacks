@@ -78,7 +78,7 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
         value: loadFileAsBase64('../Windows/discover.zip')
       }
     ]
-    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az storage blob upload -f ${filename} -c ${discoveryContainerName} -n ${filename} --overwrite true'
+    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az storage blob upload -f ${filename} -c ${discoveryContainerName} -n ${filename} --overwrite true --auth-mode login'
   }
 }
 

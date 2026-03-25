@@ -6,7 +6,6 @@ param userManagedIdentityClientId string
 //param packsUserManagedId string
 param storageAccountName string
 param filename string = 'backend.zip'
-param sasExpiry string = dateTimeAdd(utcNow(), 'PT2H')
 param lawresourceid string
 param appInsightsLocation string
 param imageGalleryName string
@@ -24,17 +23,20 @@ var tempfilename = '${filename}.tmp'
 param solutionTag string
 param instanceName string
 
-var sasConfig = {
-  signedResourceTypes: 'sco'
-  signedPermission: 'r'
-  signedServices: 'b'
-  signedExpiry: sasExpiry
-  signedProtocol: 'https'
-  keyToSign: 'key2'
-}
+var contentShareName = 'func-content-${instanceName}'
 
 resource discoveryStorage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: storageAccountName
+}
+
+resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-01-01' existing = {
+  parent: discoveryStorage
+  name: 'default'
+}
+
+resource contentShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
+  parent: fileService
+  name: contentShareName
 }
 
 resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
@@ -69,7 +71,7 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
         value: loadFileAsBase64('../../backend.zip')
       }
     ]
-    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az storage blob upload -f ${filename} -c ${deploymentContainerName} -n ${filename} --overwrite true'
+    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az storage blob upload -f ${filename} -c ${deploymentContainerName} -n ${filename} --overwrite true --auth-mode login'
   }
 }
 
@@ -190,9 +192,12 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
     ResourceGroup: resourceGroup().name
     SolutionTag: solutionTag
     galleryName: imageGalleryName
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING:'DefaultEndpointsProtocol=https;AccountName=${discoveryStorage.name};AccountKey=${listKeys(discoveryStorage.id, discoveryStorage.apiVersion).keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
-    AzureWebJobsStorage:'DefaultEndpointsProtocol=https;AccountName=${discoveryStorage.name};AccountKey=${listKeys(discoveryStorage.id, discoveryStorage.apiVersion).keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
-    WEBSITE_CONTENTSHARE : discoveryStorage.name
+    AzureWebJobsStorage__accountName: discoveryStorage.name
+    AzureWebJobsStorage__credential: 'managedidentity'
+    AzureWebJobsStorage__clientId: userManagedIdentityClientId
+    WEBSITE_CONTENTSHARE: contentShareName
+    WEBSITE_RUN_FROM_PACKAGE: '${discoveryStorage.properties.primaryEndpoints.blob}${deploymentContainerName}/${filename}'
+    WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID: userManagedIdentity
     FUNCTIONS_WORKER_RUNTIME:'powershell'
     FUNCTIONS_EXTENSION_VERSION:'~4'
     APPINSIGHTS_INSTRUMENTATIONKEY: reference(appinsights.id, '2020-02-02-preview').InstrumentationKey
@@ -203,17 +208,7 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
   }
 }
 
-resource deployfunctions 'Microsoft.Web/sites/extensions@2021-02-01' = {
-  parent: azfunctionsite
-  dependsOn: [
-    deploymentScript
-  ]
-  
-  name: 'MSDeploy'
-  properties: {
-    packageUri: '${discoveryStorage.properties.primaryEndpoints.blob}${deploymentContainerName}/${filename}?${(discoveryStorage.listAccountSAS(discoveryStorage.apiVersion, sasConfig).accountSasToken)}'
-  }
-}
+
 
 resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
   name: functionname

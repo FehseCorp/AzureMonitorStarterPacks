@@ -13,7 +13,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   properties: {
     accessTier: 'Hot'
     allowBlobPublicAccess: false
-    allowSharedKeyAccess: true
+    allowSharedKeyAccess: false
     supportsHttpsTrafficOnly: true
   }
   resource blobServices 'blobServices'={

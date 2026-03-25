@@ -38,20 +38,27 @@ module userManagedIdentity './umidentityresource.bicep' = {
     userIdentityName: userIdentityName
   }
 }
-// Assign storage blob data contributor role to the user managed identity for the storage account that already exists
-module storageAccountRoleAssignment '../../../../modules/rbac/resources/rbacstorageaccount.bicep' = if (createNewStorageAccount == false) {
-  name: 'STO-${userIdentityName}-${location}'
+// Storage roles required for identity-based Azure Functions connections
+var storageRoleDefinitionIds = [
+  'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' // Storage Blob Data Owner (host lease management)
+  '974c5e8b-45b9-4653-ba55-5f855dd0fb88' // Storage Queue Data Contributor
+  '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3' // Storage Table Data Contributor
+  '69566ab7-960f-475b-8e7c-b3118f30c6bd' // Storage File Data Privileged Contributor (content share)
+]
+
+// Assign storage roles to the user managed identity for the storage account that already exists
+module storageAccountRoleAssignment '../../../../modules/rbac/resources/rbacstorageaccount.bicep' = [for (roleId, i) in storageRoleDefinitionIds: if (createNewStorageAccount == false) {
+  name: 'STO-${i}-${userIdentityName}-${location}'
   scope: resourceGroup(subscriptionId,resourceGroupName)
   params: {
-    //instanceName: instanceName
     resourcename: userIdentityName
     principalId: userManagedIdentity.outputs.userManagedIdentityPrincipalId
     solutionTag: solutionTag
-    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe' // Storage Blob Data Contributor Role Definition Id
-    roleShortName: 'StorageBlobDataContributor'
+    roleDefinitionId: roleId
+    roleShortName: roleId
     storageaccountName: storageAccountName
   }
-}
+}]
 
 module userIdentityRoleAssignments '../../../../modules/rbac/subscription/roleassignment.bicep' =  [for (roledefinitionId, i) in roleDefinitionIds:  {
   name: '${userIdentityName}-${i}-${location}'

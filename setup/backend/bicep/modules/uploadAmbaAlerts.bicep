@@ -54,7 +54,7 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
         value: loadFileAsBase64('../../../../Packs/amba-alerts.zip')
       }
     ]
-    scriptContent: 'echo "$CONTENT" > ${tempfilename}.tmp && cat ${tempfilename}.tmp | base64 -d > ${tempfilename}.zip && unzip ${tempfilename}.zip  && az storage blob upload -f ${filename} -c ${containerName} -n ${filename} --overwrite true'
+    scriptContent: 'echo "$CONTENT" > ${tempfilename}.tmp && cat ${tempfilename}.tmp | base64 -d > ${tempfilename}.zip && unzip ${tempfilename}.zip  && az storage blob upload -f ${filename} -c ${containerName} -n ${filename} --overwrite true --auth-mode login'
   }
 }
 
