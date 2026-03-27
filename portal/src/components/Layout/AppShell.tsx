@@ -6,7 +6,7 @@ import {
   Button,
 } from "@fluentui/react-components";
 import { SignOutRegular, WeatherMoonRegular, WeatherSunnyRegular } from "@fluentui/react-icons";
-import { TabNavigation } from "./TabNavigation";
+import { BladeNav } from "./BladeNav";
 import { DiagnosticsPanel } from "../DiagnosticsPanel";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -15,6 +15,11 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
+  },
+  body: {
+    display: "flex",
+    flex: 1,
+    overflow: "hidden",
   },
   header: {
     display: "flex",
@@ -27,15 +32,12 @@ const useStyles = makeStyles({
   title: {
     color: tokens.colorNeutralForegroundOnBrand,
   },
-  nav: {
-    padding: `0 ${tokens.spacingHorizontalL}`,
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-  },
+
   content: {
     flex: 1,
     padding: tokens.spacingHorizontalL,
     backgroundColor: tokens.colorNeutralBackground2,
+    overflowY: "auto",
   },
 });
 
@@ -75,10 +77,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </header>
-      <nav className={styles.nav}>
-        <TabNavigation />
-      </nav>
-      <main className={styles.content}>{children}</main>
+      <div className={styles.body}>
+        <BladeNav />
+        <main className={styles.content}>{children}</main>
+      </div>
       <DiagnosticsPanel />
     </div>
   );

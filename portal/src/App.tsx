@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   FluentProvider,
   webLightTheme,
@@ -19,15 +19,35 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { loadRuntimeConfig, buildMsalConfig, managementScope } from "./auth/msalConfig";
 import { AppShell } from "./components/Layout/AppShell";
 import { GettingStartedPage } from "./pages/GettingStarted/GettingStartedPage";
-import { StatusPage } from "./pages/Status/StatusPage";
-import { ServersPage } from "./pages/Servers/ServersPage";
-import { ServicesPage } from "./pages/Services/ServicesPage";
-import { AlertRulesPage } from "./pages/AlertRules/AlertRulesPage";
-import { PacksPage } from "./pages/Packs/PacksPage";
-import { AgentsPage } from "./pages/Agents/AgentsPage";
-import { DiscoveryPage } from "./pages/Discovery/DiscoveryPage";
+import { MonitoredServers } from "./pages/Servers/MonitoredServers";
+import { NonMonitoredServers } from "./pages/Servers/NonMonitoredServers";
+import { MonitoredServices } from "./pages/Services/MonitoredServices";
+import { NonMonitoredServices } from "./pages/Services/NonMonitoredServices";
 import { ConfigurationPage } from "./pages/Configuration/ConfigurationPage";
 import { LogsPage } from "./pages/Logs/LogsPage";
+// Status sub-pages
+import { ActiveAlerts } from "./pages/Status/ActiveAlerts";
+import { IaaSSummary } from "./pages/Status/IaaSSummary";
+import { ServicesSummary } from "./pages/Status/ServicesSummary";
+import { Dashboards } from "./pages/Status/Dashboards";
+// Alert Rules sub-pages
+import { PackAlerts } from "./pages/AlertRules/PackAlerts";
+import { OtherAlerts } from "./pages/AlertRules/OtherAlerts";
+// Packs sub-pages
+import { PackAssociations } from "./pages/Packs/PackAssociations";
+import { DCRDetails } from "./pages/Packs/DCRDetails";
+import { VMInsightsStatus } from "./pages/Packs/VMInsightsStatus";
+import { ImportPack } from "./pages/Packs/ImportPack";
+import { PackDetails } from "./pages/Packs/PackDetails";
+// Agents sub-pages
+import { AgentsList } from "./pages/Agents/AgentsList";
+import { Heartbeat } from "./pages/Agents/Heartbeat";
+import { OTelHeartbeat } from "./pages/Agents/OTelHeartbeat";
+import { VMApplications } from "./pages/Agents/VMApplications";
+// Discovery sub-pages
+import { DiscoveryResults } from "./pages/Discovery/DiscoveryResults";
+import { DiscoveryConfig } from "./pages/Discovery/DiscoveryConfig";
+import { DiscoveryData } from "./pages/Discovery/DiscoveryData";
 import { ConfigProvider } from "./hooks/useConfig";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 
@@ -144,13 +164,43 @@ function AppInner() {
                   <ErrorBoundary>
                   <Routes>
                   <Route path="/" element={<GettingStartedPage />} />
-                  <Route path="/status" element={<StatusPage />} />
-                  <Route path="/servers" element={<ServersPage />} />
-                  <Route path="/services" element={<ServicesPage />} />
-                  <Route path="/alerts" element={<AlertRulesPage />} />
-                  <Route path="/packs" element={<PacksPage />} />
-                  <Route path="/agents" element={<AgentsPage />} />
-                  <Route path="/discovery" element={<DiscoveryPage />} />
+
+                  <Route path="/status" element={<Navigate to="/status/alerts" replace />} />
+                  <Route path="/status/alerts" element={<ActiveAlerts />} />
+                  <Route path="/status/iaas" element={<IaaSSummary />} />
+                  <Route path="/status/services" element={<ServicesSummary />} />
+                  <Route path="/status/dashboards" element={<Dashboards />} />
+
+                  <Route path="/servers" element={<Navigate to="/servers/monitored" replace />} />
+                  <Route path="/servers/monitored" element={<MonitoredServers />} />
+                  <Route path="/servers/non-monitored" element={<NonMonitoredServers />} />
+
+                  <Route path="/services" element={<Navigate to="/services/monitored" replace />} />
+                  <Route path="/services/monitored" element={<MonitoredServices />} />
+                  <Route path="/services/non-monitored" element={<NonMonitoredServices />} />
+
+                  <Route path="/alerts" element={<Navigate to="/alerts/pack" replace />} />
+                  <Route path="/alerts/pack" element={<PackAlerts />} />
+                  <Route path="/alerts/other" element={<OtherAlerts />} />
+
+                  <Route path="/packs" element={<Navigate to="/packs/associations" replace />} />
+                  <Route path="/packs/associations" element={<PackAssociations />} />
+                  <Route path="/packs/dcr" element={<DCRDetails />} />
+                  <Route path="/packs/vminsights" element={<VMInsightsStatus />} />
+                  <Route path="/packs/import" element={<ImportPack />} />
+                  <Route path="/packs/details" element={<PackDetails />} />
+
+                  <Route path="/agents" element={<Navigate to="/agents/management" replace />} />
+                  <Route path="/agents/management" element={<AgentsList />} />
+                  <Route path="/agents/heartbeat" element={<Heartbeat />} />
+                  <Route path="/agents/otel-heartbeat" element={<OTelHeartbeat />} />
+                  <Route path="/agents/vmapps" element={<VMApplications />} />
+
+                  <Route path="/discovery" element={<Navigate to="/discovery/results" replace />} />
+                  <Route path="/discovery/results" element={<DiscoveryResults />} />
+                  <Route path="/discovery/config" element={<DiscoveryConfig />} />
+                  <Route path="/discovery/data" element={<DiscoveryData />} />
+
                   <Route path="/configuration" element={<ConfigurationPage />} />
                   <Route path="/logs" element={<LogsPage />} />
                   </Routes>
