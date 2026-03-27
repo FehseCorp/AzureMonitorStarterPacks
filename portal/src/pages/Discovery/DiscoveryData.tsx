@@ -17,7 +17,7 @@ import {
 } from "@fluentui/react-components";
 import { useConfig } from "../../hooks/useConfig";
 import { useKQLQuery } from "../../hooks/useKQLQuery";
-import { KQL_DISCOVERY_RESULTS } from "../../services/queries/kqlQueries";
+import { KQL_DISCOVERY_RAW } from "../../services/queries/kqlQueries";
 import { Pagination } from "../../components/common/Pagination";
 
 const useStyles = makeStyles({
@@ -31,7 +31,7 @@ export function DiscoveryData() {
   const { data, isLoading, error } = useKQLQuery(
     "discovery-data",
     config.workspaceId,
-    KQL_DISCOVERY_RESULTS,
+    KQL_DISCOVERY_RAW,
     "P7D",
     { staleTime: 60_000 },
   );
@@ -76,7 +76,8 @@ export function DiscoveryData() {
           const val = r[key];
           if (val === null || val === undefined) return "—";
           if (typeof val === "string" && val.match(/^\d{4}-\d{2}-\d{2}T/)) {
-            return new Date(val).toLocaleString();
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) return d.toLocaleString();
           }
           return String(val);
         },

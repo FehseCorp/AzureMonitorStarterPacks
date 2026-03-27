@@ -38,7 +38,15 @@ try {
       'getdiscoveryresults' {
         $instanceName = $env:InstanceName
         if ($instanceName) {
-          $body = "{""Discovered"" : $(get-discoveryresults -instanceName $instanceName) }"
+          $discoveryResults = get-discoveryresults -instanceName $instanceName
+          if ($discoveryResults -and $discoveryResults -isnot [bool]) {
+            $jsonResults = $discoveryResults | Where-Object { $_ -isnot [bool] } | ConvertTo-Json -Depth 10 -Compress
+            if ($discoveryResults.Count -eq 1) { $jsonResults = "[$jsonResults]" }
+            $body = "{""Discovered"" : $jsonResults }"
+          }
+          else {
+            $body = '{"Discovered" : []}'
+          }
         }
         else {
           $body = '{}'

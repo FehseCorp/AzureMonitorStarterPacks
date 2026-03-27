@@ -107,7 +107,6 @@ Resources
         return {}
     }
     Write-host "Found $($results.count) results for discovery."
-    $results
     if ($results.Count -eq 0) {
         Write-Host "No discovery data found."
         return $null
@@ -118,8 +117,8 @@ Resources
         Write-host "Sending discovery data to DCR..."
         Write-host "DCR Immutable Id: $($env:discoveryDCRImmutableId)"
         Write-host "Table Name: $($env:DiscoveryResultsTableName)"
-        new-discoveryData -instanceName $instanceName -data $results -DcrImmutableId $env:discoveryDCRImmutableId -tableName $env:DiscoveryResultsTableName
-        return $true
+        new-discoveryData -instanceName $instanceName -data $results -DcrImmutableId $env:discoveryDCRImmutableId -tableName $env:DiscoveryResultsTableName | Out-Null
+        return $results
     #}
     #catch {
     #    Write-Error "Error sending discovery data to DCR. $_"

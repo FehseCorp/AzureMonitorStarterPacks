@@ -11,7 +11,16 @@ Heartbeat
 
 /** Discovery results */
 export const KQL_DISCOVERY_RESULTS = `
+let maxts=DiscoveryResults_CL
+| summarize maxts=max(TimeGenerated);
 DiscoveryResults_CL
+| where TimeGenerated == toscalar(maxts)
+| project Resource=ResourceId, OS, Pack=Tag, Location, ['Discovery Time']=TimeGenerated
+`;
+
+/** Discovery raw data */
+export const KQL_DISCOVERY_RAW = `
+Discovery_CL
 | order by TimeGenerated desc
 `;
 
