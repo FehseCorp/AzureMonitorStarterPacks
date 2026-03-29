@@ -39,7 +39,7 @@ var OS = 'Windows'
 var appVersionName = '1.0.0'
 
 // VM Application to collect the data - this would be ideally an extension
-module windowsDiscoveryApp '../../../modules/discovery/aigapp.bicep' = {
+module windowsDiscoveryApp '../../backend/bicep/modules/discovery/aigapp.bicep' = {
   scope: resourceGroup(subscriptionId, resourceGroupName)
   name: 'amp-${instanceName}-Discovery-${OS}'
   params: {
@@ -67,7 +67,7 @@ module upload 'uploadDSWindows.bicep' = {
 //   scope: resourceGroup(subscriptionId, resourceGroupName)
 //   name: storageAccountname
 // }
-module windiscovery '../../../modules/discovery/aigappversion.bicep' = {
+module windiscovery '../../backend/bicep/modules/discovery/aigappversion.bicep' = {
   name: 'amp-${instanceName}-Discovery-${OS}-App'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   dependsOn: [
@@ -88,7 +88,7 @@ module windiscovery '../../../modules/discovery/aigappversion.bicep' = {
   }
 }
 // DCR to collect the data
-module windiscoveryDCR '../../../modules/discovery/discoveryrule.bicep' = {
+module windiscoveryDCR '../../backend/bicep/modules/discovery/discoveryrule.bicep' = {
   name: 'amp-${instanceName}-DCR-${OS}Discovery'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   params: {

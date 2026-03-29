@@ -1472,7 +1472,9 @@ function new-pack {
                     packtag = $packtag
                     Tags = $TagsToUse # Add any tags you want to pass here
                     workspaceId = $workspaceId
+                    AMWorkspaceId = $AMWorkspaceId
                     location = $location
+                    FunctionUserManagedIdentity =$env:FunctionUserManagedIdentity
                 }
             }
             else {
@@ -1488,6 +1490,8 @@ function new-pack {
                     packtag = $packtag
                     Tags = $TagsToUse # Add any tags you want to pass here
                     workspaceId = $workspaceId
+                    AMWorkspaceId = $AMWorkspaceId
+                    FunctionUserManagedIdentity =$env:FunctionUserManagedIdentity
                     location = $location
                 }
             }

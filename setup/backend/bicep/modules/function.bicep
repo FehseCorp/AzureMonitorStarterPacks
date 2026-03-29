@@ -179,6 +179,7 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
   parent: azfunctionsite
   properties: {
     MSI_CLIENT_ID: userManagedIdentityClientId
+    FunctionUserManagedIdentity: userManagedIdentity
     //PacksUserManagedId: packsUserManagedId
     InstanceName: instanceName
     AMBAJsonURL: ambaJsonURL

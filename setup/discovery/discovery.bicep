@@ -30,7 +30,7 @@ var tableNameToUse = '${tableName}_CL'
 var resultstableNameToUse = '${resultstableName}_CL'
 var lawFriendlyName = split(lawResourceId,'/')[8]
 
-module table '../../modules/LAW/table.bicep' = {
+module table '../backend/bicep/modules/LAW/table.bicep' = {
   name: '${tableNameToUse}-${instanceName}-${location}'
   scope: resourceGroup(subscriptionId, lawresourceGroup)
   params: {
@@ -87,7 +87,7 @@ module LinuxDiscovery 'Linux/discovery.bicep' = {
   }
 }
 
-module resultstable '../../modules/LAW/resultstable.bicep' = {
+module resultstable '../backend/bicep/modules/LAW/resultstable.bicep' = {
   name: 'results${tableNameToUse}-${instanceName}-${location}'
   scope: resourceGroup(subscriptionId, lawresourceGroup)
   params: {
@@ -97,7 +97,7 @@ module resultstable '../../modules/LAW/resultstable.bicep' = {
   }
 }
 // This is the DCR to collect the results of the discovery, not the discovery data
-module discoveryDCR '../../modules/DCRs/discoveryDCR.bicep' = {
+module discoveryDCR '../backend/bicep/modules/DCR/discoveryDCR.bicep' = {
   name: 'DiscoveryResults-${instanceName}-${location}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   dependsOn: [

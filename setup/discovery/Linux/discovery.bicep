@@ -39,7 +39,7 @@ var appVersionName = '1.0.0'
 //   keyToSign: 'key2'
 // }
 // VM Application to collect the data - this would be ideally an extension
-module linuxdiscoveryapp '../../../modules/discovery/aigapp.bicep' = {
+module linuxdiscoveryapp '../../backend/bicep/modules/discovery/aigapp.bicep' = {
   scope: resourceGroup(subscriptionId, resourceGroupName)
   name: 'amp-${instanceName}-Discovery-${OS}-${location}'
   params: {
@@ -68,7 +68,7 @@ module uploadLinux './uploadDSLinux.bicep' = {
 //   scope: resourceGroup(subscriptionId, resourceGroupName)
 //   name: storageAccountname
 // }
-module linuxDiscovery '../../../modules/discovery/aigappversion.bicep' = {
+module linuxDiscovery '../../backend/bicep/modules/discovery/aigappversion.bicep' = {
   name: 'amp-${instanceName}-Discovery-${OS}-App-${location}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   dependsOn: [
@@ -89,7 +89,7 @@ module linuxDiscovery '../../../modules/discovery/aigappversion.bicep' = {
   }
 }
 // DCR to collect the data
-module LinuxDiscoveryDCR '../../../modules/discovery/discoveryrule.bicep' = {
+module LinuxDiscoveryDCR '../../backend/bicep/modules/discovery/discoveryrule.bicep' = {
   name: 'LinuxDiscoveryDCR-${instanceName}-${location}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   params: {

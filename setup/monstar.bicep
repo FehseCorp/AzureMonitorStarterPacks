@@ -28,7 +28,7 @@ param portalPackageUrl string = 'https://github.com/FehseCorp/AzureMonitorStarte
 //var deployPacks = deployAllPacks || deployIaaSPacks //|| deployPaaSPacks || deployPlatformPacks
 var solutionTag='MonitorStarterPacks'
 var solutionTagComponents='MonitorStarterPacksComponents'
-var solutionVersion='0.1'
+var solutionVersion='4.0'
 
 var tempTags={'${solutionTagComponents}': 'BackendComponent'
 solutionVersion: solutionVersion
@@ -69,7 +69,7 @@ module existingStorageAccount './backend/bicep/modules/mg/storageAccountBlobs.bi
   }
 }
 
-module logAnalytics '../modules/LAW/law.bicep' = if (createNewLogAnalyticsWS) {
+module logAnalytics './backend/bicep/modules/LAW/law.bicep' = if (createNewLogAnalyticsWS) {
   name: 'logAnalytics-Deployment-${location}-${instanceName}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   dependsOn: [
@@ -83,7 +83,7 @@ module logAnalytics '../modules/LAW/law.bicep' = if (createNewLogAnalyticsWS) {
   }
 }
 
-module azureMonitorWorkspace '../modules/LAW/amw.bicep' = if (createNewAzureMonitorWS) {
+module azureMonitorWorkspace './backend/bicep/modules/LAW/amw.bicep' = if (createNewAzureMonitorWS) {
   name: 'azureMonitorWorkspace-${location}-${instanceName}'
   scope: resourceGroup(subscriptionId, resourceGroupName)
   dependsOn: [
@@ -149,33 +149,3 @@ module backend './backend/bicep/backend.bicep' = {
   }
 }
 
-// module AllPacks '../../Packs/AllPacks.bicep' = if (deployPacks) {
-//   name: 'DeployAllPacks'
-//   params: {
-//     // _artifactsLocation: _artifactsLocation
-//     // _artifactsLocationSasToken: _artifactsLocationSasToken
-//     location: location
-//     dceId: backend.outputs.dceId
-//     customerTags: customerTags
-//     subscriptionId: subscriptionId
-//     useExistingAG: useExistingAG
-//     userManagedIdentityResourceId: backend.outputs.packsUserManagedResourceId
-//     workspaceId: createNewLogAnalyticsWS ? logAnalytics.outputs.lawresourceid : existingLogAnalyticsWSId
-//     //workspaceIdAVD: seperateLAWforAVD ? (createNewLogAnalyticsWSAVD ? logAnalyticsAVD.outputs.lawresourceid : existingLogAnalyticsWSIdAVD) : ''
-//     actionGroupName: actionGroupName
-//     resourceGroupId: createNewResourceGroup ? resourgeGroup.outputs.newResourceGroupId : resourceGroupId
-//     emailreceiver: emailreceiver
-//     emailreiceversemail: emailreiceversemail
-//     grafanaResourceId: deployGrafana ? ( newGrafana ? amg.outputs.grafanaId : existingGrafanaResourceId) : ''
-//     solutionTag: solutionTag
-//     solutionVersion: solutionVersion
-//     existingActionGroupResourceId: existingActionGroupId
-//     deployIaaSPacks: deployIaaSPacks || deployAllPacks
-//     // deployPaaSPacks: deployPaaSPacks || deployAllPacks
-//     // deployPlatformPacks: deployPlatformPacks || deployAllPacks
-//     storageAccountName: storageAccountName
-//     imageGalleryName: ImageGalleryName
-//     instanceName: instanceName
-//     deployGrafana: deployGrafana
-//   }
-// }

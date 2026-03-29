@@ -39,7 +39,7 @@ module userManagedIdentity './umidentityresource.bicep' = {
   }
 }
 // Assign storage blob data contributor role to the user managed identity for the storage account that already exists
-module storageAccountRoleAssignment '../../../../modules/rbac/resources/rbacstorageaccount.bicep' = if (createNewStorageAccount == false) {
+module storageAccountRoleAssignment './rbac/rbacstorageaccount.bicep' = if (createNewStorageAccount == false) {
   name: 'STO-${userIdentityName}-${location}'
   scope: resourceGroup(subscriptionId,resourceGroupName)
   params: {
@@ -53,7 +53,7 @@ module storageAccountRoleAssignment '../../../../modules/rbac/resources/rbacstor
   }
 }
 
-module userIdentityRoleAssignments '../../../../modules/rbac/subscription/roleassignment.bicep' =  [for (roledefinitionId, i) in roleDefinitionIds:  {
+module userIdentityRoleAssignments './rbac/roleassignment.bicep' =  [for (roledefinitionId, i) in roleDefinitionIds:  {
   name: '${userIdentityName}-${i}-${location}'
 //  scope: managementGroup(mgname)
   params: {
@@ -66,7 +66,7 @@ module userIdentityRoleAssignments '../../../../modules/rbac/subscription/roleas
   }
 }]
 
-module userIdentityRoleAssignmentRG '../../../../modules/rbac/resourceGroup/roleassignment.bicep' = [for (roledefinitionId, i) in RGroleDefinitionIds: if (addRGRoleAssignments) {
+module userIdentityRoleAssignmentRG './rbac/resourceGroup/roleassignment.bicep' = [for (roledefinitionId, i) in RGroleDefinitionIds: if (addRGRoleAssignments) {
   name: '${userIdentityName}-${i}-RG'
   scope: resourceGroup(subscriptionId,resourceGroupName)
   params: {

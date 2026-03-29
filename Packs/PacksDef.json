@@ -269,7 +269,20 @@
                     "performanceCounters": []
                 }
             ],
-            "Alerts": [],
+            "Alerts": [
+                {
+                    "alertRuleDescription": "Log Alert for Virtual Machine Processor Utilization Percentage",
+                    "alertRuleDisplayName": "Processor Utilization Percentage",
+                    "alertRuleName": "ProcessorUtilizationPercentage",
+                    "alertRuleSeverity": 2,
+                    "autoMitigate": true,
+                    "evaluationFrequency": "PT5M",
+                    "windowSize": "PT15M",
+                    "alertType": "metricOtel",
+                    "metricName": "system.cpu.time",
+                    "query": "100 - 100 * avg(rate({\"system.cpu.time\", state=\"idle\"}[15m]))"
+                }
+            ],
             "Dashboards": []
         },
         {

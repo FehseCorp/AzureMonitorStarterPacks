@@ -1,10 +1,12 @@
 param alertlist array
 param location string
-param workspaceId string
+param workspaceId string=''
+param AMWorkspaceId string=''
 param AGId string
 param packtag string
 param Tags object
 param moduleprefix string
+param FunctionUserManagedIdentity string
 
 module Alerts './alert.bicep' = [for (alert,i) in alertlist:  {
   name: '${packtag}-Alert-${i}'
@@ -18,14 +20,17 @@ module Alerts './alert.bicep' = [for (alert,i) in alertlist:  {
     autoMitigate: alert.autoMitigate
     evaluationFrequency: alert.evaluationFrequency
     windowSize: alert.windowSize
-    scope: workspaceId
+    lawWorkSpaceId: workspaceId
+    AMWorkspaceId: AMWorkspaceId
     query: alert.query
     dimensions: contains(alert, 'dimensions') ? alert.dimensions : null
     //packtag: packtag
     Tags: Tags
     alertType: alert.alertType
+    metricName: alert.alertType == 'metricOtel' ? alert.metricName : null
     metricMeasureColumn: alert.alertType == 'Aggregated' ? alert.metricMeasureColumn : null
     operator: alert.alertType == 'Aggregated' ? alert.operator : null
     threshold: alert.alertType == 'Aggregated' ? alert.threshold : null
+    FunctionUserManagedIdentity:FunctionUserManagedIdentity
   }
 }]
