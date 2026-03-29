@@ -17,7 +17,6 @@ import { useARGQuery } from "../../hooks/useARGQuery";
 import { useConfig } from "../../hooks/useConfig";
 import {
   ARG_ACTION_GROUPS,
-  argGrafanaInstances,
 } from "../../services/queries/argQueries";
 
 const useStyles = makeStyles({
@@ -62,19 +61,10 @@ export function ConfigurationPage() {
 
   // User-selectable resources (not part of the deployment)
   const actionGroupsQuery = useARGQuery("actionGroups", ARG_ACTION_GROUPS);
-  const grafanaQuery = useARGQuery(
-    ["grafana", config.instanceName],
-    argGrafanaInstances(config.instanceName),
-    { enabled: !!config.instanceName }
-  );
 
   const actionGroups = (actionGroupsQuery.data ?? []).map((r) => ({
     id: r.id as string,
     name: r.name as string,
-  }));
-  const grafanas = (grafanaQuery.data ?? []).map((r) => ({
-    id: r.id as string,
-    endpoint: r.label as string,
   }));
 
   return (
@@ -145,29 +135,6 @@ export function ConfigurationPage() {
               {actionGroups.map((ag) => (
                 <Option key={ag.id} value={ag.id}>
                   {ag.name}
-                </Option>
-              ))}
-            </Dropdown>
-          )}
-
-          <Label>Grafana (optional)</Label>
-          {grafanaQuery.isLoading ? (
-            <Spinner size="tiny" />
-          ) : (
-            <Dropdown
-              placeholder="Select Grafana"
-              value={config.grafanaEndpoint || undefined}
-              selectedOptions={config.grafanaId ? [config.grafanaId] : []}
-              onOptionSelect={(_: unknown, data: OptionOnSelectData) => {
-                const selected = grafanas.find((g) => g.id === data.optionValue);
-                if (selected) {
-                  updateConfig({ grafanaId: selected.id, grafanaEndpoint: selected.endpoint });
-                }
-              }}
-            >
-              {grafanas.map((g) => (
-                <Option key={g.id} value={g.id}>
-                  {g.endpoint}
                 </Option>
               ))}
             </Dropdown>

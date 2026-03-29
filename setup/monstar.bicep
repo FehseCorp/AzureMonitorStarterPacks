@@ -9,18 +9,13 @@ param createNewLogAnalyticsWS bool //6
 param existingLogAnalyticsWSId string = ''
 //param currentUserIdObject string // This is to automatically assign permissions to Grafana.
 //param functionName string
-param grafanaLocation string = ''
-param grafanaName string = ''
-param newGrafana bool
 param storageAccountName string
 param createNewStorageAccount bool = false
 param instanceName string
-param deployGrafana bool
 // Packs` stuff
 param customerTags object
 // param deployAllPacks bool
 // param deployIaaSPacks bool = false
-param deployDiscovery bool = false
 param collectTelemetry bool = true
 param appInsightsLocation string
 param newAzureMonitorWSName string = ''
@@ -101,7 +96,7 @@ module azureMonitorWorkspace '../modules/LAW/amw.bicep' = if (createNewAzureMoni
   }
 }
 
-module discovery './discovery/discovery.bicep' = if (deployDiscovery) {
+module discovery './discovery/discovery.bicep' = {
   name: 'DeployDiscovery-${location}-${instanceName}'
   // dependsOn: [
   //  backend
@@ -124,24 +119,6 @@ module discovery './discovery/discovery.bicep' = if (deployDiscovery) {
     solutionVersion: solutionVersion
     functionName: functionName
     UserManagedIdentityId: backend.outputs.functionUserManagedIdentityId
-  }
-}
-
-module amg './backend/bicep/modules/grafana.bicep' = if (newGrafana && deployGrafana) {
-  name: 'azureManagedGrafana-${instanceName}'
-  dependsOn: [
-    resourgeGroup
-    logAnalytics
-  ]
-  scope: resourceGroup(subscriptionId, resourceGroupName)
-  params: {
-    Tags: Tags
-    location: grafanaLocation
-    grafanaName: grafanaName
-    solutionTag: solutionTag
-    instanceName: instanceName
-    //userObjectId: currentUserIdObject
-    //lawresourceId: createNewLogAnalyticsWS ? logAnalytics.outputs.lawresourceid : existingLogAnalyticsWSId
   }
 }
 

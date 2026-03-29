@@ -32,17 +32,6 @@
 									"list": "resourceTypes[?resourceType == 'components/operations'].locations[].{label: @, value: @}"
 								}
 							}
-						},
-						{
-							"name": "grafanaLocationsAPI",
-							"type": "Microsoft.Solutions.ArmApiControl",
-							"request": {
-								"method": "GET",
-								"path": "[concat(steps('basics').resourceScope.subscription.id,'/providers/Microsoft.Dashboard?api-version=2021-04-01')]",
-								"transforms": {
-									"list": "resourceTypes[?resourceType == 'grafana'].locations[].{label: @, value: @}"
-								}
-							}
 						}
                     ]
                 },
@@ -50,14 +39,6 @@
                     "name": "Configuration",
                     "label": "Configuration",
                     "elements": [
-                        {
-                            "name": "AzureManagedGrafanaApi",
-                            "type": "Microsoft.Solutions.ArmApiControl",
-                            "request": {
-                                "method": "GET",
-                                "path": "[concat(steps('basics').resourceScope.subscription.id, '/providers/Microsoft.Dashboard/grafana?api-version=2022-08-01')]"
-                            }
-                        },
                         {
                             "name": "LogAnalyticsApi",
                             "type": "Microsoft.Solutions.ArmApiControl",
@@ -281,25 +262,6 @@
                                 "style": "Info"
                             }
                         },
-                        {
-                            "name": "deployDiscovery",
-                            "type": "Microsoft.Common.CheckBox",
-                            "label": "Deploy Discovery features.(Preview)",
-                            "toolTip": "Preview: The Discovery features will discovery applications and roles on OS targetted machines.",
-                            "constraints": {
-                                "required": false,
-                                "validationMessage": "Select to deploy the Discovery featues to the selected Management Group or Subscription."
-                            }
-                        },
-                        {
-                            "name": "infoBoxDiscovery",
-                            "type": "Microsoft.Common.InfoBox",
-                            "visible": "[equals(steps('Configuration').deployDiscovery, true)]",
-                            "options": {
-                                "text": "When discovery is enabled in the configuration page, workloads will be discovered in those Azure VMs.",
-                                "uri": "https://www.microsoft.com"
-                            }
-                        },
 						{
 							"name": "AppInsightsLocation",
 							"type": "Microsoft.Common.DropDown",
@@ -316,89 +278,6 @@
 							},
 							"visible": true
 						},
-                        {
-                            "name": "deployGrafana",
-                            "type": "Microsoft.Common.CheckBox",
-                            "label": "Deploy Azure Managed Grafana",
-                            "toolTip": "Select to deploy Azure Managed Grafana.",
-                            "constraints": {
-                                "required": false,
-                                "validationMessage": "Select to deploy the Azure Managed Grafana."
-                            }
-                        },
-                        {
-                            "name": "infoBoxGrafana",
-                            "type": "Microsoft.Common.InfoBox",
-                            "visible": "[equals(steps('Configuration').deployGrafana, true)]",
-                            "options": {
-                                "text": "When Enabled, a new Azure Managed Grafana will be deployed to the selected subscription. The Grafana will be used to visualize the data from the MonStar Packs. If not enabled, some visuals for certain Packs won't be available.",
-                                "uri": "https://www.microsoft.com",
-								"style": "Info"
-                            }
-                        },
-                        {
-                            "name": "GrafanaStatus",
-                            "type": "Microsoft.Common.OptionsGroup",
-                            "label": "Use New or Existing Grafana",
-                            "toolTip": "This will be the Grafana Instance used for the MonStar Packs.",
-                            "constraints": {
-                                "allowedValues": [
-                                    {
-                                        "label": "New",
-                                        "value": "New"
-                                    },
-                                    {
-                                        "label": "Existing",
-                                        "value": "Existing"
-                                    }
-                                ],
-                                "required": "[equals(steps('Configuration').deployGrafana, true)]"
-                            },
-                            "visible": "[equals(steps('Configuration').deployGrafana, true)]"
-                        },
-                        {
-                            "name": "NewGrafanaName",
-                            "type": "Microsoft.Common.TextBox",
-                            "label": "Name for the new Grafana environment.",
-                            "subLabel": "",
-                            "defaultValue": "[concat('AMSP',first(split(last(split(steps('basics').resourceScope.subscription.id,'/')),'-')))]",
-                            "toolTip": "TBD",
-                            "constraints": {
-                                "required": "[equals(steps('Configuration').GrafanaStatus, 'New')]",
-                                "regex": "^[a-zA-Z][a-zA-Z0-9-]{0,21}[a-zA-Z0-9]$",
-                                "validationMessage": "Workspace names must contain only dashes or alphanumeric characters. Should be between 2 to 23 characters long. They must begin with a letter and end with a letter or digit."
-                            },
-                            "visible": "[equals(steps('Configuration').GrafanaStatus, 'New')]"
-                        },
-                        {
-                            "name": "ExistingGrafanaInstance",
-                            "type": "Microsoft.Solutions.ResourceSelector",
-                            "label": "Azure Managed Grafana",
-                            "toolTip": "Existing Azure Managed Grafana",
-                            "resourceType": "Microsoft.Dashboard/grafana",
-                            "constraints": {
-                                "required": "[equals(steps('Configuration').GrafanaStatus, 'Existing')]"
-                            },
-                            "infoMessages": [],
-                            "visible": "[equals(steps('Configuration').GrafanaStatus, 'Existing')]"
-                        },
-						{
-							"name": "grafanaLocation",
-							"type": "Microsoft.Common.DropDown",
-							"label": "Grafana Location",
-							"multiselect": false,
-							"defaultValue": "",
-							"toolTip": "Subscription to deploy resources to.",
-							"filter": true,
-							"filterPlaceholder": "Filter Grafana Locations...",
-							"defaultDescription": "A value for selection",
-							"constraints": {
-								"allowedValues": "[steps('basics').grafanaLocationsAPI.transformed.list]",
-								"required": true
-							},
-							"visible": "[equals(steps('Configuration').GrafanaStatus, 'New')]"
-						},
-												
 						{
 							"name": "collectTelemetry",
 							"type": "Microsoft.Common.CheckBox",
@@ -437,15 +316,11 @@
                 "newLogAnalyticsWSName": "[steps('Configuration').LogAnalyticsWorkspaceResourceNew]",
                 "createNewLogAnalyticsWS": "[equals(steps('Configuration').LAWStatus, 'New')]",
                 "existingLogAnalyticsWSId" : "[steps('Configuration').LogAnalyticsWorkspaceResource.id]",
-                "grafanaLocation": "[steps('Configuration').grafanaLocation]",
-                "grafanaName": "[steps('Configuration').NewGrafanaName]",
-                "newGrafana" : "[equals(steps('Configuration').GrafanaStatus,'New')]",                
                 "storageAccountName": "[steps('Configuration').storageAccountSelector.name]",
                 "createNewStorageAccount": "[equals(steps('Configuration').storageAccountSelector.newOrExisting,'new')]",
 				"instanceName":  "[steps('Configuration').instanceName]",
-                "deployGrafana": "[steps('Configuration').deployGrafana]",
                 "customerTags": "[steps('tags').tagsByResource]",
-                "deployDiscovery": "[steps('Configuration').deployDiscovery]",
+                "deployDiscovery": true,
 		        "collectTelemetry": "[steps('Configuration').collectTelemetry]",
                 "appInsightsLocation": "[steps('Configuration').AppInsightsLocation]",
                 "newAzureMonitorWSName": "[steps('Configuration').AzureMonitorWorkspaceNameNew]",

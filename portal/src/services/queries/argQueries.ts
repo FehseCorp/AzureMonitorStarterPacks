@@ -41,15 +41,6 @@ resources
 | project id, label=name
 `;
 
-/** Grafana instances for a given instance */
-export const argGrafanaInstances = (instanceName: string) => `
-resources
-| where type =~ "microsoft.dashboard/grafana"
-| where isnotempty(tags.monitorStarterPacksComponents) or isnotempty(tags.MonitorStarterPacksComponents)
-| where tags.instanceName == '${instanceName}'
-| project id, label=properties.endpoint
-`;
-
 /** App Insights resource for a given function app name */
 export const argAppInsights = (functionAppName: string) => `
 resources

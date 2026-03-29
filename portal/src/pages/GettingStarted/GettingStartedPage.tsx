@@ -177,7 +177,6 @@ export function GettingStartedPage() {
             <ConfigItem label="Instance" value={config.instanceName} />
             <ConfigItem label="Function App" value={config.functionAppName} />
             <ConfigItem label="Workspace" value={config.workspaceName} />
-            <ConfigItem label="Grafana" value={config.grafanaEndpoint ? "Configured" : "Not configured"} />
             <ConfigItem label="App Insights" value={config.appInsightsName} />
             <ConfigItem label="Action Group" value={config.actionGroupName} />
           </div>
