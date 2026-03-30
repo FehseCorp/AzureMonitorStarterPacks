@@ -45,7 +45,7 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|22-lts'
-      appCommandLine: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
+      appCommandLine: 'bash /home/site/wwwroot/startup.sh'
       minTlsVersion: '1.2'
       http20Enabled: true
     }
@@ -91,10 +91,6 @@ resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' =
       {
         name: 'RESOURCE_GROUP'
         value: resourceGroup().name
-      }
-      {
-        name: 'AZURE_CLIENT_ID'
-        value: ''
       }
       {
         name: 'AZURE_TENANT_ID'
@@ -146,24 +142,24 @@ resource deployPortalScript 'Microsoft.Resources/deploymentScripts@2023-08-01' =
       curl -sL "$PACKAGE_URL" -o portal.zip
       az webapp deployment source config-zip --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --src portal.zip
 
-      # Build config.json with deployment-time values
-      printf '{"clientId":"%s","tenantId":"%s","instanceName":"%s","functionAppUrl":"%s","functionAppResourceId":"%s","functionAppName":"%s","workspaceId":"%s","workspaceName":"%s","appInsightsId":"%s","appInsightsName":"%s","azureMonitorWorkspaceId":"%s","azureMonitorWorkspaceName":"%s"}' \
-        "$AZURE_CLIENT_ID" "$AZURE_TENANT_ID" "$INSTANCE_NAME" \
-        "$FUNCTION_APP_URL" "$FUNCTION_APP_RESOURCE_ID" "$FUNCTION_APP_NAME" \
-        "$LAW_RESOURCE_ID" "$LAW_NAME" \
-        "$APP_INSIGHTS_ID" "$APP_INSIGHTS_NAME" \
-        "$AMW_ID" "$AMW_NAME" > config.json
+      # Store config values as App Service settings so startup.sh can generate config.json
+      az webapp config appsettings set \
+        --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" \
+        --settings \
+          AZURE_TENANT_ID="$AZURE_TENANT_ID" \
+          INSTANCE_NAME="$INSTANCE_NAME" \
+          FUNCTION_APP_URL="$FUNCTION_APP_URL" \
+          FUNCTION_APP_RESOURCE_ID="$FUNCTION_APP_RESOURCE_ID" \
+          FUNCTION_APP_NAME="$FUNCTION_APP_NAME" \
+          LAW_RESOURCE_ID="$LAW_RESOURCE_ID" \
+          LAW_NAME="$LAW_NAME" \
+          APP_INSIGHTS_ID="$APP_INSIGHTS_ID" \
+          APP_INSIGHTS_NAME="$APP_INSIGHTS_NAME" \
+          AMW_ID="$AMW_ID" \
+          AMW_NAME="$AMW_NAME" \
+        --output none
 
-      # Upload config.json to the app via Kudu VFS API
-      KUDU_URL="https://${WEBAPP_NAME}.scm.azurewebsites.net"
-      TOKEN=$(az account get-access-token --resource "https://${WEBAPP_NAME}.scm.azurewebsites.net" --query accessToken -o tsv 2>/dev/null || az account get-access-token --query accessToken -o tsv)
-      curl -sS -X PUT "${KUDU_URL}/api/vfs/site/wwwroot/config.json" \
-        -H "Authorization: Bearer ${TOKEN}" \
-        -H "If-Match: *" \
-        -H "Content-Type: application/json" \
-        --data-binary @config.json
-
-      echo "config.json deployed to ${WEBAPP_NAME}"
+      echo "App settings configured on ${WEBAPP_NAME}"
     '''
   }
   dependsOn: [
@@ -223,8 +219,8 @@ resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' 
     ]
     scriptContent: '''
       set +e
-      # Look for existing app registration
-      CLIENT_ID=$(az ad app list --display-name "$APP_NAME" --query "[0].appId" -o tsv 2>/dev/null)
+      # Look for existing app registration (exact match)
+      CLIENT_ID=$(az ad app list --filter "displayName eq '$APP_NAME'" --query "[0].appId" -o tsv 2>/dev/null)
 
       if [ -z "$CLIENT_ID" ]; then
         # Try to create a new app registration
@@ -266,19 +262,6 @@ resource portalEntraSettings 'Microsoft.Resources/deploymentScripts@2023-08-01' 
         --settings AZURE_CLIENT_ID="$CLIENT_ID" --output none
 
       echo "AZURE_CLIENT_ID set to $CLIENT_ID"
-
-      # Enable Entra ID (EasyAuth) on the Function App
-      # This validates bearer tokens from the portal SPA — no function keys needed
-      az webapp auth update \
-        --resource-group "$RESOURCE_GROUP" --name "$FUNCTION_APP_NAME" \
-        --enabled true \
-        --action Return401 \
-        --aad-client-id "$CLIENT_ID" \
-        --aad-issuer "https://login.microsoftonline.com/$TENANT_ID/v2.0" \
-        --aad-allowed-token-audiences "api://$CLIENT_ID" \
-        --output none 2>/dev/null || true
-
-      echo "EasyAuth enabled on Function App $FUNCTION_APP_NAME with client ID $CLIENT_ID"
 
       # Enable Entra ID (EasyAuth) on the Function App
       # This validates bearer tokens from the portal SPA — no function keys needed
