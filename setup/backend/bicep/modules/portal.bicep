@@ -45,7 +45,7 @@ resource portalSite 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|22-lts'
-      appCommandLine: 'bash /home/site/wwwroot/startup.sh'
+      appCommandLine: 'node /home/site/wwwroot/server.js'
       minTlsVersion: '1.2'
       http20Enabled: true
     }
