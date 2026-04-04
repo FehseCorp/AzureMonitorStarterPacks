@@ -13,7 +13,7 @@ import {
   argMonitoringStatus,
   argAgentStatus,
   argServersPerPack,
-  ARG_TAGGED_RESOURCES,
+  argTaggedResources,
 } from "../../services/queries/argQueries";
 
 const useStyles = makeStyles({
@@ -54,9 +54,9 @@ export function IaaSSummary() {
     { enabled: !!instance }
   );
   const taggedQ = useARGQuery(
-    ["taggedResources"],
-    ARG_TAGGED_RESOURCES,
-    { enabled: true }
+    ["taggedResources", instance],
+    argTaggedResources(instance ?? ""),
+    { enabled: !!instance }
   );
 
   if (!instance) {
@@ -104,7 +104,7 @@ export function IaaSSummary() {
         </div>
       </div>
       <div>
-        <Title3>Tagged Resources</Title3>
+        <div><Title3>Tagged Resources</Title3></div>
         {taggedQ.isLoading ? (
           <Spinner size="small" label="Loading..." />
         ) : taggedQ.isError ? (

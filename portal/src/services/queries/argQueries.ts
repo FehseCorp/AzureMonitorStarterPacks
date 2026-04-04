@@ -115,10 +115,11 @@ resources
 | sort by Pack asc
 `;
 
-/** Tagged resources per pack tag value (tiles) */
-export const ARG_TAGGED_RESOURCES = `
+/** Tagged resources per pack tag value (tiles), filtered to the current instance */
+export const argTaggedResources = (instanceName: string) => `
 resources
 | where type =~ 'microsoft.hybridcompute/machines' or type =~ 'microsoft.compute/virtualmachines'
+| where tags.instanceName =~ '${instanceName}'
 | project name, MPs=tags.MonitorStarterPacks
 | where isnotnull(MPs)
 | mv-expand (split(MPs,','))

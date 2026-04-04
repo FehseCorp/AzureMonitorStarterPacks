@@ -13,11 +13,12 @@ import {
   Text,
   Title3,
   Toolbar,
+  Tooltip,
   makeStyles,
   tokens,
   type DataGridProps,
 } from "@fluentui/react-components";
-import { ArrowSyncRegular } from "@fluentui/react-icons";
+import { ArrowSyncRegular, WrenchRegular } from "@fluentui/react-icons";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
@@ -53,7 +54,7 @@ interface PaaSRow {
 
 const resourceName = (id: string) => id.split("/").pop() ?? id;
 
-const columns = [
+const makeColumns = (onFix: (item: PaaSRow) => void) => [
   createTableColumn<PaaSRow>({
     columnId: "name",
     renderHeaderCell: () => "Name",
@@ -77,10 +78,25 @@ const columns = [
     renderHeaderCell: () => "Alert Rules",
     renderCell: (item) => {
       const count = item.AlertCount ?? 0;
-      return count > 0 ? (
-        <Badge appearance="filled" color="success">{count}</Badge>
-      ) : (
-        <Badge appearance="ghost" color="warning">0</Badge>
+      if (count > 0) {
+        return <Badge appearance="filled" color="success">{count}</Badge>;
+      }
+      return (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+          <Tooltip content="No alerts are present for this resource." relationship="label">
+            <Badge appearance="ghost" color="warning">0</Badge>
+          </Tooltip>
+          <Tooltip content="Re-create alerts for this resource" relationship="label">
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={<WrenchRegular />}
+              onClick={(e) => { e.stopPropagation(); onFix(item); }}
+            >
+              Fix
+            </Button>
+          </Tooltip>
+        </span>
       );
     },
   }),
@@ -111,6 +127,7 @@ export function MonitoredServices() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [fixTarget, setFixTarget] = useState<PaaSRow | null>(null);
 
   // Monitored PaaS resources from Function App config API
   const servicesQ = useQuery<PaaSRow[]>({
@@ -214,6 +231,37 @@ export function MonitoredServices() {
       queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
     },
   });
+
+  // Backend action — re-create alerts (AddPack)
+  const fixAction = useBackendAction({
+    onSuccess: () => {
+      setFixTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
+    },
+  });
+
+  const handleFix = (item: PaaSRow) => {
+    fixAction.reset();
+    setFixTarget(item);
+  };
+
+  const handleFixConfirm = () => {
+    if (!fixTarget) return;
+    fixAction.mutate({
+      endpoint: "packmgmt",
+      body: {
+        Action: "AddPack",
+        Resources: [{ Resource: fixTarget.Resource, type: fixTarget.Type ?? fixTarget.tag, location: fixTarget.location }],
+        Pack: fixTarget.Type ?? fixTarget.tag,
+        PackType: "PaaS",
+        Type: fixTarget.Type ?? fixTarget.tag,
+        DefaultAG: config.actionGroupId,
+        WorkspaceId: config.workspaceId,
+      },
+    });
+  };
+
+  const columns = useMemo(() => makeColumns(handleFix), []);
 
   const selectedResources = rows.filter((r) => selectedIds.has(r.Resource));
 
@@ -334,6 +382,23 @@ export function MonitoredServices() {
       ) : (
         <Text>No monitored services match the current filters.</Text>
       )}
+
+      <ConfirmDialog
+        open={!!fixTarget}
+        title={`Re-create Alerts — ${fixTarget ? resourceName(fixTarget.Resource) : ""}`}
+        onConfirm={handleFixConfirm}
+        onCancel={() => { setFixTarget(null); fixAction.reset(); }}
+        isPending={fixAction.isPending}
+      >
+        <Text>
+          This will re-create alert rules for <strong>{fixTarget ? resourceName(fixTarget.Resource) : ""}</strong> using the <strong>{fixTarget?.Type ?? fixTarget?.tag}</strong> pack.
+        </Text>
+        {fixAction.isError && (
+          <Text style={{ color: tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
+            Error: {fixAction.error instanceof Error ? fixAction.error.message : String(fixAction.error)}
+          </Text>
+        )}
+      </ConfirmDialog>
 
       <ConfirmDialog
         open={dialogOpen}
