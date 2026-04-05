@@ -50,7 +50,7 @@ export function BladeNav() {
 
   // Default sub-routes: when navigating to a parent, redirect to the first child
   const defaultChildren: Record<string, string> = {
-    "/status": "/status/alerts",
+    "/status": "/status/summary",
     "/alerts": "/alerts/pack",
     "/packs": "/packs/associations",
     "/agents": "/agents/management",
@@ -77,6 +77,7 @@ export function BladeNav() {
         <NavCategory value="/status">
           <NavCategoryItem icon={<PulseRegular />}>Status</NavCategoryItem>
           <NavSubItemGroup>
+            <NavSubItem value="/status/summary">Summary</NavSubItem>
             <NavSubItem value="/status/alerts">Active Alerts</NavSubItem>
             <NavSubItem value="/status/iaas">IaaS Summary</NavSubItem>
             <NavSubItem value="/status/services">Services Summary</NavSubItem>

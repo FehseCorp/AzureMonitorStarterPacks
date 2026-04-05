@@ -30,6 +30,7 @@ import { ActiveAlerts } from "./pages/Status/ActiveAlerts";
 import { IaaSSummary } from "./pages/Status/IaaSSummary";
 import { ServicesSummary } from "./pages/Status/ServicesSummary";
 import { Dashboards } from "./pages/Status/Dashboards";
+import { MonitoringSummary } from "./pages/Status/MonitoringSummary";
 // Alert Rules sub-pages
 import { PackAlerts } from "./pages/AlertRules/PackAlerts";
 import { OtherAlerts } from "./pages/AlertRules/OtherAlerts";
@@ -165,7 +166,8 @@ function AppInner() {
                   <Routes>
                   <Route path="/" element={<GettingStartedPage />} />
 
-                  <Route path="/status" element={<Navigate to="/status/alerts" replace />} />
+                  <Route path="/status" element={<Navigate to="/status/summary" replace />} />
+                  <Route path="/status/summary" element={<MonitoringSummary />} />
                   <Route path="/status/alerts" element={<ActiveAlerts />} />
                   <Route path="/status/iaas" element={<IaaSSummary />} />
                   <Route path="/status/services" element={<ServicesSummary />} />

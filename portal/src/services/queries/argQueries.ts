@@ -291,6 +291,187 @@ resources
 | summarize ServerCount=countif(isnotempty(resourceId)) by dcrId, dcrName, location
 `;
 
+// ── Monitoring Health Summary queries (all subscription-wide, no instance filter) ──
+
+/** Total AMP-tagged servers (VMs + Arc) across the subscription */
+export const argTotalServers = (_instanceName: string) => `
+resources
+| where type =~ 'microsoft.hybridcompute/machines' or type =~ 'microsoft.compute/virtualmachines'
+| summarize Total=count()
+`;
+
+/** AMP-tagged servers WITH AMA extension installed */
+export const argAMAInstalledServers = (_instanceName: string) => `
+Resources
+| where type == 'microsoft.compute/virtualmachines'
+| extend JoinID = toupper(id)
+| join kind=leftouter(
+    Resources
+    | where type == 'microsoft.compute/virtualmachines/extensions' and name in ('AzureMonitorLinuxAgent', 'AzureMonitorWindowsAgent')
+    | extend VMId = toupper(substring(id, 0, indexof(id, '/extensions'))), ExtensionName = name
+) on $left.JoinID == $right.VMId
+| union (Resources
+  | where type == 'microsoft.hybridcompute/machines'
+  | extend JoinID = toupper(id)
+  | join kind=leftouter(
+      Resources
+      | where type == 'microsoft.hybridcompute/machines/extensions' and name in ('AzureMonitorLinuxAgent', 'AzureMonitorWindowsAgent')
+      | extend VMId = toupper(substring(id, 0, indexof(id, '/extensions'))), ExtensionName = name
+  ) on $left.JoinID == $right.VMId)
+| where isnotempty(ExtensionName)
+| summarize Total=count()
+`;
+
+/** AMP-tagged servers with no AMA extension installed */
+export const argNoAMAServers = (_instanceName: string) => `
+Resources
+| where type == 'microsoft.compute/virtualmachines'
+| extend JoinID = toupper(id)
+| join kind=leftouter(
+    Resources
+    | where type == 'microsoft.compute/virtualmachines/extensions' and name in ('AzureMonitorLinuxAgent', 'AzureMonitorWindowsAgent')
+    | extend VMId = toupper(substring(id, 0, indexof(id, '/extensions'))), ExtensionName = name
+) on $left.JoinID == $right.VMId
+| union (Resources
+  | where type == 'microsoft.hybridcompute/machines'
+  | extend JoinID = toupper(id)
+  | join kind=leftouter(
+      Resources
+      | where type == 'microsoft.hybridcompute/machines/extensions' and name in ('AzureMonitorLinuxAgent', 'AzureMonitorWindowsAgent')
+      | extend VMId = toupper(substring(id, 0, indexof(id, '/extensions'))), ExtensionName = name
+  ) on $left.JoinID == $right.VMId)
+| where isempty(ExtensionName)
+| summarize Total=count()
+`;
+
+/** AMP-tagged servers with no DCR associations at all */
+export const argNoDCRServers = (_instanceName: string) => `
+resources
+| where type =~ 'microsoft.compute/virtualmachines' or type =~ 'microsoft.hybridcompute/machines'
+| extend resourceId = tolower(id)
+| join kind=leftouter (
+    insightsresources
+    | where type == "microsoft.insights/datacollectionruleassociations"
+    | where isnotnull(properties.dataCollectionRuleId)
+    | extend resourceId=tolower(tostring(split(id,'/providers/Microsoft.Insights/')[0]))
+    | summarize DCRCount=count() by resourceId
+) on resourceId
+| where isempty(DCRCount) or DCRCount == 0
+| summarize Total=count()
+`;
+
+/**
+ * AMP-tagged servers with no monitoring DCR (VMInsights or OTel).
+ * VMInsights DCR: performanceCounters has 'VmInsights' counter specifier.
+ * OTel DCR:       performanceCountersOTel has 'Microsoft-OtelPerfMetrics' stream.
+ */
+export const argNoVMInsightsDCRServers = (_instanceName: string) => `
+resources
+| where type =~ 'microsoft.compute/virtualmachines' or type =~ 'microsoft.hybridcompute/machines'
+| extend resourceId = tolower(id)
+| join kind=leftouter (
+    insightsresources
+    | where type == "microsoft.insights/datacollectionruleassociations"
+    | where isnotnull(properties.dataCollectionRuleId)
+    | extend ruleId = tostring(properties.dataCollectionRuleId)
+    | extend resourceId = tolower(tostring(split(id,'/providers/Microsoft.Insights/')[0]))
+    | join kind=inner (
+        resources
+        | where type == "microsoft.insights/datacollectionrules"
+        | where properties.dataSources.performanceCounters has 'VmInsights'
+               or properties.dataSources.performanceCountersOTel has 'Microsoft-OtelPerfMetrics'
+        | project ruleId=id
+    ) on ruleId
+    | summarize MonCount=count() by resourceId
+) on resourceId
+| where isempty(MonCount) or MonCount == 0
+| summarize Total=count()
+`;
+
+/**
+ * Servers covered by a monitoring DCR (VMInsights or OTel).
+ * Subscription-wide — no tags filter.
+ * Starts from resources (VMs/Arc) as left so resources is only the right table once
+ * (nested inside the insightsresources subquery), avoiding the ARG "right table twice" limit.
+ */
+export const argMonitoredServersCount = (_instanceName: string) => `
+resources
+| where type =~ 'microsoft.compute/virtualmachines' or type =~ 'microsoft.hybridcompute/machines'
+| extend resourceId = tolower(id)
+| join kind=inner (
+    insightsresources
+    | where type == "microsoft.insights/datacollectionruleassociations"
+    | where isnotnull(properties.dataCollectionRuleId)
+    | extend ruleId = tostring(properties.dataCollectionRuleId)
+    | extend resourceId = tolower(tostring(split(id,'/providers/Microsoft.Insights/')[0]))
+    | join kind=inner (
+        resources
+        | where type == "microsoft.insights/datacollectionrules"
+        | where properties.dataSources.performanceCounters has 'VmInsights'
+               or properties.dataSources.performanceCountersOTel has 'Microsoft-OtelPerfMetrics'
+        | project ruleId=id
+    ) on ruleId
+    | project resourceId
+) on resourceId
+| summarize Total=dcount(resourceId)
+`;
+
+/** Tagged PaaS resources with no alert rules targeting them — subscription-wide */
+export const argServicesNoAlerts = (_instanceName: string) => `
+resources
+| where isnotempty(tags.MonitorStarterPacks)
+| where type !in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines',
+    'microsoft.insights/datacollectionrules','microsoft.insights/actiongroups',
+    'microsoft.operationalinsights/workspaces','microsoft.web/sites',
+    'microsoft.storage/storageaccounts','microsoft.insights/components',
+    'microsoft.monitor/accounts','microsoft.compute/virtualmachines/extensions',
+    'microsoft.hybridcompute/machines/extensions')
+| extend resourceName = tolower(tostring(split(id,'/')[-1]))
+| join kind=leftouter (
+    resources
+    | where type in~ ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')
+    | mv-expand scope = properties.scopes
+    | extend targetName = tolower(tostring(split(tostring(scope),'/')[-1]))
+    | summarize AlertCount=count() by targetName
+) on $left.resourceName == $right.targetName
+| where isempty(AlertCount) or AlertCount == 0
+| summarize Total=count()
+`;
+
+/** Tagged PaaS resources with no diagnostic settings — subscription-wide */
+export const argServicesNoDiagnostics = (_instanceName: string) => `
+resources
+| where isnotempty(tags.MonitorStarterPacks)
+| where type !in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines',
+    'microsoft.insights/datacollectionrules','microsoft.insights/actiongroups',
+    'microsoft.operationalinsights/workspaces','microsoft.web/sites',
+    'microsoft.storage/storageaccounts','microsoft.insights/components',
+    'microsoft.monitor/accounts','microsoft.compute/virtualmachines/extensions',
+    'microsoft.hybridcompute/machines/extensions')
+| extend resourceId = tolower(id)
+| join kind=leftouter (
+    insightsresources
+    | where type =~ 'microsoft.insights/diagnosticsettings'
+    | extend resourceId = tolower(tostring(split(id,'/providers/microsoft.insights/')[0]))
+    | summarize DiagCount=count() by resourceId
+) on resourceId
+| where isempty(DiagCount) or DiagCount == 0
+| summarize Total=count()
+`;
+
+/** Total tagged PaaS services — subscription-wide */
+export const argTotalServices = (_instanceName: string) => `
+resources
+| where isnotempty(tags.MonitorStarterPacks)
+| where type !in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines',
+    'microsoft.insights/datacollectionrules','microsoft.insights/actiongroups',
+    'microsoft.operationalinsights/workspaces','microsoft.web/sites',
+    'microsoft.storage/storageaccounts','microsoft.insights/components',
+    'microsoft.monitor/accounts','microsoft.compute/virtualmachines/extensions',
+    'microsoft.hybridcompute/machines/extensions')
+| summarize Total=count()
+`;
+
 // ── Agents tab ──
 
 /** Comprehensive agent details — VM + Arc machines with AMA and Dependency Agent extension info */
