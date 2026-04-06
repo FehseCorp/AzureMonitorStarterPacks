@@ -416,39 +416,44 @@ resources
 | summarize Total=dcount(resourceId)
 `;
 
-/** Tagged PaaS resources with no alert rules targeting them — subscription-wide */
+/**
+ * PaaS resources with no alert rules, scoped to namespaces the solution covers.
+ * Supported namespaces are derived from existing MonitorStarterPacks alert rules —
+ * no tag filter on the resources themselves.
+ */
 export const argServicesNoAlerts = (_instanceName: string) => `
 resources
+| where type in~ ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')
 | where isnotempty(tags.MonitorStarterPacks)
-| where type !in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines',
-    'microsoft.insights/datacollectionrules','microsoft.insights/actiongroups',
-    'microsoft.operationalinsights/workspaces','microsoft.web/sites',
-    'microsoft.storage/storageaccounts','microsoft.insights/components',
-    'microsoft.monitor/accounts','microsoft.compute/virtualmachines/extensions',
-    'microsoft.hybridcompute/machines/extensions')
-| extend resourceName = tolower(tostring(split(id,'/')[-1]))
-| join kind=leftouter (
+| mv-expand scope = properties.scopes
+| extend alertTarget = tolower(tostring(split(tostring(scope),'/')[-1]))
+| extend ns = tolower(strcat(tostring(split(tostring(scope),"/")[-3]),"/",tostring(split(tostring(scope),"/")[-2])))
+| project alertTarget, ns
+| join kind=rightouter (
     resources
-    | where type in~ ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')
-    | mv-expand scope = properties.scopes
-    | extend targetName = tolower(tostring(split(tostring(scope),'/')[-1]))
-    | summarize AlertCount=count() by targetName
-) on $left.resourceName == $right.targetName
-| where isempty(AlertCount) or AlertCount == 0
+    | extend ns = tolower(type)
+    | project ns, resourceName=tolower(name), resourceId=id
+) on ns
+| where isnotnull(ns)
+| summarize hasAlert=countif(alertTarget == resourceName) by resourceId, ns1
+| where hasAlert == 0
 | summarize Total=count()
 `;
 
-/** Tagged PaaS resources with no diagnostic settings — subscription-wide */
+/**
+ * PaaS resources with no diagnostic settings, scoped to solution-supported namespaces.
+ */
 export const argServicesNoDiagnostics = (_instanceName: string) => `
 resources
+| where type in~ ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')
 | where isnotempty(tags.MonitorStarterPacks)
-| where type !in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines',
-    'microsoft.insights/datacollectionrules','microsoft.insights/actiongroups',
-    'microsoft.operationalinsights/workspaces','microsoft.web/sites',
-    'microsoft.storage/storageaccounts','microsoft.insights/components',
-    'microsoft.monitor/accounts','microsoft.compute/virtualmachines/extensions',
-    'microsoft.hybridcompute/machines/extensions')
-| extend resourceId = tolower(id)
+| extend ns = tolower(strcat(tostring(split(properties.scopes[0],"/")[-3]),"/",tostring(split(properties.scopes[0],"/")[-2])))
+| summarize by ns
+| join kind=inner (
+    resources
+    | extend ns = tolower(type)
+    | project ns, resourceId=tolower(id)
+) on ns
 | join kind=leftouter (
     insightsresources
     | where type =~ 'microsoft.insights/diagnosticsettings'
@@ -459,17 +464,22 @@ resources
 | summarize Total=count()
 `;
 
-/** Total tagged PaaS services — subscription-wide */
+/**
+ * Total PaaS resources across solution-supported namespaces.
+ * Supported namespaces derived from MonitorStarterPacks alert rules — no tag filter on resources.
+ */
 export const argTotalServices = (_instanceName: string) => `
 resources
+| where type in~ ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')
 | where isnotempty(tags.MonitorStarterPacks)
-| where type !in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines',
-    'microsoft.insights/datacollectionrules','microsoft.insights/actiongroups',
-    'microsoft.operationalinsights/workspaces','microsoft.web/sites',
-    'microsoft.storage/storageaccounts','microsoft.insights/components',
-    'microsoft.monitor/accounts','microsoft.compute/virtualmachines/extensions',
-    'microsoft.hybridcompute/machines/extensions')
-| summarize Total=count()
+| extend ns = tolower(strcat(tostring(split(properties.scopes[0],"/")[-3]),"/",tostring(split(properties.scopes[0],"/")[-2])))
+| summarize by ns
+| join kind=inner (
+    resources
+    | extend ns = tolower(type)
+    | project ns, resourceId=id
+) on ns
+| summarize Total=dcount(resourceId)
 `;
 
 // ── Agents tab ──

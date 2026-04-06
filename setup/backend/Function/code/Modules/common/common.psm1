@@ -1061,6 +1061,44 @@ function new-PaaSAlert {
     New-Tag -ResourceId $resourceId -TagName $tagName -TagValue $packTag -instanceName $instanceName
 
 }
+function get-allPaaSServices {
+    # Returns ALL resources whose type appears in the AMBA catalog (no tag filter),
+    # enriched with an AlertCount so the caller can derive monitored vs unmonitored.
+    $ambaURL = $env:AMBAJsonURL
+    if ($null -eq $ambaURL) {
+        Write-Host "get-allPaaSServices: Error fetching AMBA URL, stopping function"
+        return '{}'
+    }
+    Write-Host "get-allPaaSServices: Fetching AMBA Catalog..."
+    $ambaCatalog = get-AmbaCatalog | ConvertFrom-Json -Depth 10
+    if (-not $ambaCatalog) {
+        Write-Host "get-allPaaSServices: Failed to fetch AMBA catalog."
+        return '{}'
+    }
+    $nameSpaces = ($ambaCatalog.Categories).namespace | Where-Object { $_ -ne 'N/A' }
+    $nameSpaceList = ($nameSpaces | ForEach-Object { "'$_'" }) -join ','
+    $query = @"
+resources
+| where type in~ ($nameSpaceList)
+| where not(type in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines'))
+| project Resource=id, Type=type, tag=tostring(tags.MonitorStarterPacks), resourceGroup, location, subscriptionId, ['kind']
+| join kind=leftouter (
+    resources
+    | where tolower(type) in ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')
+    | summarize AlertCount=count() by Resource=tostring(properties.scopes[0])
+) on Resource
+| project AlertCount=iff(isnull(AlertCount), 0, AlertCount), Resource, Type, tag, resourceGroup, kind, location, subscriptionId
+"@
+    Write-Host "get-allPaaSServices: Running ARG query..."
+    $results = Search-AzGraph -Query $query -UseTenantScope
+    Write-Host "get-allPaaSServices: Found $($results.Count) resource(s)."
+    if ($results.Count -gt 0) {
+        $body = "{""All Resources"" : $($results | ConvertTo-Json -Depth 5) }"
+    } else {
+        $body = '{}'
+    }
+    return $body
+}
 function get-nonMonitoredPaaSServices {
 #     if ($Request.Query.resourceFilter) {
 #         $resourceFilter = @"

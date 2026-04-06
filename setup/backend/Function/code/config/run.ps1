@@ -52,6 +52,9 @@ try {
           $body = '{}'
         }
       }
+      "getAllPaaS" {
+        $body = get-allPaaSServices
+      }
       "getNonMonitoredPaaS" {
         $body = get-nonMonitoredPaaSServices -Request $Request
       }

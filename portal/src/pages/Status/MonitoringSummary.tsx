@@ -17,6 +17,8 @@ import {
   InfoRegular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useMsal } from "@azure/msal-react";
 import { ScoreGauge } from "../../components/common/ScoreGauge";
 import { useARGQuery } from "../../hooks/useARGQuery";
 import { useConfig } from "../../hooks/useConfig";
@@ -26,10 +28,11 @@ import {
   argNoDCRServers,
   argNoVMInsightsDCRServers,
   argMonitoredServersCount,
-  argServicesNoAlerts,
-  argServicesNoDiagnostics,
-  argTotalServices,
 } from "../../services/queries/argQueries";
+import { managementScope } from "../../auth/msalConfig";
+import { callFunction } from "../../services/functionClient";
+
+interface PaaSRow { Resource: string; AlertCount: number; [k: string]: unknown; }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -142,6 +145,8 @@ export function MonitoringSummary() {
   const styles = useStyles();
   const { config } = useConfig();
   const instance = config.instanceName;
+  const { instance: msalInstance, accounts } = useMsal();
+  const account = accounts[0];
 
   const enabled = !!instance;
   const opts = { enabled };
@@ -151,12 +156,42 @@ export function MonitoringSummary() {
   const noDCRQ             = useARGQuery(["sumNoDCR",           instance], argNoDCRServers(instance ?? ""),           opts);
   const noVMIQ             = useARGQuery(["sumNoVMI",           instance], argNoVMInsightsDCRServers(instance ?? ""), opts);
   const monitoredServersQ  = useARGQuery(["sumMonitoredSvr",    instance], argMonitoredServersCount(instance ?? ""),  opts);
-  const totalServicesQ     = useARGQuery(["sumTotalServices",   instance], argTotalServices(instance ?? ""),          opts);
-  const noAlertsQ          = useARGQuery(["sumNoAlerts",        instance], argServicesNoAlerts(instance ?? ""),       opts);
-  const noDiagQ            = useARGQuery(["sumNoDiag",          instance], argServicesNoDiagnostics(instance ?? ""), opts);
+
+  const allPaaSQ = useQuery<PaaSRow[]>({
+    queryKey: ["sumAllPaaS", config.functionAppUrl],
+    queryFn: async () => {
+      if (!account || !config.functionAppUrl) return [];
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        ...managementScope,
+        account,
+      });
+      const result = await callFunction(
+        config.functionAppUrl,
+        tokenResponse.accessToken,
+        "config",
+        undefined,
+        { Action: "getAllPaaS" },
+      );
+      let parsed = result;
+      if (typeof parsed === "string") {
+        try { parsed = JSON.parse(parsed); } catch { /* not JSON */ }
+      }
+      if (Array.isArray(parsed)) return parsed as PaaSRow[];
+      if (parsed && typeof parsed === "object") {
+        const obj = parsed as Record<string, unknown>;
+        for (const key of Object.keys(obj)) {
+          const val = obj[key];
+          if (Array.isArray(val)) return val as PaaSRow[];
+        }
+      }
+      return [];
+    },
+    enabled: !!account && !!config.functionAppUrl,
+    staleTime: 60_000,
+  });
 
   const isLoading = totalServersQ.isLoading || amaInstalledQ.isLoading || noDCRQ.isLoading
-    || noVMIQ.isLoading || monitoredServersQ.isLoading || totalServicesQ.isLoading || noAlertsQ.isLoading || noDiagQ.isLoading;
+    || noVMIQ.isLoading || monitoredServersQ.isLoading || allPaaSQ.isLoading;
 
   const totalServers     = extract(totalServersQ.data);
   const amaInstalled     = extract(amaInstalledQ.data);
@@ -165,9 +200,9 @@ export function MonitoringSummary() {
   const noVMI            = extract(noVMIQ.data);
   const monitoredServers = extract(monitoredServersQ.data);
 
-  const totalServices  = extract(totalServicesQ.data);
-  const noAlerts       = extract(noAlertsQ.data);
-  const noDiag         = extract(noDiagQ.data);
+  const paaSRows        = allPaaSQ.data ?? [];
+  const totalServices   = paaSRows.length;
+  const noAlerts        = paaSRows.filter(r => (r.AlertCount ?? 0) === 0).length;
   const monitoredServices = Math.max(0, totalServices - noAlerts);
 
   // ── Score ──────────────────────────────────────────────────────────────────
@@ -180,11 +215,10 @@ export function MonitoringSummary() {
       s -= 10 * (noVMI  / totalServers);
     }
     if (totalServices > 0) {
-      s -= 25 * (noAlerts / totalServices);
-      s -= 15 * (noDiag   / totalServices);
+      s -= 40 * (noAlerts / totalServices);
     }
     return Math.round(Math.max(0, Math.min(100, s)));
-  }, [isLoading, totalServers, noAMA, noDCR, noVMI, totalServices, noAlerts, noDiag]);
+  }, [isLoading, totalServers, noAMA, noDCR, noVMI, totalServices, noAlerts]);
 
   if (!instance) {
     return <Text>Please select an instance in the Configuration tab first.</Text>;
@@ -193,7 +227,6 @@ export function MonitoringSummary() {
   const green  = <CheckmarkCircleRegular style={{ color: tokens.colorPaletteGreenForeground1 }} />;
   const warn   = <WarningRegular         style={{ color: tokens.colorPaletteYellowForeground1 }} />;
   const danger = <DismissCircleRegular   style={{ color: tokens.colorPaletteRedForeground1 }} />;
-  const info   = <InfoRegular            style={{ color: tokens.colorBrandForeground1 }} />;
 
   return (
     <div className={styles.container}>
@@ -230,12 +263,7 @@ export function MonitoringSummary() {
                   {noAlerts} service{noAlerts !== 1 ? "s" : ""} without alerts
                 </span>
               )}
-              {noDiag > 0 && (
-                <span className={styles.deductionChip}>
-                  <InfoRegular fontSize={12} />
-                  {noDiag} service{noDiag !== 1 ? "s" : ""} without diagnostics
-                </span>
-              )}
+
               {score === 100 && (
                 <span className={styles.deductionChip}>
                   <CheckmarkCircleRegular fontSize={12} />
@@ -270,23 +298,6 @@ export function MonitoringSummary() {
             positive
             description={`Servers with the Azure Monitor Agent extension installed (${amaInstalled}/${totalServers})`}
           />
-          <MetricRow
-            icon={noDCR > 0 ? danger : green}
-            label="No DCR Associations"
-            count={noDCR}
-            loading={noDCRQ.isLoading}
-            to="/servers/non-monitored"
-            description="Servers with no Data Collection Rule associations at all (-25 pts each)"
-          />
-          <MetricRow
-            icon={noVMI > 0 ? warn : green}
-            label="No VMInsights DCR"
-            count={noVMI}
-            loading={noVMIQ.isLoading}
-            to="/packs/vminsights"
-            description="Servers missing a VMInsights DCR for performance/map data (-10 pts each)"
-          />
-
           {!totalServersQ.isLoading && (
             <Text size={200} style={{ color: tokens.colorNeutralForeground3, marginTop: tokens.spacingVerticalXS }}>
               {totalServers} total server{totalServers !== 1 ? "s" : ""} across all subscriptions.{" "}
@@ -303,28 +314,21 @@ export function MonitoringSummary() {
             icon={green}
             label="Monitored Services"
             count={monitoredServices}
-            loading={totalServicesQ.isLoading || noAlertsQ.isLoading}
+            loading={allPaaSQ.isLoading}
             to="/services/monitored"
-            description="Tagged PaaS resources that have at least one alert rule targeting them"
+            positive
+            description="AMBA-catalog PaaS resources that have at least one alert rule targeting them"
           />
           <MetricRow
             icon={noAlerts > 0 ? danger : green}
             label="No Alert Rules"
             count={noAlerts}
-            loading={noAlertsQ.isLoading}
+            loading={allPaaSQ.isLoading}
             to="/services/monitored"
-            description="Tagged PaaS resources with zero alert rules targeting them (-25 pts each)"
-          />
-          <MetricRow
-            icon={noDiag > 0 ? info : green}
-            label="No Diagnostic Settings"
-            count={noDiag}
-            loading={noDiagQ.isLoading}
-            to="/services/monitored"
-            description="Tagged PaaS resources with no diagnostic settings configured (-15 pts each)"
+            description="AMBA-catalog PaaS resources with zero alert rules targeting them (-40 pts each)"
           />
 
-          {!totalServicesQ.isLoading && (
+          {!allPaaSQ.isLoading && (
             <Text size={200} style={{ color: tokens.colorNeutralForeground3, marginTop: tokens.spacingVerticalXS }}>
               {totalServices} total service{totalServices !== 1 ? "s" : ""} across all subscriptions.{" "}
               <Link onClick={() => {}}>Go to Services →</Link>
