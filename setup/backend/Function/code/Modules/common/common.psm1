@@ -916,6 +916,7 @@ function new-staticCriterionAlert {
                                         -WindowSize ([System.Xml.XmlConvert]::ToTimeSpan($alert.Properties.windowSize)) `
                                         -ActionGroupId $actionGroupId `
                                         -AutoMitigate $automaticMitigation `
+                                        -ErrorAction Stop `
                                         -Verbose                                           
     $tag = @{
         $tagName=$packtag
@@ -981,7 +982,7 @@ function new-PaaSAlert {
                 try {
                     switch ($alertType) {
                         'StaticThresholdCriterion' {
-                            new-staticCriterionAlert -alert $alert `
+                            $result = new-staticCriterionAlert -alert $alert `
                                                     -packtag $packTag `
                                                     -tagName $TagName `
                                                     -resourceId $resourceId `
@@ -989,6 +990,10 @@ function new-PaaSAlert {
                                                     -instanceName $instanceName `
                                                     -resourceType $resourceType `
                                                     -resourceGroupName $resourceGroupName
+                            if ($result -eq $false) {
+                                Write-Host "new-staticCriterionAlert returned failure for $($alert.properties.metricName). Marking alertCreationFailed."
+                                $alertCreationFailed = $true
+                            }
                         }
                         'DynamicThresholdCriterion' {
                             "Creating DynamicThresholdCriterion alert."
@@ -1010,14 +1015,20 @@ function new-PaaSAlert {
                                                             -Condition $condition `
                                                             -AutoMitigate $automaticMitigation `
                                                             -WindowSize ([System.Xml.XmlConvert]::ToTimeSpan($alert.Properties.windowSize)) `
-                                                            -ActionGroupId $actionGroupId 
+                                                            -ActionGroupId $actionGroupId `
+                                                            -ErrorAction Stop
                             #update rule with new tags
                             $tag = @{
                                 $tagName=$packTag
                                 "instanceName"=$instanceName
                             }
-                            Write-host "Setting Tag in alert rule $($newRule.Id) with tag $($tagName) and value $($packtag) and adding Instance Name $instanceName."
-                            Update-AzTag -ResourceId $newRule.Id -Tag $tag -Operation Replace
+                            if ($newRule) {
+                                Write-host "Setting Tag in alert rule $($newRule.Id) with tag $($tagName) and value $($packtag) and adding Instance Name $instanceName."
+                                Update-AzTag -ResourceId $newRule.Id -Tag $tag -Operation Replace
+                            } else {
+                                Write-Host "DynamicThresholdCriterion alert $rulename returned null. Marking alertCreationFailed."
+                                $alertCreationFailed = $true
+                            }
                         }
                         default {
                             Write-Host "Unknown criterion type"
@@ -1148,7 +1159,7 @@ function get-monitoredPaaSServices {
     # Query ARG directly for any tagged resource that isn't IaaS or monitoring infrastructure
 $PaaSQuery=@"
 resources | where isnotempty(tags.MonitorStarterPacks) and tags.instanceName =~ '$instanceName'
-| where not(type in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines','microsoft.insights/scheduledqueryrules','microsoft.insights/metricalerts','microsoft.insights/activitylogalerts','microsoft.insights/datacollectionrules','microsoft.insights/datacollectionendpoints','microsoft.web/sites','microsoft.web/serverfarms','microsoft.insights/components','microsoft.compute/galleries','microsoft.compute/galleries/applications','microsoft.compute/galleries/applications/versions','microsoft.operationalinsights/workspaces','microsoft.monitor/accounts','microsoft.storage/storageaccounts'))
+| where not(type in~ ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines','microsoft.insights/scheduledqueryrules','microsoft.insights/metricalerts','microsoft.insights/activitylogalerts','microsoft.insights/datacollectionrules','microsoft.insights/datacollectionendpoints','microsoft.web/sites','microsoft.web/serverfarms','microsoft.insights/components','microsoft.compute/galleries','microsoft.compute/galleries/applications','microsoft.compute/galleries/applications/versions','microsoft.monitor/accounts'))
 | project Resource=id, type, tag=tostring(tags.MonitorStarterPacks), resourceGroup, location, subscriptionId, ['kind']
 | join kind=leftouter (resources
     | where tolower(type) in ('microsoft.insights/metricalerts','microsoft.insights/activitylogalerts')

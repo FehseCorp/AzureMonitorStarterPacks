@@ -393,11 +393,17 @@ export function MonitoredServices() {
         <Text>
           This will re-create alert rules for <strong>{fixTarget ? resourceName(fixTarget.Resource) : ""}</strong> using the <strong>{fixTarget?.Type ?? fixTarget?.tag}</strong> pack.
         </Text>
-        {fixAction.isError && (
-          <Text style={{ color: tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
-            Error: {fixAction.error instanceof Error ? fixAction.error.message : String(fixAction.error)}
-          </Text>
-        )}
+        {fixAction.isError && (() => {
+          const msg = fixAction.error instanceof Error ? fixAction.error.message : String(fixAction.error);
+          const isTimeout = msg.startsWith("TIMEOUT:");
+          return (
+            <Text style={{ color: isTimeout ? tokens.colorPaletteYellowForeground1 : tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
+              {isTimeout
+                ? "⏱ The operation is taking longer than expected. It is likely still running in the background — please close this dialog and refresh in a moment to check the result."
+                : `Error: ${msg}`}
+            </Text>
+          );
+        })()}
       </ConfirmDialog>
 
       <ConfirmDialog
@@ -419,12 +425,14 @@ export function MonitoredServices() {
             <li>...and {selectedResources.length - 10} more</li>
           )}
         </ul>
-        {action.isError && (
-          <Text style={{ color: tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
-            Error: {action.error instanceof Error ? action.error.message : String(action.error)}
-          </Text>
-        )}
-      </ConfirmDialog>
-    </div>
-  );
-}
+        {action.isError && (() => {
+          const msg = action.error instanceof Error ? action.error.message : String(action.error);
+          const isTimeout = msg.startsWith("TIMEOUT:");
+          return (
+            <Text style={{ color: isTimeout ? tokens.colorPaletteYellowForeground1 : tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
+              {isTimeout
+                ? "⏱ The operation is taking longer than expected. It is likely still running in the background — please close this dialog and refresh in a moment to check the result."
+                : `Error: ${msg}`}
+            </Text>
+          );
+        })()}

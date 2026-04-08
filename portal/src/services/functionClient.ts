@@ -46,14 +46,33 @@ export async function callFunction(
     fullUrl = url.toString();
   }
 
-  const response = await fetch(fullUrl, {
-    method: body ? "POST" : "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  // Azure Functions on Consumption plan have a hard 5-minute execution limit.
+  // The Azure front-end drops the connection at ~230 s, so we use 270 s here
+  // to get a clean timeout error rather than a generic "Failed to fetch".
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 270_000);
+
+  let response: Response;
+  try {
+    response = await fetch(fullUrl, {
+      method: body ? "POST" : "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error(
+        "TIMEOUT: The operation is taking longer than expected. It may still be running in the background — please refresh in a moment to check the result."
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
     throw new Error(`Function call failed (${response.status}): ${text}`);

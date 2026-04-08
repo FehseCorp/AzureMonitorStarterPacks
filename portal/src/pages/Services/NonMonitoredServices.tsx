@@ -340,11 +340,17 @@ export function NonMonitoredServices() {
             <li>...and {selectedResources.length - 10} more</li>
           )}
         </ul>
-        {action.isError && (
-          <Text style={{ color: tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
-            Error: {action.error instanceof Error ? action.error.message : String(action.error)}
-          </Text>
-        )}
+        {action.isError && (() => {
+          const msg = action.error instanceof Error ? action.error.message : String(action.error);
+          const isTimeout = msg.startsWith("TIMEOUT:");
+          return (
+            <Text style={{ color: isTimeout ? tokens.colorPaletteYellowForeground1 : tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
+              {isTimeout
+                ? "⏱ The operation is taking longer than expected. It is likely still running in the background — please close this dialog and refresh in a moment to check the result."
+                : `Error: ${msg}`}
+            </Text>
+          );
+        })()}
       </ConfirmDialog>
     </div>
   );
