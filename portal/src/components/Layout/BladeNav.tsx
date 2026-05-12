@@ -22,6 +22,7 @@ import {
   SearchRegular,
   SettingsRegular,
   DocumentTextRegular,
+  TaskListLtrRegular,
 } from "@fluentui/react-icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -146,6 +147,10 @@ export function BladeNav() {
 
         <NavItem icon={<SettingsRegular />} value="/configuration">
           Configuration
+        </NavItem>
+
+        <NavItem icon={<TaskListLtrRegular />} value="/jobs">
+          Jobs
         </NavItem>
 
         <NavItem icon={<DocumentTextRegular />} value="/logs">

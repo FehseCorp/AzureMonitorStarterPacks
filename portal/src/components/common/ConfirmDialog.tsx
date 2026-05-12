@@ -18,6 +18,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   isPending?: boolean;
+  confirmDisabled?: boolean;
   danger?: boolean;
 }
 
@@ -30,6 +31,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   isPending,
+  confirmDisabled,
   danger,
 }: ConfirmDialogProps) {
   return (
@@ -45,7 +47,7 @@ export function ConfirmDialog({
             <Button
               appearance="primary"
               onClick={onConfirm}
-              disabled={isPending}
+              disabled={isPending || confirmDisabled}
               style={danger ? { backgroundColor: "#d13438" } : undefined}
             >
               {isPending ? <Spinner size="tiny" /> : confirmLabel}

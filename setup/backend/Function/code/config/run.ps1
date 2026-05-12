@@ -52,6 +52,94 @@ try {
           $body = '{}'
         }
       }
+      "getJobStatus" {
+        $jobId = $Request.Query.JobId
+        if ([string]::IsNullOrEmpty($jobId)) {
+            $statusCode = [HttpStatusCode]::BadRequest
+            $body = '{"error": "Missing required query parameter: JobId"}'
+            break
+        }
+        $storageConn = $env:AzureWebJobsStorage
+
+        # Parse AccountName and AccountKey from connection string
+        # (AccountKey is base64 and may contain '=' so split on first '=' per segment)
+        $acct = ''; $key = ''
+        ($storageConn -split ';') | Where-Object { $_ } | ForEach-Object {
+            $i = $_.IndexOf('=')
+            if ($i -gt 0 -and $_.Substring(0, $i) -eq 'AccountName') { $acct = $_.Substring($i + 1) }
+        }
+        if ($storageConn -match 'AccountKey=([A-Za-z0-9+/]+=*)') { $key = $Matches[1] }
+
+        # Query Table Storage via REST with SharedKey Lite auth.
+        # This avoids loading any Azure SDK types in the PowerShell runspace.
+        $safeId    = $jobId -replace "'", "''"   # OData single-quote escaping
+        $filter    = "PartitionKey eq '$safeId'"
+        $date      = [DateTime]::UtcNow.ToString('R')
+        $tableName = 'packmgmtjobs'
+        $url       = "https://$acct.table.core.windows.net/${tableName}?`$filter=$([Uri]::EscapeDataString($filter))"
+
+        # SharedKey Lite signature for Table service.
+        # StringToSign = Date + "\n" + CanonicalizedResource  (Table-service format, NOT Blob format)
+        $canonRes   = "/$acct/$tableName"
+        $stringSign = "$date`n$canonRes"
+        $hmac = [System.Security.Cryptography.HMACSHA256]::new([Convert]::FromBase64String($key))
+        $sig  = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringSign)))
+
+        $resp = Invoke-RestMethod -Method GET -Uri $url -Headers @{
+            'Authorization'      = "SharedKeyLite ${acct}:${sig}"
+            'x-ms-date'          = $date
+            'x-ms-version'       = '2020-12-06'
+            'Accept'             = 'application/json;odata=nometadata'
+            'DataServiceVersion' = '3.0;NetFx'
+        } -ErrorAction Stop
+
+        $rows       = @($resp.value)
+        $jobRow     = $rows | Where-Object { $_.RowKey -eq '_job' }
+        $resultRows = $rows | Where-Object { $_.RowKey -ne '_job' }
+
+        if (-not $jobRow) {
+            $body = "{""error"": ""Job $jobId not found""}"
+            break
+        }
+
+        # Derive progress by counting result rows (no server-side counters needed)
+        $totalCount     = [int]$jobRow.Total
+        $completedCount = @($resultRows | Where-Object { $_.Status -eq 'Succeeded' }).Count
+        $failedCount    = @($resultRows | Where-Object { $_.Status -eq 'Failed' }).Count
+        $doneCount      = $completedCount + $failedCount
+
+        # If the job has been sitting at 0 progress for more than 15 minutes it is
+        # likely stuck (e.g. all messages went to the poison queue).  Surface it as
+        # Failed so the portal stops polling and shows an actionable error.
+        $jobCreated = $jobRow.Timestamp  # DateTimeOffset from Table Storage
+        $stuckTimeout = [TimeSpan]::FromMinutes(15)
+        $isStuck = ($doneCount -eq 0 -and $totalCount -gt 0 -and
+                    $jobCreated -and ([DateTimeOffset]::UtcNow - $jobCreated) -gt $stuckTimeout)
+
+        $jobStatus      = if ($isStuck) { 'Failed' }
+                          elseif ($doneCount -ge $totalCount -and $totalCount -gt 0) { 'Completed' }
+                          elseif ($doneCount -gt 0) { 'Running' }
+                          else { 'Queued' }
+
+        $results = $resultRows | ForEach-Object {
+            @{
+                ResourceId = [string]$_.ResourceId
+                Status     = [string]$_.Status
+                Detail     = [string]$_.Detail
+                Action     = [string]$_.Action
+            }
+        }
+        $summary = @{
+            JobId     = $jobId
+            Status    = $jobStatus
+            Total     = $totalCount
+            Completed = $completedCount
+            Failed    = $failedCount
+            Action    = [string]$jobRow.Action
+            Results   = @($results)
+        }
+        $body = $summary | ConvertTo-Json -Depth 5 -Compress
+      }
       "getAllPaaS" {
         $body = get-allPaaSServices
       }

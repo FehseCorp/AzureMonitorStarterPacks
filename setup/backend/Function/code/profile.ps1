@@ -20,3 +20,23 @@ if ($env:MSI_SECRET) {
 # Enable-AzureRmAlias
 
 # You can also define functions or aliases that can be referenced in any of your PowerShell functions.
+
+# ── Ensure queue and table exist for the async PaaS job system ────────────────
+# Uses Az.Storage resource-management cmdlets (not entity-level SDK types).
+try {
+    $storageConn = $env:AzureWebJobsStorage
+    if (-not [string]::IsNullOrEmpty($storageConn)) {
+        $ctx = New-AzStorageContext -ConnectionString $storageConn
+        if (-not (Get-AzStorageQueue -Name 'packmgmt-work' -Context $ctx -ErrorAction SilentlyContinue)) {
+            New-AzStorageQueue -Name 'packmgmt-work' -Context $ctx | Out-Null
+            Write-Host 'profile.ps1: Created queue packmgmt-work'
+        }
+        if (-not (Get-AzStorageTable -Name 'packmgmtjobs' -Context $ctx -ErrorAction SilentlyContinue)) {
+            New-AzStorageTable -Name 'packmgmtjobs' -Context $ctx | Out-Null
+            Write-Host 'profile.ps1: Created table packmgmtjobs'
+        }
+    }
+} catch {
+    Write-Warning "profile.ps1: Could not ensure storage resources: $($_.Exception.Message)"
+}
+# ─────────────────────────────────────────────────────────────────────────────

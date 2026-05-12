@@ -25,6 +25,7 @@ import { MonitoredServices } from "./pages/Services/MonitoredServices";
 import { NonMonitoredServices } from "./pages/Services/NonMonitoredServices";
 import { ConfigurationPage } from "./pages/Configuration/ConfigurationPage";
 import { LogsPage } from "./pages/Logs/LogsPage";
+import { JobsPage } from "./pages/Jobs/JobsPage";
 // Status sub-pages
 import { ActiveAlerts } from "./pages/Status/ActiveAlerts";
 import { IaaSSummary } from "./pages/Status/IaaSSummary";
@@ -205,6 +206,7 @@ function AppInner() {
 
                   <Route path="/configuration" element={<ConfigurationPage />} />
                   <Route path="/logs" element={<LogsPage />} />
+                  <Route path="/jobs" element={<JobsPage />} />
                   </Routes>
                   </ErrorBoundary>
                 </AppShell>

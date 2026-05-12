@@ -14,6 +14,20 @@
       "type": "http",
       "direction": "out",
       "name": "Response"
+    },
+    {
+      "type": "queue",
+      "direction": "out",
+      "name": "jobQueue",
+      "queueName": "packmgmt-work",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "type": "table",
+      "direction": "out",
+      "name": "jobTable",
+      "tableName": "packmgmtjobs",
+      "connection": "AzureWebJobsStorage"
     }
   ]
 }

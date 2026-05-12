@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   DataGrid,
   DataGridHeader,
@@ -14,6 +14,7 @@ import {
   Title3,
   Toolbar,
   Tooltip,
+  ProgressBar,
   makeStyles,
   tokens,
   type DataGridProps,
@@ -22,7 +23,7 @@ import { ArrowSyncRegular, WrenchRegular } from "@fluentui/react-icons";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
-import { useBackendAction } from "../../hooks/useBackendAction";
+import { usePaaSJob } from "../../hooks/usePaaSJob";
 import { useConfig } from "../../hooks/useConfig";
 import { callFunction } from "../../services/functionClient";
 import { FilterBar, type FilterState, type FilterDimension } from "../../components/common/FilterBar";
@@ -224,21 +225,30 @@ export function MonitoredServices() {
   );
 
   // Backend action — remove monitoring
-  const action = useBackendAction({
-    onSuccess: () => {
-      setDialogOpen(false);
-      setSelectedIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
-    },
+  const action = usePaaSJob(() => {
+    queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
   });
 
   // Backend action — re-create alerts (AddPack)
-  const fixAction = useBackendAction({
-    onSuccess: () => {
-      setFixTarget(null);
-      queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
-    },
+  const fixAction = usePaaSJob(() => {
+    queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
   });
+
+  // Close dialogs as soon as the respective job is submitted (202 received)
+  useEffect(() => {
+    if (action.phase === "running" && dialogOpen) {
+      setDialogOpen(false);
+      setSelectedIds(new Set());
+      action.reset();
+    }
+  }, [action.phase, dialogOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (fixAction.phase === "running" && fixTarget) {
+      setFixTarget(null);
+      fixAction.reset();
+    }
+  }, [fixAction.phase, fixTarget]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFix = (item: PaaSRow) => {
     fixAction.reset();
@@ -247,8 +257,9 @@ export function MonitoredServices() {
 
   const handleFixConfirm = () => {
     if (!fixTarget) return;
-    fixAction.mutate({
+    fixAction.submit({
       endpoint: "packmgmt",
+      label: `Re-create Alerts — ${resourceName(fixTarget.Resource)}`,
       body: {
         Action: "AddPack",
         Resources: [{ Resource: fixTarget.Resource, type: fixTarget.Type ?? fixTarget.tag, location: fixTarget.location }],
@@ -266,8 +277,9 @@ export function MonitoredServices() {
   const selectedResources = rows.filter((r) => selectedIds.has(r.Resource));
 
   const handleConfirm = () => {
-    action.mutate({
+    action.submit({
       endpoint: "packmgmt",
+      label: `Remove Monitoring — ${selectedResources.length} resource(s)`,
       body: {
         Action: "RemoveTag",
         Resources: selectedResources.map((r) => ({
@@ -388,22 +400,32 @@ export function MonitoredServices() {
         title={`Re-create Alerts — ${fixTarget ? resourceName(fixTarget.Resource) : ""}`}
         onConfirm={handleFixConfirm}
         onCancel={() => { setFixTarget(null); fixAction.reset(); }}
-        isPending={fixAction.isPending}
+        isPending={fixAction.phase === "submitting" || fixAction.phase === "running"}
+        confirmDisabled={fixAction.phase === "running"}
       >
         <Text>
           This will re-create alert rules for <strong>{fixTarget ? resourceName(fixTarget.Resource) : ""}</strong> using the <strong>{fixTarget?.Type ?? fixTarget?.tag}</strong> pack.
         </Text>
-        {fixAction.isError && (() => {
-          const msg = fixAction.error instanceof Error ? fixAction.error.message : String(fixAction.error);
-          const isTimeout = msg.startsWith("TIMEOUT:");
-          return (
-            <Text style={{ color: isTimeout ? tokens.colorPaletteYellowForeground1 : tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
-              {isTimeout
-                ? "⏱ The operation is taking longer than expected. It is likely still running in the background — please close this dialog and refresh in a moment to check the result."
-                : `Error: ${msg}`}
+        {(fixAction.phase === "running" || fixAction.phase === "completed") && fixAction.progress.total > 0 && (
+          <div style={{ marginTop: "12px" }}>
+            <Text size={200}>
+              {fixAction.phase === "running" ? "Processing…" : "Done"}
+              {fixAction.progress.failed > 0 && (
+                <span style={{ color: tokens.colorPaletteRedForeground1 }}> — {fixAction.progress.failed} failed</span>
+              )}
             </Text>
-          );
-        })()}
+            <ProgressBar
+              value={(fixAction.progress.completed + fixAction.progress.failed) / fixAction.progress.total}
+              color={fixAction.progress.failed > 0 ? "warning" : "brand"}
+              style={{ marginTop: "4px" }}
+            />
+          </div>
+        )}
+        {fixAction.phase === "error" && (
+          <Text style={{ color: tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
+            Error: {fixAction.error?.message ?? "Unknown error"}
+          </Text>
+        )}
       </ConfirmDialog>
 
       <ConfirmDialog
@@ -411,7 +433,8 @@ export function MonitoredServices() {
         title={`Remove Monitoring — ${selectedTags.join(", ")}`}
         onConfirm={handleConfirm}
         onCancel={() => { setDialogOpen(false); action.reset(); }}
-        isPending={action.isPending}
+        isPending={action.phase === "submitting" || action.phase === "running"}
+        confirmDisabled={action.phase === "running"}
         danger
       >
         <Text>
@@ -425,14 +448,28 @@ export function MonitoredServices() {
             <li>...and {selectedResources.length - 10} more</li>
           )}
         </ul>
-        {action.isError && (() => {
-          const msg = action.error instanceof Error ? action.error.message : String(action.error);
-          const isTimeout = msg.startsWith("TIMEOUT:");
-          return (
-            <Text style={{ color: isTimeout ? tokens.colorPaletteYellowForeground1 : tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
-              {isTimeout
-                ? "⏱ The operation is taking longer than expected. It is likely still running in the background — please close this dialog and refresh in a moment to check the result."
-                : `Error: ${msg}`}
+        {(action.phase === "running" || action.phase === "completed") && action.progress.total > 0 && (
+          <div style={{ marginTop: "12px" }}>
+            <Text size={200}>
+              {action.phase === "running" ? "Processing…" : "Done —"}{" "}
+              {action.progress.completed + action.progress.failed} / {action.progress.total} resources
+              {action.progress.failed > 0 && (
+                <span style={{ color: tokens.colorPaletteRedForeground1 }}> ({action.progress.failed} failed)</span>
+              )}
             </Text>
-          );
-        })()}
+            <ProgressBar
+              value={(action.progress.completed + action.progress.failed) / action.progress.total}
+              color={action.progress.failed > 0 ? "warning" : "brand"}
+              style={{ marginTop: "4px" }}
+            />
+          </div>
+        )}
+        {action.phase === "error" && (
+          <Text style={{ color: tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
+            Error: {action.error?.message ?? "Unknown error"}
+          </Text>
+        )}
+      </ConfirmDialog>
+    </div>
+  );
+}

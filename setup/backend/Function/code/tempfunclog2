@@ -1,0 +1,741 @@
+Date:Wed, 08 Apr 2026 20:35:18 GMT
+Content-Length:0
+2026-04-08T20:35:19   [Information]   Response [fd004aed-cbda-4161-9b9a-2cc817a1ad75] 204 No Content (00.1s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:2c707d36-c003-0069-6397-c7f3fd000000
+x-ms-client-request-id:fd004aed-cbda-4161-9b9a-2cc817a1ad75
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:18 GMT
+Content-Length:0
+2026-04-08T20:35:20   [Information]   Request [352e680c-7062-4a95-b3dc-544b08373f2f] PUT https://fcmp2.blob.core.windows.net/azure-webjobs-hosts/locks/amp-mp2-b1e924f9-function/host?comp=lease
+x-ms-lease-action:renew
+x-ms-lease-id:fb76a1dd-7dbd-c574-7f96-d96fa1fa48ac
+x-ms-version:2024-11-04
+Accept:application/xml
+x-ms-client-request-id:352e680c-7062-4a95-b3dc-544b08373f2f
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Blobs/12.22.1 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:19 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Blobs
+2026-04-08T20:35:20   [Information]   Response [352e680c-7062-4a95-b3dc-544b08373f2f] 200 OK (00.0s)
+ETag:"0x8DE95ADEE7195A9"
+Server:Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:7e5d927e-501e-0054-5e97-c785e6000000
+x-ms-client-request-id:352e680c-7062-4a95-b3dc-544b08373f2f
+x-ms-version:2024-11-04
+x-ms-lease-id:fb76a1dd-7dbd-c574-7f96-d96fa1fa48ac
+Date:Wed, 08 Apr 2026 20:35:18 GMT
+Content-Length:0
+Last-Modified:Wed, 08 Apr 2026 20:32:19 GMT
+2026-04-08T20:35:20   [Information]   OUTPUT: 
+2026-04-08T20:35:20   [Information]   INFORMATION: Loaded Module 'Az.Accounts'
+2026-04-08T20:35:20   [Information]   Request [d4f00909-33ae-44ad-8b89-2a3746844ea7] HEAD https://fcmp2.blob.core.windows.net/azure-webjobs-hosts/locks/amp-mp2-b1e924f9-function/host
+x-ms-version:2024-11-04
+Accept:application/xml
+x-ms-client-request-id:d4f00909-33ae-44ad-8b89-2a3746844ea7
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Blobs/12.22.1 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:20 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Blobs
+2026-04-08T20:35:20   [Information]   Response [d4f00909-33ae-44ad-8b89-2a3746844ea7] 200 OK (00.0s)
+Accept-Ranges:bytes
+ETag:"0x8DE95ADEE7195A9"
+Server:Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:4e6d0aff-701e-000e-6e97-c7e301000000
+x-ms-client-request-id:d4f00909-33ae-44ad-8b89-2a3746844ea7
+x-ms-version:2024-11-04
+x-ms-meta-FunctionInstance:REDACTED
+x-ms-creation-time:Sun, 29 Mar 2026 16:48:08 GMT
+x-ms-lease-status:locked
+x-ms-lease-state:leased
+x-ms-lease-duration:fixed
+x-ms-blob-type:BlockBlob
+x-ms-server-encrypted:true
+x-ms-access-tier:Hot
+x-ms-access-tier-inferred:true
+Date:Wed, 08 Apr 2026 20:35:19 GMT
+Content-Length:0
+Content-Type:application/octet-stream
+Content-MD5:1B2M2Y8AsgTpgAmY7PhCfg==
+Last-Modified:Wed, 08 Apr 2026 20:32:19 GMT
+2026-04-08T20:35:21   [Information]   OUTPUT: 
+2026-04-08T20:35:21   [Information]   INFORMATION: Loaded Module 'Az.Storage'
+2026-04-08T20:35:21   [Information]   INFORMATION: Loaded Module 'Az.Storage'
+2026-04-08T20:35:22   [Information]   INFORMATION: Loaded Module 'Az.Accounts'
+2026-04-08T20:35:22   [Information]   OUTPUT: Subscription name Tenant
+2026-04-08T20:35:22   [Information]   OUTPUT: ----------------- ------
+2026-04-08T20:35:22   [Information]   OUTPUT: VisualStudio      6eb08c2c-7812-4ccd-9229-dc1d47f31f6f
+2026-04-08T20:35:22   [Information]   OUTPUT: 
+2026-04-08T20:35:22   [Information]   OUTPUT: Subscription name Tenant
+2026-04-08T20:35:22   [Information]   OUTPUT: ----------------- ------
+2026-04-08T20:35:22   [Information]   OUTPUT: VisualStudio      6eb08c2c-7812-4ccd-9229-dc1d47f31f6f
+2026-04-08T20:35:22   [Information]   OUTPUT: 
+2026-04-08T20:35:23   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:23   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=94b68fcf-7795-4b47-b05b-aa9c5c7e1d37, Duration=19365ms)
+2026-04-08T20:35:23   [Information]   Request [ea95465f-dced-407b-9ec0-e567e1d0146c] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/a9dfdc4a-e669-424a-9cfb-625b48a95a5d?popreceipt=AgAAAAMAAAAAAAAAAWlCk5jH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:ea95465f-dced-407b-9ec0-e567e1d0146c
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:22 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:23   [Information]   Response [ea95465f-dced-407b-9ec0-e567e1d0146c] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:d5158c7d-1003-0045-3d97-c71f52000000
+x-ms-client-request-id:ea95465f-dced-407b-9ec0-e567e1d0146c
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:22 GMT
+Content-Length:0
+2026-04-08T20:35:23   [Information]   Request [89663dc9-2476-4c5f-ac8f-f1a9a9dc4d4a] HEAD https://fcmp2.blob.core.windows.net/azure-webjobs-hosts/locks/amp-mp2-b1e924f9-function/host
+x-ms-version:2024-11-04
+Accept:application/xml
+x-ms-client-request-id:89663dc9-2476-4c5f-ac8f-f1a9a9dc4d4a
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Blobs/12.22.1 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:22 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Blobs
+2026-04-08T20:35:23   [Information]   Response [89663dc9-2476-4c5f-ac8f-f1a9a9dc4d4a] 200 OK (00.0s)
+Accept-Ranges:bytes
+ETag:"0x8DE95ADEE7195A9"
+Server:Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:73bc84f9-401e-0015-8097-c7dd02000000
+x-ms-client-request-id:89663dc9-2476-4c5f-ac8f-f1a9a9dc4d4a
+x-ms-version:2024-11-04
+x-ms-meta-FunctionInstance:REDACTED
+x-ms-creation-time:Sun, 29 Mar 2026 16:48:08 GMT
+x-ms-lease-status:locked
+x-ms-lease-state:leased
+x-ms-lease-duration:fixed
+x-ms-blob-type:BlockBlob
+x-ms-server-encrypted:true
+x-ms-access-tier:Hot
+x-ms-access-tier-inferred:true
+Date:Wed, 08 Apr 2026 20:35:22 GMT
+Content-Length:0
+Content-Type:application/octet-stream
+Content-MD5:1B2M2Y8AsgTpgAmY7PhCfg==
+Last-Modified:Wed, 08 Apr 2026 20:32:19 GMT
+2026-04-08T20:35:23   [Verbose]   [HostMonitor] Checking worker statuses (Count=1)
+2026-04-08T20:35:23   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:23   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=5f9c9376-a547-417a-a936-fc94cc154c42, Duration=51750ms)
+2026-04-08T20:35:23   [Information]   Request [7ed24d9b-65e7-495f-bbd7-d9d9d5191cad] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/b0aeb368-fa5d-4d95-bf96-9016c33a6240?popreceipt=AgAAAAMAAAAAAAAA5BoVgJjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:7ed24d9b-65e7-495f-bbd7-d9d9d5191cad
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:23 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:23   [Information]   Response [7ed24d9b-65e7-495f-bbd7-d9d9d5191cad] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:bcdf27e8-c003-0034-2c97-c7f979000000
+x-ms-client-request-id:7ed24d9b-65e7-495f-bbd7-d9d9d5191cad
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:22 GMT
+Content-Length:0
+2026-04-08T20:35:23   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:23   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=31f6fd1b-70ed-4b20-9f68-4bde80a422a2, Duration=52212ms)
+2026-04-08T20:35:23   [Information]   Request [e6b5523b-ece9-44f9-afca-35a5726e4785] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/2dedaee9-bec9-499c-a151-964a74ce0b89?popreceipt=AgAAAAMAAAAAAAAA5BoVgJjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:e6b5523b-ece9-44f9-afca-35a5726e4785
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:23 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:24   [Information]   Request [52944a47-7b4b-44e2-b13b-63d431b92853] HEAD https://fcmp2.blob.core.windows.net/azure-webjobs-hosts/locks/amp-mp2-b1e924f9-function/host
+x-ms-version:2024-11-04
+Accept:application/xml
+x-ms-client-request-id:52944a47-7b4b-44e2-b13b-63d431b92853
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Blobs/12.22.1 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:23 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Blobs
+2026-04-08T20:35:24   [Information]   Response [52944a47-7b4b-44e2-b13b-63d431b92853] 200 OK (00.0s)
+Accept-Ranges:bytes
+ETag:"0x8DE95ADEE7195A9"
+Server:Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:0f5e9b4e-a01e-001d-1797-c7c70d000000
+x-ms-client-request-id:52944a47-7b4b-44e2-b13b-63d431b92853
+x-ms-version:2024-11-04
+x-ms-meta-FunctionInstance:REDACTED
+x-ms-creation-time:Sun, 29 Mar 2026 16:48:08 GMT
+x-ms-lease-status:locked
+x-ms-lease-state:leased
+x-ms-lease-duration:fixed
+x-ms-blob-type:BlockBlob
+x-ms-server-encrypted:true
+x-ms-access-tier:Hot
+x-ms-access-tier-inferred:true
+Date:Wed, 08 Apr 2026 20:35:22 GMT
+Content-Length:0
+Content-Type:application/octet-stream
+Content-MD5:1B2M2Y8AsgTpgAmY7PhCfg==
+Last-Modified:Wed, 08 Apr 2026 20:32:19 GMT
+2026-04-08T20:35:24   [Information]   Response [e6b5523b-ece9-44f9-afca-35a5726e4785] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:bcdf280a-c003-0034-4997-c7f979000000
+x-ms-client-request-id:e6b5523b-ece9-44f9-afca-35a5726e4785
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:23 GMT
+Content-Length:0
+2026-04-08T20:35:24   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:24   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=ccb01518-28c7-4138-95d4-e26f86df71f2, Duration=52417ms)
+2026-04-08T20:35:24   [Information]   Request [1464654f-cd40-4af0-b445-305f7e69d162] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/17a5fbf0-4d53-4aca-bff1-5bf2e027d2a4?popreceipt=AgAAAAMAAAAAAAAA5BoVgJjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:1464654f-cd40-4af0-b445-305f7e69d162
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:23 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:24   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:24   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=7e34a7cc-5cf2-4b26-a5f5-72637d81b41e, Duration=52421ms)
+2026-04-08T20:35:24   [Information]   Request [2db5c4d9-b2e7-4080-bff9-0fe14eae37aa] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/2488bd51-f986-4c25-8589-c6246bea0d33?popreceipt=AgAAAAMAAAAAAAAA5BoVgJjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:2db5c4d9-b2e7-4080-bff9-0fe14eae37aa
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:23 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:24   [Information]   Response [1464654f-cd40-4af0-b445-305f7e69d162] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:bcdf283f-c003-0034-7197-c7f979000000
+x-ms-client-request-id:1464654f-cd40-4af0-b445-305f7e69d162
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:23 GMT
+Content-Length:0
+2026-04-08T20:35:24   [Information]   Response [2db5c4d9-b2e7-4080-bff9-0fe14eae37aa] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:3597bc65-3003-006d-1497-c77efa000000
+x-ms-client-request-id:2db5c4d9-b2e7-4080-bff9-0fe14eae37aa
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:23 GMT
+Content-Length:0
+2026-04-08T20:35:24   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:24   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=80dd2e59-1ce4-49e9-8773-62fdbc1af24a, Duration=52538ms)
+2026-04-08T20:35:24   [Information]   Request [1bd65af3-e993-498f-838d-0755ce7116b4] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/5dd4c3f1-b75d-4f77-96b0-7fadeea7f019?popreceipt=AgAAAAMAAAAAAAAA5BoVgJjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:1bd65af3-e993-498f-838d-0755ce7116b4
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:24 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:24   [Information]   Response [1bd65af3-e993-498f-838d-0755ce7116b4] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:3597bc7a-3003-006d-2797-c77efa000000
+x-ms-client-request-id:1bd65af3-e993-498f-838d-0755ce7116b4
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:23 GMT
+Content-Length:0
+2026-04-08T20:35:25   [Information]   INFORMATION: Loaded Module 'Az.Storage'
+2026-04-08T20:35:25   [Information]   Request [15f17bef-c173-49b2-a99a-43d86843366c] HEAD https://fcmp2.blob.core.windows.net/azure-webjobs-hosts/locks/amp-mp2-b1e924f9-function/host
+x-ms-version:2024-11-04
+Accept:application/xml
+x-ms-client-request-id:15f17bef-c173-49b2-a99a-43d86843366c
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Blobs/12.22.1 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:25 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Blobs
+2026-04-08T20:35:25   [Information]   Response [15f17bef-c173-49b2-a99a-43d86843366c] 200 OK (00.0s)
+Accept-Ranges:bytes
+ETag:"0x8DE95ADEE7195A9"
+Server:Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:4e6d1e39-701e-000e-6797-c7e301000000
+x-ms-client-request-id:15f17bef-c173-49b2-a99a-43d86843366c
+x-ms-version:2024-11-04
+x-ms-meta-FunctionInstance:REDACTED
+x-ms-creation-time:Sun, 29 Mar 2026 16:48:08 GMT
+x-ms-lease-status:locked
+x-ms-lease-state:leased
+x-ms-lease-duration:fixed
+x-ms-blob-type:BlockBlob
+x-ms-server-encrypted:true
+x-ms-access-tier:Hot
+x-ms-access-tier-inferred:true
+Date:Wed, 08 Apr 2026 20:35:24 GMT
+Content-Length:0
+Content-Type:application/octet-stream
+Content-MD5:1B2M2Y8AsgTpgAmY7PhCfg==
+Last-Modified:Wed, 08 Apr 2026 20:32:19 GMT
+2026-04-08T20:35:25   [Information]   OUTPUT: 
+2026-04-08T20:35:25   [Information]   INFORMATION: Loaded Module 'Az.Accounts'
+2026-04-08T20:35:26   [Information]   OUTPUT: Subscription name Tenant
+2026-04-08T20:35:26   [Information]   OUTPUT: ----------------- ------
+2026-04-08T20:35:26   [Information]   OUTPUT: VisualStudio      6eb08c2c-7812-4ccd-9229-dc1d47f31f6f
+2026-04-08T20:35:26   [Information]   OUTPUT: 
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=507bd365-f397-4441-9349-7b5fe1f01b4d, Duration=37531ms)
+2026-04-08T20:35:27   [Information]   Request [e7818ed2-e165-4d4f-9930-04334a777fca] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/65556473-eaf4-41c3-8d89-3340703324c8?popreceipt=AgAAAAMAAAAAAAAAzbEPi5jH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:e7818ed2-e165-4d4f-9930-04334a777fca
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=361579bd-c4b6-42ea-8a3a-61d68af9ec5d, Duration=37533ms)
+2026-04-08T20:35:27   [Information]   Request [17835aef-719f-4a44-9daa-551095aa88e8] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/68d94ddc-46cd-4e04-9150-72b5e29fc722?popreceipt=AgAAAAMAAAAAAAAAzbEPi5jH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:17835aef-719f-4a44-9daa-551095aa88e8
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Information]   Response [e7818ed2-e165-4d4f-9930-04334a777fca] 204 No Content (00.2s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:d5158f78-1003-0045-6597-c71f52000000
+x-ms-client-request-id:e7818ed2-e165-4d4f-9930-04334a777fca
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:26 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Information]   Response [17835aef-719f-4a44-9daa-551095aa88e8] 204 No Content (00.2s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:6628b597-2003-003c-3d97-c7e376000000
+x-ms-client-request-id:17835aef-719f-4a44-9daa-551095aa88e8
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:26 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=40a773d9-4f71-4d87-b767-05850efbd78f, Duration=37716ms)
+2026-04-08T20:35:27   [Information]   Request [0c0400fe-bfaa-4fd0-8bd2-6d33540ea074] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/38ae920e-76e3-4c02-9aed-97a56318e7f1?popreceipt=AgAAAAMAAAAAAAAAzbEPi5jH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:0c0400fe-bfaa-4fd0-8bd2-6d33540ea074
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Information]   Response [0c0400fe-bfaa-4fd0-8bd2-6d33540ea074] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:6628b5a5-2003-003c-4a97-c7e376000000
+x-ms-client-request-id:0c0400fe-bfaa-4fd0-8bd2-6d33540ea074
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:27 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=c20511e4-ea6f-4003-a3cd-5608efaff34e, Duration=37820ms)
+2026-04-08T20:35:27   [Information]   Request [74454164-a5f3-4ed9-a70c-3f678e7907f7] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/c382dad1-4d37-4181-843d-664d9a5fa213?popreceipt=AgAAAAMAAAAAAAAAzbEPi5jH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:74454164-a5f3-4ed9-a70c-3f678e7907f7
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Information]   Response [74454164-a5f3-4ed9-a70c-3f678e7907f7] 204 No Content (00.1s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:6628b5a8-2003-003c-4c97-c7e376000000
+x-ms-client-request-id:74454164-a5f3-4ed9-a70c-3f678e7907f7
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:27 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=9b196a50-0384-41f6-99cb-bf00dd9d5f13, Duration=37971ms)
+2026-04-08T20:35:27   [Information]   Request [9db122cc-9c87-4410-b64c-306bfc17e8f6] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/48a8693f-ca0f-4b04-8e09-913a4f64d967?popreceipt=AgAAAAMAAAAAAAAAzbEPi5jH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:9db122cc-9c87-4410-b64c-306bfc17e8f6
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Information]   Response [9db122cc-9c87-4410-b64c-306bfc17e8f6] 204 No Content (00.1s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:6628b5b0-2003-003c-5397-c7e376000000
+x-ms-client-request-id:9db122cc-9c87-4410-b64c-306bfc17e8f6
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:27 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Information]   INFORMATION: Loaded Module 'Az.Storage'
+2026-04-08T20:35:27   [Information]   OUTPUT: Subscription name Tenant
+2026-04-08T20:35:27   [Information]   OUTPUT: ----------------- ------
+2026-04-08T20:35:27   [Information]   OUTPUT: VisualStudio      6eb08c2c-7812-4ccd-9229-dc1d47f31f6f
+2026-04-08T20:35:27   [Information]   OUTPUT: 
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=d94cccb0-b64c-4e8b-9d39-44f11b40bf81, Duration=27300ms)
+2026-04-08T20:35:27   [Information]   Request [b0020270-8060-45f2-8c1d-5f66e098bf33] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/23401557-9018-4386-a767-b28987576dc6?popreceipt=AgAAAAMAAAAAAAAAOuNGkZjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:b0020270-8060-45f2-8c1d-5f66e098bf33
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=81648fde-a519-4638-9a68-09751d2bb268, Duration=27301ms)
+2026-04-08T20:35:27   [Information]   Request [c2657593-cf45-4ce6-a7d0-ebec1a61fac9] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/2ebef036-a4df-4976-b0d1-685d84c3482b?popreceipt=AgAAAAMAAAAAAAAAOuNGkZjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:c2657593-cf45-4ce6-a7d0-ebec1a61fac9
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:27   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=03569acb-49eb-4658-8583-2cb1864adeff, Duration=27303ms)
+2026-04-08T20:35:27   [Information]   Request [d82627e0-85e1-4dfd-9178-e52208c09f6e] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/91131ad2-7c33-43de-a7f9-14f98ac0979c?popreceipt=AgAAAAMAAAAAAAAAOuNGkZjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:d82627e0-85e1-4dfd-9178-e52208c09f6e
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Information]   Response [b0020270-8060-45f2-8c1d-5f66e098bf33] 204 No Content (00.1s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:c0162a05-2003-0071-4797-c72c9a000000
+x-ms-client-request-id:b0020270-8060-45f2-8c1d-5f66e098bf33
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:26 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Information]   Response [d82627e0-85e1-4dfd-9178-e52208c09f6e] 204 No Content (00.1s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:2c7080d1-c003-0069-1097-c7f3fd000000
+x-ms-client-request-id:d82627e0-85e1-4dfd-9178-e52208c09f6e
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:26 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Information]   Request [f1a45b43-3b1c-4ae0-8400-54b3ece1eb47] GET https://fcmp2.queue.core.windows.net/packmgmt-work/messages?numofmessages=16&visibilitytimeout=600
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:f1a45b43-3b1c-4ae0-8400-54b3ece1eb47
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:27   [Information]   Response [c2657593-cf45-4ce6-a7d0-ebec1a61fac9] 204 No Content (00.1s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:d103d26f-5003-0009-2697-c78f62000000
+x-ms-client-request-id:c2657593-cf45-4ce6-a7d0-ebec1a61fac9
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:27 GMT
+Content-Length:0
+2026-04-08T20:35:27   [Information]   Response [f1a45b43-3b1c-4ae0-8400-54b3ece1eb47] 200 OK (00.0s)
+Cache-Control:no-cache
+Transfer-Encoding:chunked
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:2c7080d6-c003-0069-1497-c7f3fd000000
+x-ms-client-request-id:f1a45b43-3b1c-4ae0-8400-54b3ece1eb47
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:27 GMT
+Content-Type:application/xml
+2026-04-08T20:35:27   [Verbose]   Poll for function 'packmgmt-worker' on queue 'packmgmt-work' with ClientRequestId 'f1a45b43-3b1c-4ae0-8400-54b3ece1eb47' found 16 messages in 24 ms.
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=19ddace5-17ab-4408-8556-fb74eb34ef6d)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 55ba2d5e-7c07-4d51-ba4f-ea016f2ee289, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=8350366a-a3a3-4d2f-9a01-687489703833)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: ab71e341-9c2e-44db-9ec0-dcd422b2657a, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=c030585d-a8db-4a07-a367-bf8dbb5bb6df)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: cd6c43b4-a966-41e4-9651-33b8d2d11b8b, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=a076ef3a-7bef-428d-8592-abf593d4782f)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: e38b69f0-cbbc-40d7-9b3f-5dfa7c85aab2, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=9a56e840-1ddc-4d29-ba8c-960794363043)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 1c700a7d-040d-4483-a27b-8a715485b268, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=14d5883e-4acf-4a94-b1c7-afa859e10b3b)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 3d4116a3-2801-4b16-a288-cb854404a4a0, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=cc2aad79-3e50-45f1-8e9c-43a2db74a355)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 413a84f4-488a-4450-97cd-3d1be95d0f95, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=a0e9a2c5-b1d7-4657-ad4f-b63ef7dbe36f)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 1970f71b-b267-46da-b2e4-7bf22c1b27b1, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=c9e22c0b-0ebf-41a3-8564-d4e68842161b)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: ac1a623f-c2d6-4fd6-8472-e0c3972073dd, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=121cb5fd-4420-4a00-8cc4-07dae5ec9ffc)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 0342dcce-4215-4179-b183-d66bb43d49bd, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=0a8f925b-5bb5-46d4-b840-8d6a5562e449)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 8fdab684-66c0-41f5-b478-35d4ade438bf, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=9e30fbad-bf0a-4539-b945-1462c80e9299)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 03c96613-ae39-448b-b0a2-ed36fa2ae7f3, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=83880a56-e854-4a6b-b22b-30803d3211c8)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: d3a88a1b-7d6b-49ba-a55d-d4dcf5da0ba4, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=1a0c784c-20eb-43ad-baeb-fa6ad8a11181)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 7807adb5-b137-4c3e-8be1-ee1991b34b8e, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=0ae15c95-f0b2-43fe-8542-c22abd498213)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: 019dc60c-3afb-45fe-9577-76abb1edde30, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Information]   Executing 'Functions.packmgmt-worker' (Reason='New queue message detected on 'packmgmt-work'.', Id=04704611-320f-49d1-b15c-290db041c4f8)
+2026-04-08T20:35:27   [Information]   Trigger Details: MessageId: b250fe12-2383-4a4b-beed-56aa07a77921, DequeueCount: 1, InsertedOn: 2026-04-08T20:34:26.000+00:00
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '19ddace5-17ab-4408-8556-fb74eb34ef6d
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:19ddace5-17ab-4408-8556-fb74eb34ef6d on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '8350366a-a3a3-4d2f-9a01-687489703833
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:8350366a-a3a3-4d2f-9a01-687489703833 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: 'c030585d-a8db-4a07-a367-bf8dbb5bb6df
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:c030585d-a8db-4a07-a367-bf8dbb5bb6df on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: 'a076ef3a-7bef-428d-8592-abf593d4782f
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:a076ef3a-7bef-428d-8592-abf593d4782f on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '9a56e840-1ddc-4d29-ba8c-960794363043
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:9a56e840-1ddc-4d29-ba8c-960794363043 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '14d5883e-4acf-4a94-b1c7-afa859e10b3b
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:14d5883e-4acf-4a94-b1c7-afa859e10b3b on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: 'cc2aad79-3e50-45f1-8e9c-43a2db74a355
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:cc2aad79-3e50-45f1-8e9c-43a2db74a355 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: 'a0e9a2c5-b1d7-4657-ad4f-b63ef7dbe36f
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:a0e9a2c5-b1d7-4657-ad4f-b63ef7dbe36f on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: 'c9e22c0b-0ebf-41a3-8564-d4e68842161b
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:c9e22c0b-0ebf-41a3-8564-d4e68842161b on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '121cb5fd-4420-4a00-8cc4-07dae5ec9ffc
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:121cb5fd-4420-4a00-8cc4-07dae5ec9ffc on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '0a8f925b-5bb5-46d4-b840-8d6a5562e449
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:0a8f925b-5bb5-46d4-b840-8d6a5562e449 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '9e30fbad-bf0a-4539-b945-1462c80e9299
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:9e30fbad-bf0a-4539-b945-1462c80e9299 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '83880a56-e854-4a6b-b22b-30803d3211c8
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:83880a56-e854-4a6b-b22b-30803d3211c8 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '1a0c784c-20eb-43ad-baeb-fa6ad8a11181
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:1a0c784c-20eb-43ad-baeb-fa6ad8a11181 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '0ae15c95-f0b2-43fe-8542-c22abd498213
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:0ae15c95-f0b2-43fe-8542-c22abd498213 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:27   [Verbose]   Sending invocation id: '04704611-320f-49d1-b15c-290db041c4f8
+2026-04-08T20:35:27   [Verbose]   Posting invocation id:04704611-320f-49d1-b15c-290db041c4f8 on workerId:c97e81ff-5442-43b1-83f2-6cb0f0ee0007
+2026-04-08T20:35:28   [Error]   ERROR: packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+
+Exception             : 
+    Type    : Microsoft.PowerShell.Commands.WriteErrorException
+    Message : packmgmt-worker: Failed to parse queue message: Conversion from JSON failed with error: Unexpected character encountered while parsing value: S. Path '', line 0, position 0.
+    HResult : -2146233087
+CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,_packmgmt-worker_
+InvocationInfo        : 
+    MyCommand       : _packmgmt-worker_
+    HistoryId       : 1
+    InvocationName  : _packmgmt-worker_
+    CommandOrigin   : Internal
+ScriptStackTrace      : at <ScriptBlock>, C:\home\site\wwwroot\packmgmt-worker\run.ps1: line 11
+
+2026-04-08T20:35:28   [Information]   Executed 'Functions.packmgmt-worker' (Succeeded, Id=bf97e163-402a-4312-895f-b6c58c54a8d1, Duration=27499ms)
+2026-04-08T20:35:28   [Information]   Request [124fbc42-e178-4c02-85b7-7b00d4ff4670] DELETE https://fcmp2.queue.core.windows.net/packmgmt-work/messages/0494ce7f-a82e-4648-aba9-f12c8ce38538?popreceipt=AgAAAAMAAAAAAAAAOuNGkZjH3AE%3D
+x-ms-version:2025-11-05
+Accept:application/xml
+x-ms-client-request-id:124fbc42-e178-4c02-85b7-7b00d4ff4670
+x-ms-return-client-request-id:true
+User-Agent:azsdk-net-Storage.Queues/12.24.0 (.NET 8.0.24; Microsoft Windows 10.0.20348)
+x-ms-date:Wed, 08 Apr 2026 20:35:27 GMT
+Authorization:REDACTED
+client assembly: Azure.Storage.Queues
+2026-04-08T20:35:28   [Information]   Response [124fbc42-e178-4c02-85b7-7b00d4ff4670] 204 No Content (00.0s)
+Server:Windows-Azure-Queue/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id:2c7080ee-c003-0069-2b97-c7f3fd000000
+x-ms-client-request-id:124fbc42-e178-4c02-85b7-7b00d4ff4670
+x-ms-version:2025-11-05
+Date:Wed, 08 Apr 2026 20:35:27 GMT
+Content-Length:0
+2026-04-08T20:35:28   [Information]   Request [768eb1c9-ce04-4a15-90a9-be9d287ae3a0] HEAD https://fcmp2.blob.core.windows.net/azure-webjobs-hosts/locks/amp-mp2-b1e924f9-function/host

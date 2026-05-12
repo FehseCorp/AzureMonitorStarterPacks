@@ -19,6 +19,53 @@ if ([string]::IsNullOrEmpty($action)) {
     return
 }
 
+# Helper: enqueue PaaS work and return 202 immediately.
+# Uses Azure Functions output bindings (Push-OutputBinding) so no SDK type
+# instantiation is needed — the Functions runtime handles all storage calls.
+function Submit-PaaSJob {
+    param(
+        [string]$Action,         # AddPack | RemoveTag
+        [array]$Resources,
+        [string]$TagName,
+        [string]$DefaultAG,
+        [string]$WorkspaceId,
+        [string]$AzureMonitorWorkspaceId
+    )
+    $jobId = [System.Guid]::NewGuid().ToString()
+
+    # Write job metadata row via table output binding (defined in function.json)
+    Push-OutputBinding -Name jobTable -Value @{
+        partitionKey = $jobId
+        rowKey       = '_job'
+        Total        = [int]$Resources.Count
+        Action       = $Action
+        Status       = 'Queued'
+    }
+
+    # Enqueue one message per resource via queue output binding (defined in function.json)
+    $seq = 0
+    foreach ($resource in $Resources) {
+        $msg = @{
+            JobId    = $jobId
+            Seq      = $seq
+            Action   = $Action
+            Resource = $resource.Resource
+            Type     = $resource.type
+            Location = $resource.location
+            Tag      = $resource.tag
+            TagName  = $TagName
+            DefaultAG = $DefaultAG
+            WorkspaceId = $WorkspaceId
+            AzureMonitorWorkspaceId = $AzureMonitorWorkspaceId
+            InstanceName = $instanceName
+        } | ConvertTo-Json -Compress
+        Push-OutputBinding -Name jobQueue -Value $msg
+        $seq++
+    }
+    Write-Host "packmgmt: Queued $($Resources.Count) PaaS work item(s) for job $jobId."
+    return $jobId
+}
+
 try {
     if ($action -eq 'importPack') {
         $newPacks = $Request.Body.PackDef | ConvertTo-Json -Depth 20
@@ -116,23 +163,19 @@ try {
                                     -location $resource.Location
                             }
                             'PaaS' {
-                                Write-Host "packmgmt: PackType=$PackType"
-                                $ResourceType = $resource.type
-                                if ([string]::IsNullOrEmpty($ResourceType)) {
-                                    Write-Host "packmgmt: Error - No resource type found for $($resource.Resource)"
-                                    continue
-                                }
-                                Write-Host "packmgmt: Adding tag for $ResourceType. Tag=$TagName. Resource=$($resource.Resource)"
-                                Add-Monitoring -resourceId $resource.Resource `
+                                # PaaS work is slow (AMBA catalog fetch + many ARM calls per resource).
+                                # Enqueue all resources at once and return a jobId immediately.
+                                $jobId = Submit-PaaSJob `
+                                    -Action 'AddPack' `
+                                    -Resources $resources `
                                     -TagName $TagName `
-                                    -TagValue $ResourceType `
-                                    -resourceType $ResourceType `
-                                    -actionGroupId $defaultAG `
-                                    -packtype $packType `
-                                    -instanceName $instanceName `
-                                    -location $resource.location `
-                                    -workspaceResourceId $workspaceResourceId `
-                                    -azureMonitorWorkspaceId $azureMonitorWorkspaceId
+                                    -DefaultAG $defaultAG `
+                                    -WorkspaceId $workspaceResourceId `
+                                    -AzureMonitorWorkspaceId $azureMonitorWorkspaceId
+                                $statusCode = [HttpStatusCode]::Accepted
+                                $body = @{ jobId = $jobId; total = $resources.Count } | ConvertTo-Json -Compress
+                                # Break out of the foreach — Submit-PaaSJob already looped resources
+                                break
                             }
                             default {
                                 Write-Host "packmgmt: Invalid PackType: $PackType"
@@ -166,8 +209,17 @@ try {
                                 }
                             }
                             'Paas' {
-                                Write-Host "packmgmt: TAGMGMT removing $($resource.tag) from $($resource.Resource). PackType=$PackType"
-                                Remove-Monitoring -resourceId $resource.Resource -TagName $TagName -TagValue $resource.tag -PackType $PackType -instanceName $instanceName
+                                # Enqueue removals the same way
+                                $jobId = Submit-PaaSJob `
+                                    -Action 'RemoveTag' `
+                                    -Resources $resources `
+                                    -TagName $TagName `
+                                    -DefaultAG $defaultAG `
+                                    -WorkspaceId $workspaceResourceId `
+                                    -AzureMonitorWorkspaceId $azureMonitorWorkspaceId
+                                $statusCode = [HttpStatusCode]::Accepted
+                                $body = @{ jobId = $jobId; total = $resources.Count } | ConvertTo-Json -Compress
+                                break
                             }
                             default {
                                 Write-Host "packmgmt: Invalid PackType: $PackType"

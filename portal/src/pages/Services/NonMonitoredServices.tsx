@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   DataGrid,
   DataGridHeader,
@@ -12,6 +12,7 @@ import {
   Text,
   Title3,
   Toolbar,
+  ProgressBar,
   makeStyles,
   tokens,
   type DataGridProps,
@@ -20,7 +21,7 @@ import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useMsal } from "@azure/msal-react";
 import { managementScope } from "../../auth/msalConfig";
-import { useBackendAction } from "../../hooks/useBackendAction";
+import { usePaaSJob } from "../../hooks/usePaaSJob";
 import { useConfig } from "../../hooks/useConfig";
 import { callFunction } from "../../services/functionClient";
 import { FilterBar, type FilterState, type FilterDimension } from "../../components/common/FilterBar";
@@ -184,22 +185,28 @@ export function NonMonitoredServices() {
     [rows, currentPage, pageSize]
   );
 
-  // Backend action — enable monitoring
-  const action = useBackendAction({
-    onSuccess: () => {
+  // Backend action — enable monitoring via async queue job
+  const job = usePaaSJob(() => {
+    queryClient.invalidateQueries({ queryKey: ["nonMonitoredPaaS"] });
+    queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
+  });
+
+  // Close dialog as soon as the job is submitted (202 received) so user isn't blocked
+  useEffect(() => {
+    if (job.phase === "running" && dialogOpen) {
       setDialogOpen(false);
       setSelectedIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ["nonMonitoredPaaS"] });
-      queryClient.invalidateQueries({ queryKey: ["monitoredPaaS"] });
-    },
-  });
+      job.reset();
+    }
+  }, [job.phase, dialogOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedResources = rows.filter((r) => selectedIds.has(r.Resource));
   const selectedResourceTypes = [...new Set(selectedResources.map((r) => r.type))];
 
   const handleConfirm = () => {
-    action.mutate({
+    job.submit({
       endpoint: "packmgmt",
+      label: `Enable Monitoring — ${selectedResources.length} resource(s)`,
       body: {
         Action: "AddPack",
         Resources: selectedResources.map((r) => ({
@@ -326,8 +333,9 @@ export function NonMonitoredServices() {
         open={dialogOpen}
         title="Enable Monitoring"
         onConfirm={handleConfirm}
-        onCancel={() => { setDialogOpen(false); action.reset(); }}
-        isPending={action.isPending}
+        onCancel={() => { setDialogOpen(false); job.reset(); }}
+        isPending={job.phase === "submitting" || job.phase === "running"}
+        confirmDisabled={job.phase === "running"}
       >
         <Text>
           This will enable monitoring for <strong>{selectedResources.length}</strong> service(s):
@@ -340,17 +348,27 @@ export function NonMonitoredServices() {
             <li>...and {selectedResources.length - 10} more</li>
           )}
         </ul>
-        {action.isError && (() => {
-          const msg = action.error instanceof Error ? action.error.message : String(action.error);
-          const isTimeout = msg.startsWith("TIMEOUT:");
-          return (
-            <Text style={{ color: isTimeout ? tokens.colorPaletteYellowForeground1 : tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
-              {isTimeout
-                ? "⏱ The operation is taking longer than expected. It is likely still running in the background — please close this dialog and refresh in a moment to check the result."
-                : `Error: ${msg}`}
+        {(job.phase === "running" || job.phase === "completed") && job.progress.total > 0 && (
+          <div style={{ marginTop: "12px" }}>
+            <Text size={200}>
+              {job.phase === "running" ? "Processing…" : "Done —"}{" "}
+              {job.progress.completed + job.progress.failed} / {job.progress.total} resources
+              {job.progress.failed > 0 && (
+                <span style={{ color: tokens.colorPaletteRedForeground1 }}> ({job.progress.failed} failed)</span>
+              )}
             </Text>
-          );
-        })()}
+            <ProgressBar
+              value={(job.progress.completed + job.progress.failed) / job.progress.total}
+              color={job.progress.failed > 0 ? "warning" : "brand"}
+              style={{ marginTop: "4px" }}
+            />
+          </div>
+        )}
+        {job.phase === "error" && (
+          <Text style={{ color: tokens.colorPaletteRedForeground1, display: "block", marginTop: "8px" }}>
+            Error: {job.error?.message ?? "Unknown error"}
+          </Text>
+        )}
       </ConfirmDialog>
     </div>
   );
